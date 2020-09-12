@@ -1,0 +1,7 @@
+/.build/**
+/build/**
+/coverage/**
+/docs/**
+/generated/**
+/node_modules/**
+/temp/**

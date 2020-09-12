@@ -1,0 +1,7 @@
+/.build/**
+/build/**
+/coverage/**
+/docs/**
+/prisma-client/**
+/node_modules/**
+/temp/**
