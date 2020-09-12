@@ -1,6 +1,9 @@
+import Box2d from '@supersede/box2d';
 import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
+import {ObjectService} from 'src/config/types';
+import {AudioChannel} from 'src/config/constants';
 
 export type Voting = {
   timeRemaining: number;
@@ -31,12 +34,6 @@ type Settings = {
   numDifficultJobs: number;
 };
 
-export enum AudioChannel {
-  Lobby,
-  Voting,
-  Silent,
-}
-
 export class GameRoom {
   public static activeRooms: Map<string, GameRoom>;
   public players: Map<string, Player>;
@@ -44,6 +41,7 @@ export class GameRoom {
   public isGameStarted: boolean;
   public isVoting: boolean;
   private host?: Player;
+  private world: Box2d.b2World;
   private settings: Settings;
   private jobs: Job[];
   private voting: Voting;
@@ -72,6 +70,9 @@ export class GameRoom {
       numEasyJobs: 3,
       numDifficultJobs: 1,
     };
+    // Set up physics engine of the room
+    const gravity = new Box2d.b2Vec2(0, 0);
+    this.world = new Box2d.b2World(gravity);
   }
 
   addPlayer(player: Player) {
@@ -79,6 +80,7 @@ export class GameRoom {
       this.host = player;
     }
     this.players.set(player.id, player);
+    player.joinRoom(this.id);
   }
 
   removePlayer(player: Player) {
@@ -88,66 +90,90 @@ export class GameRoom {
     if (this.host === player && this.players.size > 0) {
       this.host = this.players.values().next().value;
     }
+    const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
+    player.leaveRoom(audioIds);
   }
 
-  getAudioIdsInChannel(channel: AudioChannel) {
-    const players = Array.from(this.players.values());
-    if (channel === AudioChannel.Silent) {
-      return [];
-    } else if (channel === AudioChannel.Lobby) {
-      // Check if in lobby
-      if (!this.isGameStarted) {
-        return players.map((p) => p.audioId);
-      }
-      // If in game, then add people who are dead
-      return players.filter((p) => p.alive === false).map((p) => p.audioId);
-    } else if (channel === AudioChannel.Voting) {
-      return players.filter((p) => p.alive === true).map((p) => p.audioId);
+  killPlayer(player: Player) {
+    const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
+    player.kill(audioIds);
+    log('info', `Kill player ${this.id}`);
+  }
+
+  revivePlayer(player: Player) {
+    let channelType = AudioChannel.Silent;
+    if (this.isGameStarted && this.isVoting) {
+      channelType = AudioChannel.Voting;
     } else {
-      throw 'Invalid AudioChannel passed';
+      channelType = AudioChannel.Lobby;
+    }
+    const audioIds = this.getAudioIdsInChannel(channelType);
+    player.revive(audioIds);
+    log('info', `Revive player ${this.id}`);
+  }
+
+  getAudioIdsInChannel(channel: AudioChannel): string[] {
+    const players = Array.from(this.players.values());
+    switch (channel) {
+      case AudioChannel.Silent: {
+        return [];
+      }
+      case AudioChannel.Lobby: {
+        if (this.isGameStarted) {
+          // If in game, then add people who are dead
+          return players.filter((p) => !p.alive).map((p) => p.audioId!);
+        }
+        return players.map((p) => p.audioId!); // In lobby
+      }
+      case AudioChannel.Voting: {
+        return players.filter((p) => p.alive).map((p) => p.audioId!);
+      }
+      default: {
+        throw new Error('Invalid AudioChannel passed');
+      }
     }
   }
 
-  socketEmitToPlayers(event: string, message: any, filter?: (args0: Player) => boolean) {
-    let players = Array.from(this.players.values());
+  emitToPlayers(event: string, message: any, filter?: (args0: Player) => boolean) {
+    const players = Array.from(this.players.values());
     const filtered = filter ? players.filter(filter) : players;
-    filtered.forEach((p) => {
-      p.socket.emit(event, message);
-    });
+    filtered.forEach((p) => p.socket.emit(event, message));
   }
 
-  modifySettings() {}
+  modifySettings() {
+    // TODO
+  }
 
   startGame() {
     this.isGameStarted = true;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
-    this.socketEmitToPlayers('connectAudioIds', audioIds);
+    this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `Start game for room ${this.id}`);
   }
 
   endGame() {
     this.isGameStarted = false;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
-    this.socketEmitToPlayers('connectAudioIds', audioIds);
+    this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `End game for room ${this.id}`);
   }
 
   startVoting() {
     this.isVoting = true;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Voting);
-    this.socketEmitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
+    this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
     log('info', `Start voting for room ${this.id}`);
   }
 
   endVoting() {
     this.isVoting = false;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
-    this.socketEmitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
+    this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
     log('info', `End voting for room ${this.id}`);
   }
 }
 
-export const RoomService = new (class {
+export class RoomService implements ObjectService {
   private rooms = new Map<string, GameRoom>();
 
   create() {
@@ -157,15 +183,18 @@ export const RoomService = new (class {
     return newRoom;
   }
 
-  getFromId(id: string) {
-    return this.rooms.get(id);
+  getById(id?: string) {
+    return id ? this.rooms.get(id) : undefined;
   }
 
   /**
-   * Does not delete rooms that still contain players and skips if room id is not found.
+   * Only deletes rooms that no longer contain players. Skips if id is not found in the map.
    * @param id
    */
-  deleteIfEmpty(id: string) {
+  deleteIfEmpty(id?: string) {
+    if (!id) {
+      return;
+    }
     const roomToDelete = this.rooms.get(id);
     if (!roomToDelete) {
       return;
@@ -174,4 +203,4 @@ export const RoomService = new (class {
       this.rooms.delete(id);
     }
   }
-})();
+}

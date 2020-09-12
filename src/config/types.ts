@@ -7,6 +7,11 @@ declare module 'peerjs' {
   }
 }
 
+export interface ObjectService {
+  create(...args: any[]): any;
+  getById(...args: any[]): any;
+}
+
 export type GameControls = {
   up: number;
   left: number;

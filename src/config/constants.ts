@@ -40,3 +40,9 @@ export const UDP_PORT = 3000;
 
 /** Port to connect to the TCP server */
 export const TCP_PORT = 8080;
+
+export enum AudioChannel {
+  Lobby,
+  Voting,
+  Silent,
+}
