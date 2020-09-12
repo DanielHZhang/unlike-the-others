@@ -5,7 +5,8 @@ import {PokemonMap} from 'src/client/game/scenes/pokemon';
 import {useDidMount} from 'src/client/utils/hooks';
 import {useRecoilValue} from 'recoil';
 import {Atoms} from 'src/client/store';
-import {Lobby} from 'src/client/game/scenes/lobby';
+// import {Lobby} from 'src/client/game/scenes/lobby';
+import {Lobby} from 'src/client/game/scenes/lobby-nolights';
 
 const elementId = 'game-window';
 
@@ -36,7 +37,7 @@ export const GameWindow = memo<Props>(
     });
     return <div id={elementId} />;
   },
-  () => true
+  () => false
 );
 
 // export class GameWindow extends Component<Props> {

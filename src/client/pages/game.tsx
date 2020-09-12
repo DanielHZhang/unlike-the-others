@@ -12,10 +12,10 @@ const Wrapper = styled.div`
 `;
 
 export const GamePage = () => {
-  const [room, setRoomState] = useRecoilState(Atoms.room);
-  if (!room.id) {
-    return <Redirect to='/' />; // Prevent accessing page unless room has been assigned
-  }
+  // const [room, setRoomState] = useRecoilState(Atoms.room);
+  // if (!room.id) {
+  //   return <Redirect to='/' />; // Prevent accessing page unless room has been assigned
+  // }
 
   return (
     <Wrapper>

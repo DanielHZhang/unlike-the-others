@@ -8,11 +8,6 @@ import * as box2d from '@supersede/box2d';
 const gravity = new box2d.b2Vec2(0, 0);
 const world = new box2d.b2World(gravity);
 
-type MovementData = {
-  channelId: string;
-  position: {x: number; y: number};
-};
-
 export class UdpServer {
   private io: GeckosServer;
 
@@ -20,28 +15,18 @@ export class UdpServer {
     this.io = geckos({iceServers: IS_PRODUCTION_ENV ? iceServers : undefined, label: 'udp'});
     this.io.addServer(server);
 
-    /**
-     * Connection handler for when a Player joins a Room.
-     */
     this.io.onConnection((channel) => {
       const channelId = channel.id!;
-      log('info', `${channelId} connected.`);
-      // channel.userData
+      log('info', `Client connected to UDP server: ${channelId}`);
+
+      channel.onDisconnect((state) => {
+        log('info', `Client disconnected from UDP server: ${channelId}`);
+      });
 
       channel.on('joinRoom', (data, senderId) => {
         // rooms.set('rip', )
       });
 
-      // Create new Room if it does not exist
-
-      gameState.players[channelId] = {positions: {x: 0, y: 0}};
-      // channel.join('1234');
-
-      channel.onDisconnect(() => {
-        console.log(`${channel.id} got disconnected`);
-        channel.broadcast.emit('player_disconnected', {channelId: channel.id});
-        delete gameState.players[channel.id!]; // THIS SHOULD BE A MAP, TO ONLY ALLOW 1 JOINING
-      });
 
       channel.on('movement_data', (data, senderId) => {
         const {

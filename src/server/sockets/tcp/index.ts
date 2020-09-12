@@ -13,7 +13,7 @@ export class TcpServer {
   constructor(server: http.Server) {
     this.io = SocketIo(server);
 
-    this.io.on('connection', (socket: SocketIo.Socket) => {
+    this.io.on('connection', (socket) => {
       const clientId = socket.client.id;
       log('info', `Client connected: ${clientId}`);
       const player = PlayerService.create(clientId);
