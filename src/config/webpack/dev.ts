@@ -21,7 +21,7 @@ export const config: webpack.Configuration = {
     path: BUILD_FOLDER_PATH,
     publicPath: PUBLIC_PATH,
   },
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   module: {
     rules: [
       {

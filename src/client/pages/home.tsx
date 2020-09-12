@@ -44,7 +44,16 @@ export const HomePage = (props: Props) => {
   const [state, setState] = useState({joining: false, modalVisible: false});
 
   useDidMount(() => {
-    const callback = (res: SocketResponse) => {
+    socket.once('createRoomResponse', (res: SocketResponse) => {
+      if (res.status >= 400) {
+        setState({...state, modalVisible: true});
+      } else {
+        console.log('Created room:', res.payload);
+        socket.emit('joinRoom', res.payload);
+      }
+    });
+
+    socket.once('joinRoomResponse', (res: SocketResponse) => {
       if (res.status >= 400) {
         setState({...state, modalVisible: true});
       } else {
@@ -52,9 +61,8 @@ export const HomePage = (props: Props) => {
         setRoom({id: res.payload});
         props.history.push('/game');
       }
-    };
-    socket.once('createRoomResponse', callback);
-    socket.once('joinRoomResponse', callback);
+    });
+
     return () => {
       socket.off('createRoomResponse');
       socket.off('joinRoomResponse');
@@ -78,10 +86,10 @@ export const HomePage = (props: Props) => {
             <Stack flow='row'>
               <Input
                 placeholder='Enter code'
+                onChange={(event) => setRoom({id: event.target.value})}
                 type='password'
                 maxLength={32}
                 style={{flexGrow: 1}}
-                onChange={(event) => setRoom({id: event.target.value})}
               />
               <Button onClick={() => socket.emit('joinRoom', room.id)}>JOIN</Button>
             </Stack>

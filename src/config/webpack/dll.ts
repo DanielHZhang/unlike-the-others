@@ -10,9 +10,8 @@ import {BUILD_FOLDER_PATH, PUBLIC_PATH, TEMPLATE_HTML_PATH, vendors} from 'src/c
  */
 export const config: webpack.Configuration = {
   mode: 'development',
-  target: 'web',
   context: process.cwd(), // Use current working directory
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   entry: {
     vendor: vendors,
     app: ['webpack-hot-middleware/client'],

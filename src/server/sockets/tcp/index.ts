@@ -13,19 +13,21 @@ export class TcpServer {
   constructor(server: http.Server) {
     this.io = SocketIo(server);
 
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', (socket: SocketIo.Socket) => {
       const clientId = socket.client.id;
       log('info', `Client connected: ${clientId}`);
-      const player = PlayerService.create(clientId);
+      const player = PlayerService.create(socket);
 
       socket.on('disconnecting', () => {
-        const roomIds = Object.keys(socket.rooms);
-        roomIds.forEach((id) => RoomService.deleteIfEmpty(id));
+        if (player.room) {
+          player.room.removePlayer(player);
+          RoomService.deleteIfEmpty(player.room.id);
+        }
+        log('info', `Client disconnecting: ${clientId}`);
       });
 
       socket.on('createRoom', () => {
-        const room = RoomService.create(player);
-        socket.join(room.id);
+        const room = RoomService.create();
         log('info', `Client ${clientId} created room ${room.id}`);
         socket.emit('createRoomResponse', send(200, room.id));
       });
@@ -33,31 +35,54 @@ export class TcpServer {
       socket.on('joinRoom', (roomId: string) => {
         const room = RoomService.getFromId(roomId);
         room.addPlayer(player);
-        player.joinRoom(room.id);
-        // const audioIds = room.getAudioIdsInChannel(AudioChannel.Lobby);
-        // socket.emit('connectAudioIds', audioIds);
-        // log('info', `Client ${clientId} joined room ${room.id}`);
+        player.joinRoom(room);
+        socket.join(roomId);
+
+        log('info', `Client ${clientId} joined room ${room.id}`);
+        socket.emit('joinRoomResponse', send(200, roomId));
       });
 
       socket.on('leaveRoom', (roomId: string) => {
         const room = RoomService.getFromId(roomId);
+        if (room === undefined) {
+          return;
+        }
         room.removePlayer(player);
-        player.leaveRoom(room.id);
+        player.leaveRoom();
         const audioIds = room.getAudioIdsInChannel(AudioChannel.Silent);
         socket.emit('connectAudioIds', audioIds);
-        log('info', `Client ${clientId} joined room ${room.id}`);
+        log('info', `Client ${clientId} left room ${room.id}`);
       });
 
       socket.on('registerAudioId', (audioId: string) => {
-        // player.audioId = audioId;
-        // const room = RoomService.getFromId(player.roomId);
-        // socket.emit('connectAudioIds', audioIds);
+        log('info', `Registering client ${clientId} with audioId ${audioId}`);
+        player.audioId = audioId;
+        const audioIds = player.room.getAudioIdsInChannel(AudioChannel.Lobby);
+        socket.emit('connectAudioIds', audioIds);
       });
 
       socket.on('disconnect', () => {
         log('info', `Client disconnected: ${clientId}`);
-        const player = PlayerService.getFromSocketId(clientId);
-        // player!.audioId = undefined;
+      });
+
+      socket.on('chatMessage', (message) => {
+        socket.to(player.room?.id!).emit('chatMessageResponse', message);
+      });
+
+      socket.on('startGame', () => player.room.startGame());
+
+      socket.on('endGame', () => player.room.endGame());
+
+      socket.on('startVoting', () => player.room.startVoting());
+
+      socket.on('endVoting', () => player.room.endVoting());
+
+      socket.on('TEMP_killSelf', () => {
+        player.kill();
+      });
+
+      socket.on('TEMP_reviveSelf', () => {
+        player.revive();
       });
     });
   }

@@ -1,6 +1,6 @@
-import {nanoid} from 'nanoid';
-import {GameStatus} from 'src/config/types';
+import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
+import {nanoid} from 'src/server/utils/crypto';
 
 export type Voting = {
   timeRemaining: number;
@@ -41,17 +41,19 @@ export class GameRoom {
   public static activeRooms: Map<string, GameRoom>;
   public players: Map<string, Player>;
   public id: string;
-  private host: Player;
-  private status: GameStatus;
+  public isGameStarted: boolean;
+  public isVoting: boolean;
+  private host?: Player;
   private settings: Settings;
   private jobs: Job[];
   private voting: Voting;
 
-  constructor(roomId: string, host: Player) {
+  constructor(roomId: string) {
     this.id = roomId;
-    this.status = GameStatus.Lobby;
+    this.isGameStarted = false;
+    this.isVoting = false;
     this.players = new Map();
-    this.host = host;
+    this.host = undefined;
     this.jobs = [];
     this.voting = {
       timeRemaining: 0,
@@ -73,11 +75,19 @@ export class GameRoom {
   }
 
   addPlayer(player: Player) {
+    if (!this.host) {
+      this.host = player;
+    }
     this.players.set(player.id, player);
   }
 
   removePlayer(player: Player) {
-    this.players.delete(player.id);
+    if (this.players.has(player.id)) {
+      this.players.delete(player.id);
+    }
+    if (this.host === player && this.players.size > 0) {
+      this.host = this.players.values().next().value;
+    }
   }
 
   getAudioIdsInChannel(channel: AudioChannel) {
@@ -86,7 +96,7 @@ export class GameRoom {
       return [];
     } else if (channel === AudioChannel.Lobby) {
       // Check if in lobby
-      if (this.status === GameStatus.Lobby) {
+      if (!this.isGameStarted) {
         return players.map((p) => p.audioId);
       }
       // If in game, then add people who are dead
@@ -98,34 +108,57 @@ export class GameRoom {
     }
   }
 
+  socketEmitToPlayers(event: string, message: any, filter?: (args0: Player) => boolean) {
+    let players = Array.from(this.players.values());
+    const filtered = filter ? players.filter(filter) : players;
+    filtered.forEach((p) => {
+      p.socket.emit(event, message);
+    });
+  }
+
   modifySettings() {}
 
-  startGame() {}
+  startGame() {
+    this.isGameStarted = true;
+    const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
+    this.socketEmitToPlayers('connectAudioIds', audioIds);
+    log('info', `Start game for room ${this.id}`);
+  }
 
-  endGame() {}
+  endGame() {
+    this.isGameStarted = false;
+    const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
+    this.socketEmitToPlayers('connectAudioIds', audioIds);
+    log('info', `End game for room ${this.id}`);
+  }
 
-  startVoting() {}
+  startVoting() {
+    this.isVoting = true;
+    const audioIds = this.getAudioIdsInChannel(AudioChannel.Voting);
+    this.socketEmitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
+    log('info', `Start voting for room ${this.id}`);
+  }
 
-  endVoting() {}
+  endVoting() {
+    this.isVoting = false;
+    const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
+    this.socketEmitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
+    log('info', `End voting for room ${this.id}`);
+  }
 }
 
 export const RoomService = new (class {
   private rooms = new Map<string, GameRoom>();
 
-  create(host: Player) {
-    const roomId = nanoid(20);
-    const newRoom = new GameRoom(roomId, host);
+  create() {
+    const roomId = nanoid();
+    const newRoom = new GameRoom(roomId);
     this.rooms.set(roomId, newRoom);
     return newRoom;
   }
 
   getFromId(id: string) {
     return this.rooms.get(id);
-  }
-
-  getFromPlayer(player: Player) {
-    const roomId = player.roomId;
-    return this.rooms.get(roomId);
   }
 
   /**
@@ -137,7 +170,7 @@ export const RoomService = new (class {
     if (!roomToDelete) {
       return;
     }
-    if (roomToDelete.players.length === 1) {
+    if (roomToDelete.players.size <= 1) {
       this.rooms.delete(id);
     }
   }

@@ -7,11 +7,6 @@ declare module 'peerjs' {
   }
 }
 
-export enum GameStatus {
-  InProgress,
-  Lobby,
-}
-
 export type GameControls = {
   up: number;
   left: number;

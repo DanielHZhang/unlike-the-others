@@ -13,7 +13,6 @@ const Mask = styled(Flex)`
   right: 0;
   background: rgba(0, 0, 0, 0.45);
   z-index: ${({theme: {modal}}) => modal.mask.zIndex};
-  backdrop-filter: blur(6px);
 `;
 
 const Dialog = styled(Flex)`

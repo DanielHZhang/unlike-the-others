@@ -1,20 +1,24 @@
+import SocketIo from 'socket.io';
+import {GameRoom, AudioChannel} from 'src/server/store/room';
+import {log} from 'src/server/utils/logs';
+
 export class Player {
   private position: {
     x: number;
     y: number;
   };
   // private jobs: Job[];
-  alive: boolean;
   private spy: boolean;
   private meetingsRemaining: number;
-  id: string;
-  socketId: string;
+  public alive: boolean;
+  public id: string;
   public audioId?: string;
-  public roomId?: string;
+  public room?: GameRoom;
+  public socket: SocketIo.Socket;
 
-  constructor(socketId: string) {
-    this.id = socketId;
-    this.socketId = socketId;
+  constructor(socket: SocketIo.Socket) {
+    this.socket = socket;
+    this.id = socket.client.id;
     this.audioId = undefined;
     this.position = {
       x: 0,
@@ -25,32 +29,44 @@ export class Player {
     this.meetingsRemaining = 0;
   }
 
-  joinRoom(roomId: string) {
-    this.roomId = roomId;
+  joinRoom(room: GameRoom) {
+    this.room = room;
   }
 
-  leaveRoom(roomId: string) {
-    this.roomId = undefined;
+  leaveRoom() {
+    this.room = undefined;
+  }
+
+  kill() {
+    this.alive = false;
+    const audioIds = this.room.getAudioIdsInChannel(AudioChannel.Lobby);
+    this.socket.emit('connectAudioIds', audioIds);
+    log('info', `Kill player ${this.id}`);
+  }
+
+  revive() {
+    this.alive = true;
+    let audioIds = this.room.getAudioIdsInChannel(AudioChannel.Silent);
+    if (this.room.isGameStarted && this.room.isVoting) {
+      audioIds = this.room.getAudioIdsInChannel(AudioChannel.Voting);
+    } else {
+      audioIds = this.room.getAudioIdsInChannel(AudioChannel.Lobby);
+    }
+    this.socket.emit('connectAudioIds', audioIds);
+    log('info', `Revive player ${this.id}`);
   }
 }
 
 export const PlayerService = new (class {
   private players = new Map<string, Player>();
-  private socketIdToPlayerId = new Map<string, string>();
 
-  create(socketId: string) {
-    const player = new Player(socketId);
-    this.players.set(socketId, player);
-    this.socketIdToPlayerId.set(socketId, player.id);
+  create(socket: SocketIo.Socket) {
+    const player = new Player(socket);
+    this.players.set(player.id, player);
     return player;
   }
 
   getFromId(id: string) {
     return this.players.get(id);
-  }
-
-  getFromSocketId(socketId: string) {
-    const playerId = this.socketIdToPlayerId.get(socketId);
-    return this.getFromId(playerId);
   }
 })();

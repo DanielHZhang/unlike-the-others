@@ -14,11 +14,13 @@ type State = {
 
 export class AudioCall extends Component<Props, State> {
   private peer: Peer;
+  private peerIdToCall: Map<string, MediaConnection>;
   private localStream?: MediaStream;
 
   constructor(props: Props) {
     super(props);
     this.state = {audioStreams: new Map<string, AudioStream>()};
+    this.peerIdToCall = new Map();
     this.peer = new Peer();
   }
 
@@ -56,6 +58,7 @@ export class AudioCall extends Component<Props, State> {
 
   handleIncomingCall = (call: Peer.MediaConnection) => {
     call.answer(this.localStream);
+    this.peerIdToCall.set(call.peer, call);
     call.on('stream', (stream) => this.addStream(call.peer, stream));
   };
 
@@ -85,16 +88,42 @@ export class AudioCall extends Component<Props, State> {
   }
 
   handlePeerOpen = (id: string) => {
-    socket.on('registerAudioIdSuccess', (audioIds: string[]) => {
-      audioIds.forEach((id) => this.callPeer(id));
+    socket.on('connectAudioIds', (audioIds: string[]) => {
+      this.connectAudioIds(audioIds);
     });
     socket.emit('registerAudioId', id);
   };
 
+  connectAudioIds(audioIds: string[]) {
+    const audioIdsSet = new Set(audioIds);
+    for (const id of this.peerIdToCall.keys()) {
+      if (!audioIdsSet.has(id)) {
+        this.hangUpPeer(id);
+      }
+    }
+    for (const id of audioIds) {
+      if (id === this.peer.id) {
+        continue;
+      }
+
+      if (!this.peerIdToCall.has(id)) {
+        this.callPeer(id);
+      }
+    }
+  }
+
   callPeer(peerId: string) {
     const call = this.peer.call(peerId, this.localStream!);
+    this.peerIdToCall.set(peerId, call);
     call.on('error', (err) => alert(err));
     call.on('stream', (stream) => this.addStream(peerId, stream));
+  }
+
+  hangUpPeer(peerId: string) {
+    const call = this.peerIdToCall.get(peerId);
+    call.close();
+    this.peerIdToCall.delete(peerId);
+    this.removeStream(peerId);
   }
 
   unsupported() {
