@@ -174,7 +174,19 @@ export class GameRoom {
 }
 
 export class RoomService implements ObjectService {
+  private static instance: RoomService;
   private rooms = new Map<string, GameRoom>();
+
+  private constructor() {
+    // Empty private constructor to enforce singleton
+  }
+
+  public static getInstance() {
+    if (!RoomService.instance) {
+      RoomService.instance = new RoomService();
+    }
+    return RoomService.instance;
+  }
 
   create() {
     const roomId = nanoid();

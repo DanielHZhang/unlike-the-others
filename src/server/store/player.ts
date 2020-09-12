@@ -1,7 +1,5 @@
 import {Socket} from 'socket.io';
 import {ObjectService} from 'src/config/types';
-import {GameRoom} from 'src/server/store/room';
-import {log} from 'src/server/utils/logs';
 
 export class Player {
   private position: {
@@ -54,15 +52,27 @@ export class Player {
 }
 
 export class PlayerService implements ObjectService {
+  private static instance: PlayerService;
   private players = new Map<string, Player>();
 
-  create(socket: Socket) {
+  private constructor() {
+    // Empty private constructor to enforce singleton
+  }
+
+  public static getInstance() {
+    if (!PlayerService.instance) {
+      PlayerService.instance = new PlayerService();
+    }
+    return PlayerService.instance;
+  }
+
+  public create(socket: Socket) {
     const player = new Player(socket);
     this.players.set(player.id, player);
     return player;
   }
 
-  getById(id: string) {
+  public getById(id: string) {
     return this.players.get(id);
   }
 }
