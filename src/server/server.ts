@@ -10,7 +10,7 @@ import {
   ASSETS_FOLDER_PATH,
   BUILD_FOLDER_PATH,
   IS_PRODUCTION_ENV,
-  TCP_PORT,
+  PORT,
 } from 'src/config/constants';
 import {TcpServer} from 'src/server/sockets/tcp';
 import {UdpServer} from 'src/server/sockets/udp';
@@ -45,5 +45,5 @@ export async function main() {
   const server = http.createServer(app);
   new TcpServer(server);
   new UdpServer(server);
-  server.listen(TCP_PORT);
+  server.listen(PORT);
 }

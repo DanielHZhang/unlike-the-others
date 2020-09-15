@@ -23,3 +23,9 @@ export type SocketResponse<T = string> = {
   status: number;
   payload: T;
 };
+
+export type UdpMessage = {
+  seqNum: number;
+  entityId: number;
+  pressTime: number;
+};

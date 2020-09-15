@@ -53,10 +53,12 @@ export class TcpServer {
 
       socket.on('registerAudioId', (audioId: string) => {
         log('info', `Registering client ${clientId} with audioId ${audioId}`);
-        const room = GameService.room.getById(player.roomId)!;
-        player.audioId = audioId;
-        const audioIds = room.getAudioIdsInChannel(AudioChannel.Lobby);
-        socket.emit('connectAudioIds', audioIds);
+        const room = GameService.room.getById(player.roomId);
+        if (room) {
+          player.audioId = audioId;
+          const audioIds = room.getAudioIdsInChannel(AudioChannel.Lobby);
+          socket.emit('connectAudioIds', audioIds);
+        }
       });
 
       socket.on('chatMessage', (message) => {

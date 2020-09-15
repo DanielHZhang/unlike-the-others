@@ -1,10 +1,10 @@
 import React, {Component, memo} from 'react';
 import Phaser from 'phaser';
-import {ExampleScene} from 'src/client/game/scenes/example';
 import {PokemonMap} from 'src/client/game/scenes/pokemon';
 import {useDidMount} from 'src/client/utils/hooks';
 import {useRecoilValue} from 'recoil';
 import {Atoms} from 'src/client/store';
+import {Lobby} from 'src/client/game/scenes/lobby-nolights';
 
 const elementId = 'game-window';
 
@@ -15,24 +15,18 @@ export const GameWindow = memo<Props>(
     const gameControls = useRecoilValue(Atoms.gameControls);
     useDidMount(() => {
       new Phaser.Game({
-        type: Phaser.AUTO,
-        physics: {
-          default: 'arcade',
-          arcade: {
-            gravity: {y: 0},
-          },
-        },
+        type: Phaser.WEBGL,
         scale: {
           autoCenter: Phaser.Scale.CENTER_BOTH,
           mode: Phaser.Scale.RESIZE,
           parent: elementId,
         },
-        scene: new PokemonMap(gameControls),
+        scene: new Lobby(gameControls),
       });
     });
     return <div id={elementId} />;
   },
-  () => true
+  () => false
 );
 
 // export class GameWindow extends Component<Props> {

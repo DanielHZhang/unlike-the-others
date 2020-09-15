@@ -3,7 +3,7 @@ import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {ObjectService} from 'src/config/types';
-import {AudioChannel} from 'src/config/constants';
+import {AudioChannel, WORLD_SCALE} from 'src/config/constants';
 
 export type Voting = {
   timeRemaining: number;
@@ -35,44 +35,125 @@ type Settings = {
 };
 
 export class GameRoom {
-  public static activeRooms: Map<string, GameRoom>;
-  public players: Map<string, Player>;
-  public id: string;
-  public isGameStarted: boolean;
-  public isVoting: boolean;
-  private host?: Player;
+  private players: Map<string, Player> = new Map<string, Player>();
+  private isGameStarted: boolean = false;
+  private isVoting: boolean = false;
+  private host?: Player = undefined;
+  private settings: Settings = {
+    mapType: 'lol',
+    numSpies: 2,
+    discussionTime: 120,
+    killCooldown: 30,
+    emergencyCooldown: 30,
+    walkingSpeed: 1,
+    visionRadiusCivilian: 1,
+    visionRadiusSpy: 1.5,
+    numRegularJobs: 2,
+    numEasyJobs: 3,
+    numDifficultJobs: 1,
+  };
+  private jobs: Job[] = [];
+  private voting: Voting = {
+    timeRemaining: 0,
+    ballots: [],
+  };
   private world: Box2d.b2World;
-  private settings: Settings;
-  private jobs: Job[];
-  private voting: Voting;
+  public id: string;
 
   constructor(roomId: string) {
     this.id = roomId;
-    this.isGameStarted = false;
-    this.isVoting = false;
-    this.players = new Map();
-    this.host = undefined;
-    this.jobs = [];
-    this.voting = {
-      timeRemaining: 0,
-      ballots: [],
-    };
-    this.settings = {
-      mapType: 'lol',
-      numSpies: 2,
-      discussionTime: 120,
-      killCooldown: 30,
-      emergencyCooldown: 30,
-      walkingSpeed: 1,
-      visionRadiusCivilian: 1,
-      visionRadiusSpy: 1.5,
-      numRegularJobs: 2,
-      numEasyJobs: 3,
-      numDifficultJobs: 1,
-    };
     // Set up physics engine of the room
     const gravity = new Box2d.b2Vec2(0, 0);
     this.world = new Box2d.b2World(gravity);
+    this.addStuffToWorld();
+  }
+
+  addStuffToWorld() {
+    // create the top ceiling edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const ground = this.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
+      );
+      ground.CreateFixture(shape, 0);
+    }
+
+    // create the left edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const leftSide = this.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
+      );
+      leftSide.CreateFixture(shape, 0);
+    }
+
+    // create the bottom edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const bottom = this.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+      );
+      bottom.CreateFixture(shape, 0);
+    }
+
+    // create the right edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const rightSide = this.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+      );
+      rightSide.CreateFixture(shape, 0);
+    }
+  }
+
+  createBox(
+    posX: number,
+    posY: number,
+    width: number,
+    height: number,
+    isDynamic: boolean
+  ): Box2d.b2Body {
+    // this is how we create a generic Box2D body
+    const box = this.world.CreateBody();
+    if (isDynamic) {
+      // Box2D bodies born as static bodies, but we can make them dynamic
+      box.SetType(Box2d.b2BodyType.b2_dynamicBody);
+      box.SetLinearDamping(10);
+      box.SetFixedRotation(true);
+    }
+
+    // a body can have one or more fixtures. This is how we create a box fixture inside a body
+    const boxShape = new Box2d.b2PolygonShape();
+    boxShape.SetAsBox(width / 2 / WORLD_SCALE, height / 2 / WORLD_SCALE);
+    const fixtureDef = new Box2d.b2FixtureDef();
+    fixtureDef.density = 20.0;
+    fixtureDef.friction = 1.0;
+    fixtureDef.shape = boxShape;
+    box.CreateFixture(fixtureDef);
+
+    // now we place the body in the world
+    box.SetPosition(new Box2d.b2Vec2(posX / WORLD_SCALE, posY / WORLD_SCALE));
+
+    // time to set mass information
+    box.SetMassData({
+      mass: 1,
+      center: new Box2d.b2Vec2(),
+      I: 0, // if you set it to zero, bodies won't rotate
+    });
+
+    return box;
   }
 
   addPlayer(player: Player) {

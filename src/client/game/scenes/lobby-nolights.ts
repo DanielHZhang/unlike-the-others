@@ -1,35 +1,22 @@
-import * as box2d from '@supersede/box2d';
 import Phaser from 'phaser';
+import Box2d from '@supersede/box2d';
 import {GameControls} from 'src/config/types';
-
-const TIME_STEP = 1 / 60;
-const VELOCITY_ITERATIONS = 8;
-const POSITION_ITERATIONS = 3;
-const WORLD_SCALE = 30; // 30 pixels = 1 meter
-
-const game = {
-  config: {
-    width: 600,
-    height: 600,
-  },
-};
+import {WORLD_SCALE} from 'src/config/constants';
+import {AlignGrid} from 'src/client/game/scenes/grid';
+import {PhysicsEngine} from 'src/client/game/physics-engine';
 
 export class Lobby extends Phaser.Scene {
   public controls: GameControls;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  private player: [box2d.b2Body, Phaser.GameObjects.Graphics];
-  private sides: box2d.b2Body;
-
-  // b2 code stuffs
-  private world: box2d.b2World;
-  private playerPhysicsBody: box2d.b2Body;
-
-  private worldScale: number = 30;
-  private accumulator = 0;
+  private player: [Box2d.b2Body, Phaser.GameObjects.Graphics];
+  private sides: Box2d.b2Body;
+  private grid: Phaser.GameObjects.Grid;
+  private engine: PhysicsEngine;
 
   constructor(controls: GameControls) {
     super('PlayGame');
     this.controls = controls;
+    this.engine = new PhysicsEngine();
   }
 
   init() {
@@ -38,40 +25,99 @@ export class Lobby extends Phaser.Scene {
   }
 
   create() {
-    // Box2D works with meters. We need to convert meters to pixels.
-    // let's say 30 pixels = 1 meter.
+    // create grid stuffs
+    this.grid = this.add.grid(0, 0, 1000, 1000, 32, 32, 0xffffff, 0, 0xff0000, 0.5);
+    this.grid.showOutline = true;
+    this.grid.showCells = false;
+    this.grid.setVisible(true);
+    this.grid.setOrigin(0, 0);
 
-    // world gravity, as a Vec2 object. It's just a x, y vector
-    let gravity = new box2d.b2Vec2(0, 0);
+    // create the top ceiling edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const ground = this.engine.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
+      );
+      ground.CreateFixture(shape, 0);
+      const color = new Phaser.Display.Color();
+      color.random().brighten(50).saturate(100);
+      const userData = this.add.graphics();
+      userData.fillStyle(color.color, 1);
+      userData.fillRect(5, 5, 600, 2);
+      ground.SetUserData(userData);
+    }
 
-    // this is how we create a Box2D world
-    this.world = new box2d.b2World(gravity);
+    // create the left edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const leftSide = this.engine.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
+      );
+      leftSide.CreateFixture(shape, 0);
+      const color = new Phaser.Display.Color();
+      color.random().brighten(50).saturate(100);
+      const userData = this.add.graphics();
+      userData.fillStyle(color.color, 1);
+      userData.fillRect(5, 5, 2, 600);
+      leftSide.SetUserData(userData);
+    }
 
-    // createBox is a method I wrote to create a box, see how it works at line 55
-    this.createBox(game.config.width / 2, game.config.height - 20, game.config.width, 40, false);
+    // create the bottom edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const bottom = this.engine.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+      );
+      bottom.CreateFixture(shape, 0);
+      const color = new Phaser.Display.Color();
+      color.random().brighten(50).saturate(100);
+      const userData = this.add.graphics();
+      userData.fillStyle(color.color, 1);
+      userData.fillRect(5, 600, 600, 2);
+      bottom.SetUserData(userData);
+    }
 
-    this.player = this.createBox(game.config.width / 2, game.config.height - 20, 50, 50, true);
+    // create the right edge
+    {
+      const bodyDef = new Box2d.b2BodyDef();
+      const rightSide = this.engine.world.CreateBody(bodyDef);
+      const shape = new Box2d.b2EdgeShape();
+      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+      shape.SetTwoSided(
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
+        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+      );
+      rightSide.CreateFixture(shape, 0);
+      const color = new Phaser.Display.Color();
+      color.random().brighten(50).saturate(100);
+      const userData = this.add.graphics();
+      userData.fillStyle(color.color, 1);
+      userData.fillRect(600, 5, 2, 600);
+      rightSide.SetUserData(userData);
+    }
 
-    // the rest of the script just creates a random box each 500ms, then restarts after 100 iterations
-    // let tick = 0;
-    // this.time.addEvent({
-    //   delay: 2000,
-    //   callbackScope: this,
-    //   callback: function () {
-    //     this.createBox(
-    //       Phaser.Math.Between(100, game.config.width - 100),
-    //       -100,
-    //       Phaser.Math.Between(20, 80),
-    //       Phaser.Math.Between(20, 80),
-    //       true
-    //     );
-    //     tick++;
-    //     if (tick === 100) {
-    //       this.scene.start('PlayGame');
-    //     }
-    //   },
-    //   loop: true,
-    // });
+    this.player = this.createBox(300, 300, 100, 100, true);
+
+    this.time.addEvent({
+      delay: 1000,
+      loop: true,
+      callback: () => {
+        const pos = this.player[0].GetPosition();
+        console.log(`${pos.x}, ${pos.y}`);
+      },
+    });
   }
 
   // here we go with some Box2D stuff
@@ -83,32 +129,33 @@ export class Lobby extends Phaser.Scene {
     width: number,
     height: number,
     isDynamic: boolean
-  ): [box2d.b2Body, Phaser.GameObjects.Graphics] {
+  ): [Box2d.b2Body, Phaser.GameObjects.Graphics] {
     // this is how we create a generic Box2D body
-    let box = this.world.CreateBody();
+    let box = this.engine.world.CreateBody();
     if (isDynamic) {
       // Box2D bodies born as static bodies, but we can make them dynamic
-      box.SetType(box2d.b2BodyType.b2_dynamicBody);
-      box.SetLinearDamping(8);
+      box.SetType(Box2d.b2BodyType.b2_dynamicBody);
+      box.SetLinearDamping(10);
+      box.SetFixedRotation(true);
     }
 
     // a body can have one or more fixtures. This is how we create a box fixture inside a body
-    const boxShape = new box2d.b2PolygonShape();
-    boxShape.SetAsBox(width / 2 / this.worldScale, height / 2 / this.worldScale);
-    const fixtureDef = new box2d.b2FixtureDef();
+    const boxShape = new Box2d.b2PolygonShape();
+    boxShape.SetAsBox(width / 2 / WORLD_SCALE, height / 2 / WORLD_SCALE);
+    const fixtureDef = new Box2d.b2FixtureDef();
     fixtureDef.density = 20.0;
     fixtureDef.friction = 1.0;
     fixtureDef.shape = boxShape;
     box.CreateFixture(fixtureDef);
 
     // now we place the body in the world
-    box.SetPosition(new box2d.b2Vec2(posX / this.worldScale, posY / this.worldScale));
+    box.SetPosition(new Box2d.b2Vec2(posX / WORLD_SCALE, posY / WORLD_SCALE));
 
     // time to set mass information
     box.SetMassData({
       mass: 1,
-      center: new box2d.b2Vec2(),
-      I: 1, // if you set it to zero, bodies won't rotate
+      center: new Box2d.b2Vec2(),
+      I: 0, // if you set it to zero, bodies won't rotate
     });
 
     // now we create a graphics object representing the body
@@ -125,55 +172,34 @@ export class Lobby extends Phaser.Scene {
     return [box, userData];
   }
 
-  // fixed time step
-  doPhysicsStep(deltaTime: number) {
-    // max frame time to avoid spiral of death (on slow devices)
-    const frameTime = Math.min(deltaTime, 0.25);
-    this.accumulator += frameTime;
-    while (this.accumulator >= TIME_STEP) {
-      this.world.Step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-      this.accumulator -= TIME_STEP;
+  setPlayerVelocity() {
+    const vector = new Box2d.b2Vec2();
+    const movementUnit = 90 / WORLD_SCALE;
+
+    // Determine horizontal velocity
+    if (this.cursors.right!.isDown) {
+      vector.Set(movementUnit, 0);
+    } else if (this.cursors.left!.isDown) {
+      vector.Set(-movementUnit, 0);
     }
+    // Determine vertical velocity
+    if (this.cursors.down!.isDown) {
+      vector.Set(vector.x, movementUnit);
+    } else if (this.cursors.up!.isDown) {
+      vector.Set(vector.x, -movementUnit);
+    }
+
+    this.player[0].SetLinearVelocity(vector);
   }
 
-  update() {
-    if (this.cursors.right?.isDown) {
-      this.player[0].SetLinearVelocity(new box2d.b2Vec2(120 / this.worldScale, 0));
-    } else if (this.cursors.left?.isDown) {
-      this.player[0].SetLinearVelocity(new box2d.b2Vec2(-120 / this.worldScale, 0));
-    }
-
-    if (this.cursors.down?.isDown) {
-      this.player[0].SetLinearVelocity(new box2d.b2Vec2(0, 120 / this.worldScale));
-    } else if (this.cursors.up?.isDown) {
-      this.player[0].SetLinearVelocity(new box2d.b2Vec2(0, -120 / this.worldScale));
-    }
-
-    // advance the simulation by 1/20 seconds
-    this.world.Step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-
-    // crearForces  method should be added at the end on each step
-    this.world.ClearForces();
-
-    // iterate through all bodies
-    for (let b = this.world.GetBodyList(); b; b = b.GetNext()) {
-      // get body position
-      const bodyPosition = b.GetPosition();
-      // get body user data, the graphics object
-      const userData = b.GetUserData();
-      // adjust graphic object position and rotation
-      userData.x = bodyPosition.x * this.worldScale;
-      userData.y = bodyPosition.y * this.worldScale;
-      userData.rotation = b.GetAngle();
-    }
+  processInputs() {
+    const nowTs = new Date().getTime();
+    const lastTs = this.lastTs || nowTs;
+    const deltaTimeSec = (nowTs - lastTs) / 1000.0;
   }
 
-  // init() {
-  //   this.setupControls();
-  // }
-
-  // setupControls() {
-  //   const {up, left, down, right} = this.controls;
-  //   this.cursors = this.input.keyboard.addKeys({up, left, down, right});
-  // }
+  update(currentTime: number, deltaTime: number) {
+    this.setPlayerVelocity();
+    this.engine.fixedStep(deltaTime);
+  }
 }

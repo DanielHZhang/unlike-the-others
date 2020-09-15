@@ -3,13 +3,12 @@ import styled from '@emotion/styled';
 import {Input} from 'src/client/components/input';
 import {socket} from 'src/client/networking/socketio';
 import {useDidMount} from 'src/client/utils/hooks';
+import {ChatBubble} from 'src/client/components/chatbox/bubble';
 
-const ChatBubble = styled.div`
-  border: 1px solid rgb(51, 51, 51);
-  border-radius: 8px;
-  color: white;
-  /* font:  */
-  padding: 1em;
+const Wrapper = styled.div`
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px;
 `;
 
 type ChatState = {
@@ -17,22 +16,17 @@ type ChatState = {
   draft: string;
 };
 
-const initialState = {
-  messages: [],
-  draft: '',
-};
-
 export const Chatbox = () => {
-  const [state, setState] = useState<ChatState>(initialState);
-
+  const [state, setState] = useState<ChatState>({
+    messages: ['wow', 'hello', 'does this work well?'],
+    draft: '',
+  });
   const addNewChatMessage = (newMessage: string) => {
     setState((prevState) => ({...prevState, messages: [...prevState.messages, newMessage]}));
   };
 
   useDidMount(() => {
-    socket.on('chatMessageResponse', (newMessage: string) => {
-      addNewChatMessage(newMessage);
-    });
+    socket.on('chatMessageResponse', addNewChatMessage);
     return () => {
       socket.off('chatMessageReponse');
     };
@@ -47,7 +41,7 @@ export const Chatbox = () => {
   };
 
   return (
-    <div>
+    <Wrapper>
       {state.messages.map((value, index) => (
         <ChatBubble key={index}>{value}</ChatBubble>
       ))}
@@ -57,6 +51,6 @@ export const Chatbox = () => {
         onKeyDown={(e) => handleEnter(e)}
         placeholder='Send a message'
       />
-    </div>
+    </Wrapper>
   );
 };
