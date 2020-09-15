@@ -9,7 +9,7 @@ import {Button} from 'src/client/components/button';
 import {Stack} from 'src/client/components/stack';
 import {Input} from 'src/client/components/input';
 import {Modal} from 'src/client/components/modal';
-import {SocketResponse} from 'src/config/types';
+import {SocketResponse} from 'src/shared/types';
 
 const Container = styled.div`
   background-color: #000;

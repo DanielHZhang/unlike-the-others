@@ -6,7 +6,7 @@ import {
   POSITION_ITERATIONS,
   VELOCITY_ITERATIONS,
   WORLD_SCALE,
-} from 'src/config/constants';
+} from 'src/shared/constants';
 
 export class PhysicsEngine {
   private timestepAccumulator = 0;

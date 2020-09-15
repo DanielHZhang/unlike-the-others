@@ -2,8 +2,8 @@ import Box2d from '@supersede/box2d';
 import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
-import {ObjectService} from 'src/config/types';
-import {AudioChannel, WORLD_SCALE} from 'src/config/constants';
+import {ObjectService} from 'src/shared/types';
+import {AudioChannel, WORLD_SCALE} from 'src/server/config/constants';
 
 export type Voting = {
   timeRemaining: number;

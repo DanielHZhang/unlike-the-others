@@ -1,6 +1,6 @@
 import http from 'http';
 import geckos, {GeckosServer, iceServers} from '@geckos.io/server';
-import {IS_PRODUCTION_ENV} from 'src/config/constants';
+import {IS_PRODUCTION_ENV} from 'src/server/config/constants';
 import {log} from 'src/server/utils/logs';
 
 export class UdpServer {

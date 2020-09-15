@@ -2,7 +2,12 @@ import path from 'path';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import {BUILD_FOLDER_PATH, PUBLIC_PATH, TEMPLATE_HTML_PATH, vendors} from 'src/config/constants';
+import {
+  BUILD_FOLDER_PATH,
+  PUBLIC_PATH,
+  TEMPLATE_HTML_PATH,
+  vendors,
+} from 'src/server/config/constants';
 
 /**
  * Webpack configuration for common vendor bundle, using DllPlugin for long-term

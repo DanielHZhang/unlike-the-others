@@ -19,7 +19,7 @@
       "es2019",
       "esnext"
     ],
-    "module": "es6",
+    "module": "esnext",
     "moduleResolution": "node",
     "noEmit": false,
     "noImplicitAny": true,

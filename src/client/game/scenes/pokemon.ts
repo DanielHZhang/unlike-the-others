@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import {GameControls} from 'src/config/types';
+import {GameControls} from 'src/shared/types';
 
 export class PokemonMap extends Phaser.Scene {
   private controls: GameControls;

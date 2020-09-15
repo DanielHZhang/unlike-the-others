@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import webpack from 'webpack';
 import {log} from 'src/server/utils/logs';
-import {BUILD_FOLDER_PATH, vendors} from 'src/config/constants';
+import {BUILD_FOLDER_PATH, vendors} from 'src/server/config/constants';
 
 function compile(config: webpack.Configuration) {
   return new Promise<webpack.Stats>((resolve, reject) => {
@@ -39,7 +39,8 @@ function isFlatArrayEqual<T>(a: T[], b: T[]) {
 
 export async function buildWebpackDll() {
   const packageJson = require('package.json');
-  const dllConfig = require('src/config/webpack/dll').config;
+  const {config: dllConfig} = await import('src/webpack/dll');
+  // const dllConfig = require('src/config/webpack/dll').config;
 
   // Ensure .local folder exists
   const localFolderPath = path.join(process.cwd(), '.local');

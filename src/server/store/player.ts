@@ -1,5 +1,5 @@
 import {Socket} from 'socket.io';
-import {ObjectService} from 'src/config/types';
+import {ObjectService} from 'src/shared/types';
 
 export class Player {
   private position: {

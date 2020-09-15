@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {atom} from 'recoil';
-import {GameControls} from 'src/config/types';
+import {GameControls} from 'src/shared/types';
 
 export const Atoms = {
   username: atom({

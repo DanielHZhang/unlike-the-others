@@ -1,15 +1,13 @@
 import Phaser from 'phaser';
 import Box2d from '@supersede/box2d';
-import {GameControls} from 'src/config/types';
-import {WORLD_SCALE} from 'src/config/constants';
-import {AlignGrid} from 'src/client/game/scenes/grid';
-import {PhysicsEngine} from 'src/client/game/physics-engine';
+import {GameControls} from 'src/shared/types';
+import {WORLD_SCALE} from 'src/shared/constants';
+import {PhysicsEngine} from 'src/shared/physics-engine';
 
 export class Lobby extends Phaser.Scene {
   public controls: GameControls;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private player: [Box2d.b2Body, Phaser.GameObjects.Graphics];
-  private sides: Box2d.b2Body;
   private grid: Phaser.GameObjects.Grid;
   private engine: PhysicsEngine;
 

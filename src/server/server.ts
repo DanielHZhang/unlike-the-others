@@ -6,12 +6,8 @@ import {json, urlencoded} from 'body-parser';
 import {log} from 'src/server/utils/logs';
 import {buildWebpackDll} from 'src/server/utils/rebuild';
 import {makeDevMiddleware, makeHotMiddleware} from 'src/server/middleware';
-import {
-  ASSETS_FOLDER_PATH,
-  BUILD_FOLDER_PATH,
-  IS_PRODUCTION_ENV,
-  PORT,
-} from 'src/config/constants';
+import {ASSETS_FOLDER_PATH, BUILD_FOLDER_PATH} from 'src/server/config/constants';
+import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {TcpServer} from 'src/server/sockets/tcp';
 import {UdpServer} from 'src/server/sockets/udp';
 
@@ -27,7 +23,7 @@ export async function main() {
       process.exit(0);
     }
     log('info', 'Building client...');
-    const devConfig = require('src/config/webpack/dev').config;
+    const {config: devConfig} = await import('src/webpack/dev');
     const compiler = webpack(devConfig);
     app.use(makeDevMiddleware(compiler, devConfig.output.publicPath));
     app.use(makeHotMiddleware(compiler));

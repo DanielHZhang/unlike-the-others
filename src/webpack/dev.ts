@@ -7,7 +7,7 @@ import {
   BUILD_FOLDER_PATH,
   PUBLIC_PATH,
   VENDOR_JSON_PATH,
-} from 'src/config/constants';
+} from 'src/server/config/constants';
 
 export const config: webpack.Configuration = {
   mode: 'development',

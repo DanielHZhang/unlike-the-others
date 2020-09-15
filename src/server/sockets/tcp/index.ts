@@ -2,7 +2,7 @@ import http from 'http';
 import SocketIo from 'socket.io';
 import {log} from 'src/server/utils/logs';
 import {GameService} from 'src/server/store';
-import {AudioChannel} from 'src/config/constants';
+import {AudioChannel} from 'src/server/config/constants';
 
 function send<T = string>(status: number, payload: T) {
   return {status, payload};
