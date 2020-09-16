@@ -7,6 +7,9 @@ export const ROOT_URL = IS_PRODUCTION_ENV ? '' : 'http://localhost:8080/';
 /** Port to connect to the TCP server */
 export const PORT = 8080;
 
+/** Label of the Geckos.io channel */
+export const GECKOS_LABEL = 'udp';
+
 /** How often the physics simulation should be incremented per second */
 export const FIXED_TIMESTEP = 1 / 60;
 

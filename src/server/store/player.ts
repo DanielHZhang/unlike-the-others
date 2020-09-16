@@ -1,6 +1,7 @@
 import {Socket} from 'socket.io';
 import {ServerChannel} from '@geckos.io/server';
 import {ObjectService} from 'src/shared/types';
+import {nanoid} from 'src/server/utils/crypto';
 
 export class Player {
   private position = {x: 0, y: 0};
@@ -17,7 +18,7 @@ export class Player {
 
   constructor(socket: Socket) {
     this.socket = socket;
-    this.id = socket.client.id;
+    this.id = nanoid();
   }
 
   joinRoom(roomId: string) {

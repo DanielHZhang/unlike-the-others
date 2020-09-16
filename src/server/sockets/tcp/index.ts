@@ -20,9 +20,8 @@ export function tcpHandler(server: http.Server) {
   io = SocketIo(server);
 
   io.on('connection', (socket: SocketIo.Socket) => {
-    const clientId = socket.client.id;
-    log('info', `Client connected: ${clientId}`);
     let player = GameService.player.create(socket);
+    log('info', `TCP Client connected: ${player.id}`);
 
     // TODO: naive authentication, should be replaced wtih full user account later
     socket.on('authenticate', (jwt?: string | null) => {
@@ -46,12 +45,12 @@ export function tcpHandler(server: http.Server) {
     socket.on('disconnecting', () => {
       GameService.room.getById(player.roomId)?.removePlayer(player);
       GameService.room.deleteIfEmpty(player.roomId);
-      log('info', `Client disconnecting: ${clientId}`);
+      log('info', `TCP Client disconnecting: ${player.id}`);
     });
 
     socket.on('createRoom', () => {
       const room = GameService.room.create();
-      log('info', `Client ${clientId} created room ${room.id}`);
+      log('info', `Client ${player.id} created room ${room.id}`);
       socket.emit('createRoomResponse', send(200, room.id));
     });
 
@@ -61,7 +60,7 @@ export function tcpHandler(server: http.Server) {
         throw new Error(`No room found with id: ${roomId}`);
       }
       room.addPlayer(player);
-      log('info', `Client ${clientId} joined room ${room.id}`);
+      log('info', `Client ${player.id} joined room ${room.id}`);
       socket.emit('joinRoomResponse', send(200, roomId));
     });
 
@@ -71,12 +70,12 @@ export function tcpHandler(server: http.Server) {
         throw new Error(`No room found with id: ${roomId}`);
       }
       room.removePlayer(player);
-      log('info', `Client ${clientId} left room ${room.id}`);
+      log('info', `Client ${player.id} left room ${room.id}`);
       socket.emit('leaveRoomResponse', send(200, roomId));
     });
 
     socket.on('registerAudioId', (audioId: string) => {
-      log('info', `Registering client ${clientId} with audioId ${audioId}`);
+      log('info', `Registering client ${player.id} with audioId ${audioId}`);
       const room = GameService.room.getById(player.roomId);
       if (room) {
         player.audioId = audioId;
