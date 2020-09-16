@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
@@ -10,6 +10,8 @@ import {Stack} from 'src/client/components/stack';
 import {Input} from 'src/client/components/input';
 import {Modal} from 'src/client/components/modal';
 import {SocketResponse} from 'src/shared/types';
+import {channel} from 'src/client/networking/geckos';
+import {StorageKeys} from 'src/client/config/constants';
 
 const Container = styled.div`
   background-color: #000;
@@ -42,6 +44,10 @@ export const HomePage = (props: Props) => {
   const [username, setUsername] = useRecoilState(Atoms.username);
   const [room, setRoom] = useRecoilState(Atoms.room);
   const [state, setState] = useState({joining: false, modalVisible: false});
+  const onJoinButtonClick = useCallback(() => {
+    socket.emit('joinRoom', room.id);
+    channel.emit('joinRoom', room.id);
+  }, [room.id]);
 
   useDidMount(() => {
     socket.once('createRoomResponse', (res: SocketResponse) => {
@@ -50,6 +56,7 @@ export const HomePage = (props: Props) => {
       } else {
         console.log('Created room:', res.payload);
         socket.emit('joinRoom', res.payload);
+        channel.emit('joinRoom', res.payload);
       }
     });
 
@@ -77,7 +84,7 @@ export const HomePage = (props: Props) => {
           <Input
             placeholder='What is your name?'
             onChange={(event) => setUsername(event.target.value)}
-            onBlur={() => localStorage.setItem('name', username)}
+            onBlur={() => localStorage.setItem(StorageKeys.Name, username)}
             value={username}
             maxLength={32}
           />
@@ -91,7 +98,7 @@ export const HomePage = (props: Props) => {
                 maxLength={32}
                 style={{flexGrow: 1}}
               />
-              <Button onClick={() => socket.emit('joinRoom', room.id)}>JOIN</Button>
+              <Button onClick={onJoinButtonClick}>JOIN</Button>
             </Stack>
           ) : (
             <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>

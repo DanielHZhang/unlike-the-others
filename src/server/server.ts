@@ -8,8 +8,8 @@ import {buildWebpackDll} from 'src/server/utils/rebuild';
 import {makeDevMiddleware, makeHotMiddleware} from 'src/server/middleware';
 import {ASSETS_FOLDER_PATH, BUILD_FOLDER_PATH} from 'src/server/config/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
-import {TcpServer} from 'src/server/sockets/tcp';
-import {UdpServer} from 'src/server/sockets/udp';
+import {tcpHandler} from 'src/server/sockets/tcp';
+import {udpHandler} from 'src/server/sockets/udp';
 
 export async function main() {
   const app = express();
@@ -23,9 +23,9 @@ export async function main() {
       process.exit(0);
     }
     log('info', 'Building client...');
-    const {config: devConfig} = await import('src/webpack/dev');
-    const compiler = webpack(devConfig);
-    app.use(makeDevMiddleware(compiler, devConfig.output.publicPath));
+    const {config} = await import('src/webpack/dev');
+    const compiler = webpack(config);
+    app.use(makeDevMiddleware(compiler, config.output!.publicPath!));
     app.use(makeHotMiddleware(compiler));
   }
 
@@ -39,7 +39,7 @@ export async function main() {
 
   // Create server and socket handlers
   const server = http.createServer(app);
-  new TcpServer(server);
-  new UdpServer(server);
+  tcpHandler(server);
+  udpHandler(server);
   server.listen(PORT);
 }

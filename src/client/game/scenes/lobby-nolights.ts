@@ -3,6 +3,7 @@ import Box2d from '@supersede/box2d';
 import {GameControls} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
+import {channel} from 'src/client/networking/geckos';
 
 export class Lobby extends Phaser.Scene {
   public controls: GameControls;

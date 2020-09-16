@@ -38,9 +38,8 @@ function isFlatArrayEqual<T>(a: T[], b: T[]) {
 }
 
 export async function buildWebpackDll() {
-  const packageJson = require('package.json');
-  const {config: dllConfig} = await import('src/webpack/dll');
-  // const dllConfig = require('src/config/webpack/dll').config;
+  const packageJson = await import('package.json');
+  const {config} = await import('src/webpack/dll');
 
   // Ensure .local folder exists
   const localFolderPath = path.join(process.cwd(), '.local');
@@ -54,7 +53,7 @@ export async function buildWebpackDll() {
   const localDepsFile = path.join(localFolderPath, 'dependencies.json');
   try {
     await Promise.all([fs.promises.access(localDepsFile), fs.promises.access(BUILD_FOLDER_PATH)]);
-    const localJson = require(localDepsFile);
+    const localJson = await import('../../../.local/dependencies.json');
     if (
       localJson.dependencies &&
       localJson.devDependencies &&
@@ -77,7 +76,7 @@ export async function buildWebpackDll() {
     };
     const stringified = JSON.stringify(newDependencies, null, 2);
     await fs.promises.writeFile(localDepsFile, stringified, {flag: 'w'});
-    await compile(dllConfig);
-    log('success', `Webpack DLL built and emitted to ${dllConfig.output!.path}`);
+    await compile(config);
+    log('success', `Webpack DLL built and emitted to ${config.output!.path}`);
   }
 }

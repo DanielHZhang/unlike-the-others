@@ -1,4 +1,5 @@
 import {Socket} from 'socket.io';
+import {ServerChannel} from '@geckos.io/server';
 import {ObjectService} from 'src/shared/types';
 
 export class Player {
@@ -14,6 +15,7 @@ export class Player {
   public audioId?: string;
   public roomId?: string;
   public socket: Socket;
+  public channel?: ServerChannel;
 
   constructor(socket: Socket) {
     this.socket = socket;

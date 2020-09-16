@@ -3,7 +3,8 @@ import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {ObjectService} from 'src/shared/types';
-import {AudioChannel, WORLD_SCALE} from 'src/server/config/constants';
+import {AudioChannel} from 'src/server/config/constants';
+import {PhysicsEngine} from 'src/shared/physics-engine';
 
 export type Voting = {
   timeRemaining: number;
@@ -57,103 +58,44 @@ export class GameRoom {
     timeRemaining: 0,
     ballots: [],
   };
-  private world: Box2d.b2World;
+  private engine: PhysicsEngine;
   public id: string;
 
   constructor(roomId: string) {
     this.id = roomId;
-    // Set up physics engine of the room
-    const gravity = new Box2d.b2Vec2(0, 0);
-    this.world = new Box2d.b2World(gravity);
-    this.addStuffToWorld();
+    this.engine = new PhysicsEngine();
   }
 
-  addStuffToWorld() {
-    // create the top ceiling edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const ground = this.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
-      );
-      ground.CreateFixture(shape, 0);
-    }
-
-    // create the left edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const leftSide = this.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
-      );
-      leftSide.CreateFixture(shape, 0);
-    }
-
-    // create the bottom edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const bottom = this.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-      );
-      bottom.CreateFixture(shape, 0);
-    }
-
-    // create the right edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const rightSide = this.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-      );
-      rightSide.CreateFixture(shape, 0);
-    }
+  update() {
+    this.processInputs();
+    this.sendWorldState();
   }
 
-  createBox(
-    posX: number,
-    posY: number,
-    width: number,
-    height: number,
-    isDynamic: boolean
-  ): Box2d.b2Body {
-    // this is how we create a generic Box2D body
-    const box = this.world.CreateBody();
-    if (isDynamic) {
-      // Box2D bodies born as static bodies, but we can make them dynamic
-      box.SetType(Box2d.b2BodyType.b2_dynamicBody);
-      box.SetLinearDamping(10);
-      box.SetFixedRotation(true);
+  processInputs() {
+    // if valid input, ignoring inputs that don't look valid
+    const id = message.entity_id;
+    this.entities[id].applyInput(message);
+    this.last_processed_input[id] = message.input_sequence_number;
+  }
+
+  sendWorldState() {
+    // send world state to all connected clients
+    var world_state = [];
+    var num_clients = this.clients.length;
+    for (var i = 0; i < num_clients; i++) {
+      var entity = this.entities[i];
+      world_state.push({
+        entity_id: entity.entity_id,
+        position: entity.x,
+        last_processed_input: this.last_processed_input[i],
+      });
     }
 
-    // a body can have one or more fixtures. This is how we create a box fixture inside a body
-    const boxShape = new Box2d.b2PolygonShape();
-    boxShape.SetAsBox(width / 2 / WORLD_SCALE, height / 2 / WORLD_SCALE);
-    const fixtureDef = new Box2d.b2FixtureDef();
-    fixtureDef.density = 20.0;
-    fixtureDef.friction = 1.0;
-    fixtureDef.shape = boxShape;
-    box.CreateFixture(fixtureDef);
-
-    // now we place the body in the world
-    box.SetPosition(new Box2d.b2Vec2(posX / WORLD_SCALE, posY / WORLD_SCALE));
-
-    // time to set mass information
-    box.SetMassData({
-      mass: 1,
-      center: new Box2d.b2Vec2(),
-      I: 0, // if you set it to zero, bodies won't rotate
-    });
-
-    return box;
+    // Broadcast the state to all the clients.
+    for (var i = 0; i < num_clients; i++) {
+      var client = this.clients[i];
+      client.network.send(client.lag, world_state);
+    }
   }
 
   addPlayer(player: Player) {
