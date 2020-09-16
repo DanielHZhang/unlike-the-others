@@ -2,7 +2,7 @@ import {atom} from 'recoil';
 import {StorageKeys} from 'src/client/config/constants';
 import {GameControls} from 'src/shared/types';
 
-export const Atoms = {
+export const atoms = {
   userId: atom({
     key: 'userId',
     default: localStorage.getItem(StorageKeys.Id) || '',

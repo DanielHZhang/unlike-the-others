@@ -6,7 +6,7 @@ import {Button} from 'src/client/components/button';
 import {Stack} from 'src/client/components/stack';
 import {GameWindow} from 'src/client/game';
 import {socket} from 'src/client/networking/socketio';
-import {Atoms} from 'src/client/store';
+import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/utils/hooks';
 import {Chat} from 'src/client/pages/chat';
 import {Chatbox} from 'src/client/components/chatbox';

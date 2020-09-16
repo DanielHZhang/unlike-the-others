@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import {PokemonMap} from 'src/client/game/scenes/pokemon';
 import {useDidMount} from 'src/client/utils/hooks';
 import {useRecoilValue} from 'recoil';
-import {Atoms} from 'src/client/store';
+import {atoms} from 'src/client/store';
 import {Lobby} from 'src/client/game/scenes/lobby-nolights';
 
 const elementId = 'game-window';
@@ -12,7 +12,7 @@ type Props = {};
 
 export const GameWindow = memo<Props>(
   (props) => {
-    const gameControls = useRecoilValue(Atoms.gameControls);
+    const gameControls = useRecoilValue(atoms.gameControls);
     useDidMount(() => {
       new Phaser.Game({
         type: Phaser.WEBGL,

@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
 import {useDidMount} from 'src/client/utils/hooks';
-import {Atoms} from 'src/client/store';
+import {atoms} from 'src/client/store';
 import {socket} from 'src/client/networking/socketio';
 import {Button} from 'src/client/components/button';
 import {Stack} from 'src/client/components/stack';
@@ -41,8 +41,8 @@ const ModalText = styled.div`
 type Props = RouteComponentProps<any> & {};
 
 export const HomePage = (props: Props) => {
-  const [username, setUsername] = useRecoilState(Atoms.username);
-  const [room, setRoom] = useRecoilState(Atoms.room);
+  const [username, setUsername] = useRecoilState(atoms.username);
+  const [room, setRoom] = useRecoilState(atoms.room);
   const [state, setState] = useState({joining: false, modalVisible: false});
   const onJoinButtonClick = useCallback(() => {
     socket.emit('joinRoom', room.id);
