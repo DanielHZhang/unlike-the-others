@@ -13,8 +13,9 @@ const App: FC = (props) => {
   useDidMount(() => {
     socket.on('connect', () => {
       console.log('Connected to TCP server.');
+      console.log('what is the user id:', userId);
+      socket.emit('authenticate', userId);
     });
-    // socket.emit('authenticate', userId);
   });
 
   return (

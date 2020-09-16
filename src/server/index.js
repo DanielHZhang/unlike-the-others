@@ -24,7 +24,7 @@ require('ts-node').register({
 });
 
 // Load environment variables from .env file
-require('dotenv').config({path: path.join(process.cwd(), '.env')});
+require('dotenv').config({path: path.join(process.cwd(), '.local', '.env')});
 
 // Run sever entry point
 require('./server').main().catch(console.error);

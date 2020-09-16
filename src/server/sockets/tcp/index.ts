@@ -1,10 +1,20 @@
 import http from 'http';
 import SocketIo from 'socket.io';
+import {JWK, JWT} from 'jose';
 import {log} from 'src/server/utils/logs';
 import {GameService} from 'src/server/store';
 import {AudioChannel} from 'src/server/config/constants';
 
 let io: SocketIo.Server;
+
+import fs from 'fs';
+import path from 'path';
+// const key = JWK.generateSync('RSA');
+// fs.writeFileSync(path.join(process.cwd(), 'key.pem'), key.toPEM(true));
+
+const same = fs.readFileSync(path.join(process.cwd(), 'key.pem'));
+const key = JWK.asKey(same);
+console.log('key:', key);
 
 function send<T = string>(status: number, payload: T) {
   return {status, payload};
@@ -20,6 +30,18 @@ export function tcpHandler(server: http.Server) {
     const clientId = socket.client.id;
     log('info', `Client connected: ${clientId}`);
     const player = GameService.player.create(socket);
+
+    // TODO: naive authentication, should be replaced wtih full user account later
+    socket.on('authenticate', (jwt: string) => {
+      // const valid = JWT.verify(jwt, )
+
+      // if (userId)
+
+      // const id =
+
+      const newJwt = JWT.sign({payload: 'here'}, key);
+      socket.emit('authenticateResponse', newJwt);
+    });
 
     socket.on('disconnecting', () => {
       GameService.room.getById(player.roomId)?.removePlayer(player);
