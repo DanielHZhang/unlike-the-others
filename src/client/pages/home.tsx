@@ -4,13 +4,13 @@ import {useRecoilState} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
 import {useDidMount} from 'src/client/utils/hooks';
 import {atoms} from 'src/client/store';
-import {socket} from 'src/client/networking/socketio';
+import {socket} from 'src/client/networking/tcp';
 import {Button} from 'src/client/components/button';
 import {Stack} from 'src/client/components/stack';
 import {Input} from 'src/client/components/input';
 import {Modal} from 'src/client/components/modal';
 import {SocketResponse} from 'src/shared/types';
-import {channel} from 'src/client/networking/geckos';
+import {channel} from 'src/client/networking/udp';
 import {StorageKeys} from 'src/client/config/constants';
 
 const Container = styled.div`

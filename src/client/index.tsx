@@ -6,7 +6,7 @@ import {BrowserRouter} from 'react-router-dom';
 import {Global, ThemeProvider} from '@emotion/react';
 import {globalStyles} from 'src/client/styles/global';
 import {theme} from 'src/client/styles/theme';
-import 'src/client/networking/socketio';
+import 'src/client/networking/tcp';
 
 render(
   <RecoilRoot>

@@ -1,10 +1,11 @@
 import http from 'http';
 import SocketIo from 'socket.io';
-import {JWT} from 'jose';
+import {JWT, errors} from 'jose';
 import {log} from 'src/server/utils/logs';
 import {GameService} from 'src/server/store';
 import {AudioChannel} from 'src/server/config/constants';
 import {getJWK} from 'src/server/config/jwk';
+import {JwtClaims} from 'src/shared/types';
 
 let io: SocketIo.Server;
 
@@ -21,16 +22,23 @@ export function tcpHandler(server: http.Server) {
   io.on('connection', (socket: SocketIo.Socket) => {
     const clientId = socket.client.id;
     log('info', `Client connected: ${clientId}`);
-    const player = GameService.player.create(socket);
+    let player = GameService.player.create(socket);
 
     // TODO: naive authentication, should be replaced wtih full user account later
     socket.on('authenticate', (jwt?: string | null) => {
-      console.log('is valid:', jwt);
-      if (jwt) {
-        const valid = JWT.verify(jwt, getJWK());
-
-      } else {
-        const newJwt = JWT.sign({payload: 'here'}, getJWK());
+      try {
+        if (!jwt) {
+          throw new errors.JWTMalformed();
+        }
+        const claims = JWT.verify(jwt, getJWK()) as JwtClaims;
+        // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
+        // attempt to dispose of entire socket instead of just the player object
+        const playerExists = GameService.player.getById(claims.userId);
+        if (!playerExists) {
+          player = GameService.player.create(socket);
+        }
+      } catch (error) {
+        const newJwt = JWT.sign({userId: player.id}, getJWK());
         socket.emit('authenticateResponse', newJwt);
       }
     });

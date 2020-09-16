@@ -3,36 +3,26 @@ import {ServerChannel} from '@geckos.io/server';
 import {ObjectService} from 'src/shared/types';
 
 export class Player {
-  private position: {
-    x: number;
-    y: number;
-  };
+  private position = {x: 0, y: 0};
   // private jobs: Job[];
-  private spy: boolean;
-  private meetingsRemaining: number;
-  public alive: boolean;
+  private spy = false;
+  private meetingsRemaining = 0;
+  public alive: boolean = true;
   public id: string;
-  public audioId?: string;
-  public roomId?: string;
+  public audioId?: string = undefined;
+  public roomId?: string = undefined;
   public socket: Socket;
   public channel?: ServerChannel;
+  public active = false;
 
   constructor(socket: Socket) {
     this.socket = socket;
     this.id = socket.client.id;
-    this.roomId = undefined;
-    this.audioId = undefined;
-    this.position = {
-      x: 0,
-      y: 0,
-    };
-    this.alive = true;
-    this.spy = false;
-    this.meetingsRemaining = 0;
   }
 
   joinRoom(roomId: string) {
     this.roomId = roomId;
+    this.active = true;
     this.socket.join(roomId);
   }
 
@@ -40,6 +30,7 @@ export class Player {
     this.socket.emit('connectAudioIds', audioIds);
     this.socket.leave(this.roomId!);
     this.roomId = undefined;
+    this.active = false;
   }
 
   kill(audioIds: string[]) {
@@ -74,6 +65,7 @@ export class PlayerService implements ObjectService {
     return player;
   }
 
+  /** Get player from player map by their generated id */
   public getById(id: string) {
     return this.players.get(id);
   }

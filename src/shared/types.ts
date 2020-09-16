@@ -19,6 +19,11 @@ export type GameControls = {
   right: number;
 };
 
+export type JwtClaims = {
+  userId: string;
+  iat: number;
+};
+
 export type SocketResponse<T = string> = {
   status: number;
   payload: T;

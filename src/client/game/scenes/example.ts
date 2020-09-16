@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import {channel} from 'src/client/networking/geckos';
+import {channel} from 'src/client/networking/udp';
 
 const myPosition = {x: 0, y: 0};
 const gameState = {
@@ -33,7 +33,6 @@ export class ExampleScene extends Phaser.Scene {
         return console.error(error.message);
       }
       channel.emit('joinRoom');
-
 
       gameState.players[channel.id] = true;
 
@@ -76,10 +75,7 @@ export class ExampleScene extends Phaser.Scene {
         self.connectedToGecko = true;
       });
     });
-
-
   }
-
 
   create() {
     this.cameras.main.setBounds(0, 0, 500, 500);
@@ -135,10 +131,7 @@ export class ExampleScene extends Phaser.Scene {
 
   calculateNewPosition() {
     const myNewPosition = {x: self.player.x, y: self.player.y};
-    if (
-      myNewPosition &&
-      (myPosition.x !== myNewPosition.x || myPosition.y !== myNewPosition.y)
-    ) {
+    if (myNewPosition && (myPosition.x !== myNewPosition.x || myPosition.y !== myNewPosition.y)) {
       myPosition.x = myNewPosition.x;
       myPosition.y = myNewPosition.y;
       // console.log('wtff', self.connectedToGecko);
