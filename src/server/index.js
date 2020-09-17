@@ -4,25 +4,22 @@ if (!process.env.NODE_ENV) {
 }
 
 const path = require('path');
+const tsConfig = require('../../tsconfig.json');
+const tsConfigPaths = require('tsconfig-paths');
+const tsNode = require('ts-node');
+const dotenv = require('dotenv');
 
 // Configure tsconfig-paths for non-relative path names
-require('tsconfig-paths').register({
-  baseUrl: '.',
-  paths: {
-    'src/*': ['src/*'],
-  },
+tsConfigPaths.register({
+  baseUrl: tsConfig.compilerOptions.baseUrl,
+  paths: tsConfig.compilerOptions.paths,
 });
 
 // Configure ts-node for server transpilation
-require('ts-node').register({
-  compilerOptions: {
-    module: 'commonjs',
-  },
-  transpileOnly: true,
-});
+tsNode.register({transpileOnly: true});
 
 // Load environment variables from .env file
-require('dotenv').config({path: path.join(process.cwd(), '.local', '.env')});
+dotenv.config({path: path.join(process.cwd(), '.local', '.env')});
 
 // Run sever entry point
 require('./server').main().catch(console.error);

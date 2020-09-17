@@ -10,8 +10,8 @@ export class Player {
   private meetingsRemaining = 0;
   public alive: boolean = true;
   public id: string;
-  public audioId?: string = undefined;
-  public roomId?: string = undefined;
+  public audioId?: string;
+  public roomId?: string;
   public socket: Socket;
   public channel?: ServerChannel;
   public active = false;

@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
+    "incremental": true,
     "isolatedModules": true,
     "jsx": "react",
     "lib": [
@@ -19,7 +20,7 @@
       "es2019",
       "esnext"
     ],
-    "module": "esnext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "noEmit": false,
     "noImplicitAny": true,
@@ -27,17 +28,22 @@
     "noImplicitThis": false,
     "noUnusedLocals": true,
     "outDir": ".build",
+    "paths": {
+      "src/*": [
+        "src/*"
+      ]
+    },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "strictBindCallApply": true,
     "strictNullChecks": true,
-    "target": "es6",
+    "target": "es6"
   },
   "exclude": [
     ".vscode",
-    "node_modules",
+    "node_modules"
   ],
   "include": [
     "src/**/*"

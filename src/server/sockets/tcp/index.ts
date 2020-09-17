@@ -35,9 +35,8 @@ export function tcpHandler(server: http.Server) {
         // attempt to dispose of entire socket instead of just the player object
         const playerExists = GameService.player.getById(claims.userId);
         // Player doesn't exist in map, create it with the userId contained in the JWT
-        if (!playerExists) {
-          player = GameService.player.create(socket, claims.userId);
-        }
+        player = playerExists || GameService.player.create(socket, claims.userId);
+        socket.emit('authenticateResponse');
       } catch (error) {
         // Client does not have a valid JWT
         player = GameService.player.create(socket);

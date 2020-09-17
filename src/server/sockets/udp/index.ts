@@ -37,16 +37,15 @@ export function udpHandler(server: http.Server) {
   io.addServer(server); // Use the port of the HTTP Server
 
   io.onConnection((channel) => {
-    // log('info', `Udp client connected: ${channelId}`);
-    // channel.userData
-    console.log('data:', channel.userData);
-    // Add channel to the player class
+    log('info', `UDP client connected: ${channel.id}`);
+    const playerId = channel.userData.id as string;
+    const player = GameService.player.getById(playerId)!;
+    player.channel = channel;
 
-    // const player = GameService.player.getById()
-
-    channel.on('connect', () => {
-      console.log('anything????');
+    channel.onDisconnect((reason) => {
+      player.channel = undefined; // Remove reference to this channel
     });
+
 
     channel.on('joinRoom', (data, senderId) => {
       const room = GameService.room.getById();
