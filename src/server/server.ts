@@ -13,6 +13,8 @@ import {udpHandler} from 'src/server/sockets/udp';
 
 export async function main() {
   const app = express();
+  const server = http.createServer(app);
+  const indexFile = path.join(BUILD_FOLDER_PATH, 'index.html');
 
   // Configure hot reloading for dev environments
   if (!IS_PRODUCTION_ENV) {
@@ -30,15 +32,13 @@ export async function main() {
   }
 
   // Apply express middlewares
-  const indexFile = path.join(BUILD_FOLDER_PATH, 'index.html');
   app.use('/static', express.static(BUILD_FOLDER_PATH));
   app.use('/assets', express.static(ASSETS_FOLDER_PATH));
   app.use(json({limit: '10mb'}));
   app.use(urlencoded({extended: true, limit: '10mb'}));
   app.use((_, res) => res.sendFile(indexFile));
 
-  // Create server and socket handlers
-  const server = http.createServer(app);
+  // Create socket handlers
   tcpHandler(server);
   udpHandler(server);
   server.listen(PORT);

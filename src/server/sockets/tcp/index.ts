@@ -6,6 +6,7 @@ import {GameService} from 'src/server/store';
 import {AudioChannel} from 'src/server/config/constants';
 import {getJWK} from 'src/server/config/jwk';
 import {JwtClaims} from 'src/shared/types';
+import {Player} from 'src/server/store/player';
 
 let io: SocketIo.Server;
 
@@ -20,8 +21,8 @@ export function tcpHandler(server: http.Server) {
   io = SocketIo(server);
 
   io.on('connection', (socket: SocketIo.Socket) => {
-    let player = GameService.player.create(socket);
-    log('info', `TCP Client connected: ${player.id}`);
+    log('info', `TCP socket connected: ${socket.client.id}`);
+    let player: Player;
 
     // TODO: naive authentication, should be replaced wtih full user account later
     socket.on('authenticate', (jwt?: string | null) => {
@@ -33,10 +34,13 @@ export function tcpHandler(server: http.Server) {
         // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
         // attempt to dispose of entire socket instead of just the player object
         const playerExists = GameService.player.getById(claims.userId);
+        // Player doesn't exist in map, create it with the userId contained in the JWT
         if (!playerExists) {
-          player = GameService.player.create(socket);
+          player = GameService.player.create(socket, claims.userId);
         }
       } catch (error) {
+        // Client does not have a valid JWT
+        player = GameService.player.create(socket);
         const newJwt = JWT.sign({userId: player.id}, getJWK());
         socket.emit('authenticateResponse', newJwt);
       }

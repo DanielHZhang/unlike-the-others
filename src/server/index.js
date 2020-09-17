@@ -16,10 +16,8 @@ require('tsconfig-paths').register({
 // Configure ts-node for server transpilation
 require('ts-node').register({
   compilerOptions: {
-    esModuleInterop: true,
     module: 'commonjs',
   },
-  project: path.join(process.cwd(), 'tsconfig.json'),
   transpileOnly: true,
 });
 

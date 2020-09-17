@@ -16,9 +16,9 @@ export class Player {
   public channel?: ServerChannel;
   public active = false;
 
-  constructor(socket: Socket) {
+  constructor(socket: Socket, id?: string) {
     this.socket = socket;
-    this.id = nanoid();
+    this.id = id || nanoid();
   }
 
   joinRoom(roomId: string) {
@@ -60,8 +60,8 @@ export class PlayerService implements ObjectService {
     return PlayerService.instance;
   }
 
-  public create(socket: Socket) {
-    const player = new Player(socket);
+  public create(socket: Socket, id?: string) {
+    const player = new Player(socket, id);
     this.players.set(player.id, player);
     return player;
   }

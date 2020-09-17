@@ -4,17 +4,6 @@ import {GECKOS_LABEL, PORT} from 'src/shared/constants';
 
 export const channel = geckos({
   authorization: localStorage.getItem(StorageKeys.Jwt) || '',
-  // label: GECKOS_LABEL,
+  label: GECKOS_LABEL,
   port: PORT,
-});
-
-console.log(channel.userData);
-
-// channel.emit('connect', 'wow');
-
-channel.onConnect((error) => {
-  if (error) {
-    console.error(error);
-  } else {
-  }
 });

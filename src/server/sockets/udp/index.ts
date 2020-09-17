@@ -3,6 +3,9 @@ import geckos, {GeckosServer, iceServers} from '@geckos.io/server';
 import {log} from 'src/server/utils/logs';
 import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';
 import {GameService} from 'src/server/store';
+import {errors, JWT} from 'jose';
+import {getJWK} from 'src/server/config/jwk';
+import {JwtClaims} from 'src/shared/types';
 
 let io: GeckosServer;
 
@@ -10,50 +13,40 @@ export function udpHandler(server: http.Server) {
   if (io) {
     throw new Error('Attempted to re-instantiate the UDP server singleton.');
   }
+  // TODO: Add custom ice servers for production
   io = geckos({
-    iceServers: IS_PRODUCTION_ENV ? iceServers : [/* Add ice servers for production here */],
-    // label: GECKOS_LABEL,
+    iceServers: IS_PRODUCTION_ENV ? iceServers : undefined,
+    label: GECKOS_LABEL,
     authorization: async (auth, request) => {
-      console.log('geckos auth', auth, request);
-
-      // Use "request.connection.remoteAddress" to get the users ip.
-      // ("request.headers['x-forwarded-for']" if your server is behind a proxy)
-
-      // // reach out to a database if needed (this code is completely fictitious)
-      // const user = await database.getByName(username);
-
-      // // whatever you return here, will later be accessible via channel.userData to authenticate the user
-      // if (user.username === username && user.password === password) {
-      //   return {username: user.username, level: user.level, points: user.points};
-      // }
-
-      // if you return true, you will authorize the connection, without adding any data to channel.userData
-      return true;
-
-      // if you return false, the server will respond with 401 (unauthorized)
-      return false;
-      // if you return a number between 100 and 599, the server will respond with the respective HTTP status code
-      return 400; // will return 400 (Bad Request)
-      return 404; // will return 404 (Not Found)
-      return 500; // will return 500 (Internal Server Error)
-      // and so on ...
+      try {
+        if (!auth) {
+          throw new errors.JWTMalformed();
+        }
+        const claims = JWT.verify(auth, getJWK()) as JwtClaims;
+        const player = GameService.player.getById(claims.userId);
+        if (!player) {
+          throw 'no player found';
+        }
+        return {id: player.id};
+      } catch (error) {
+        // this is bad, no jwt provided
+        return false;
+      }
     },
   });
   io.addServer(server); // Use the port of the HTTP Server
 
-  console.log('starting up geckos server', io);
-
   io.onConnection((channel) => {
     // log('info', `Udp client connected: ${channelId}`);
     // channel.userData
-
+    console.log('data:', channel.userData);
     // Add channel to the player class
+
+    // const player = GameService.player.getById()
 
     channel.on('connect', () => {
       console.log('anything????');
     });
-
-    console.log('is there a udp connection?', channel);
 
     channel.on('joinRoom', (data, senderId) => {
       const room = GameService.room.getById();
