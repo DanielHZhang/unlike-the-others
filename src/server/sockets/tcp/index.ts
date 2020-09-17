@@ -59,8 +59,8 @@ export function tcpHandler(server: http.Server) {
 
     socket.on('joinRoom', (roomId: string) => {
       const room = GameService.room.getById(roomId);
-      if (!room) {
-        throw new Error(`No room found with id: ${roomId}`);
+      if (!room || !room.hasCapacity()) {
+        throw new Error(`No room found with id: ${roomId}, or room has reached full capacity`);
       }
       room.addPlayer(player);
       log('info', `Client ${player.id} joined room ${room.id}`);

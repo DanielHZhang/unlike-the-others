@@ -3,7 +3,7 @@ import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {ObjectService} from 'src/shared/types';
-import {AudioChannel} from 'src/server/config/constants';
+import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 
 export type Voting = {
@@ -36,10 +36,10 @@ type Settings = {
 };
 
 export class GameRoom {
-  private players: Map<string, Player> = new Map<string, Player>();
+  private players: Player[] = [];
   private isGameStarted: boolean = false;
   private isVoting: boolean = false;
-  private host?: Player = undefined;
+  private host?: Player;
   private settings: Settings = {
     mapType: 'lol',
     numSpies: 2,
@@ -98,23 +98,32 @@ export class GameRoom {
     }
   }
 
-  addPlayer(player: Player) {
+  size() {
+    return this.players.length;
+  }
+
+  hasCapacity() {
+    return this.players.length < MAX_ROOM_SIZE;
+  }
+
+  addPlayer(newPlayer: Player) {
     if (!this.host) {
-      this.host = player;
+      this.host = newPlayer;
     }
-    this.players.set(player.id, player);
-    player.joinRoom(this.id);
+    this.players.push(newPlayer);
+    newPlayer.joinRoom(this.id);
   }
 
   removePlayer(player: Player) {
-    if (this.players.has(player.id)) {
-      this.players.delete(player.id);
+    const index = this.players.findIndex((p) => p === player);
+    if (index > -1) {
+      this.players.splice(index, 1);
+      if (this.host === player && this.players.length > 0) {
+        this.host = this.players[0];
+      }
+      const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
+      player.leaveRoom(audioIds);
     }
-    if (this.host === player && this.players.size > 0) {
-      this.host = this.players.values().next().value;
-    }
-    const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
-    player.leaveRoom(audioIds);
   }
 
   killPlayer(player: Player) {
@@ -136,7 +145,6 @@ export class GameRoom {
   }
 
   getAudioIdsInChannel(channel: AudioChannel): string[] {
-    const players = Array.from(this.players.values());
     switch (channel) {
       case AudioChannel.Silent: {
         return [];
@@ -144,12 +152,12 @@ export class GameRoom {
       case AudioChannel.Lobby: {
         if (this.isGameStarted) {
           // If in game, then add people who are dead
-          return players.filter((p) => !p.alive).map((p) => p.audioId!);
+          return this.players.filter((p) => !p.alive).map((p) => p.audioId!);
         }
-        return players.map((p) => p.audioId!); // In lobby
+        return this.players.map((p) => p.audioId!); // In lobby
       }
       case AudioChannel.Voting: {
-        return players.filter((p) => p.alive).map((p) => p.audioId!);
+        return this.players.filter((p) => p.alive).map((p) => p.audioId!);
       }
       default: {
         throw new Error('Invalid AudioChannel passed');
@@ -234,7 +242,7 @@ export class RoomService implements ObjectService {
     if (!roomToDelete) {
       return;
     }
-    if (roomToDelete.players.size <= 1) {
+    if (roomToDelete.size() === 0) {
       this.rooms.delete(id);
     }
   }

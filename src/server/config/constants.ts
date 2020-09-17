@@ -35,3 +35,6 @@ export enum AudioChannel {
   Voting,
   Silent,
 }
+
+/** Maximum number of players allowed in a single room */
+export const MAX_ROOM_SIZE = 15;
