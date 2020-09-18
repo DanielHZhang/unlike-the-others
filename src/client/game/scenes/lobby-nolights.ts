@@ -3,7 +3,7 @@ import Box2d from '@supersede/box2d';
 import {GameControls} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
-import {channel} from 'src/client/networking/udp';
+import {bufferChannel, channel} from 'src/client/networking/udp';
 
 export class Lobby extends Phaser.Scene {
   public controls: GameControls;
@@ -171,24 +171,24 @@ export class Lobby extends Phaser.Scene {
     return [box, userData];
   }
 
-  setPlayerVelocity() {
-    const vector = new Box2d.b2Vec2();
-    const movementUnit = 90 / WORLD_SCALE;
-
+  processPlayerInput() {
     // Determine horizontal velocity
     if (this.cursors.right!.isDown) {
-      vector.Set(movementUnit, 0);
+      bufferChannel.right();
     } else if (this.cursors.left!.isDown) {
-      vector.Set(-movementUnit, 0);
-    }
-    // Determine vertical velocity
-    if (this.cursors.down!.isDown) {
-      vector.Set(vector.x, movementUnit);
-    } else if (this.cursors.up!.isDown) {
-      vector.Set(vector.x, -movementUnit);
+      bufferChannel.left();
     }
 
-    this.player[0].SetLinearVelocity(vector);
+    // Determine vertical velocity
+    if (this.cursors.up!.isDown) {
+      bufferChannel.up();
+    } else if (this.cursors.down!.isDown) {
+      bufferChannel.down();
+    }
+
+    if (!bufferChannel.isEmpty()) {
+      bufferChannel.emit();
+    }
   }
 
   processInputs() {
@@ -198,7 +198,7 @@ export class Lobby extends Phaser.Scene {
   }
 
   update(currentTime: number, deltaTime: number) {
-    this.setPlayerVelocity();
+    this.processPlayerInput();
     this.engine.fixedStep(deltaTime);
   }
 }

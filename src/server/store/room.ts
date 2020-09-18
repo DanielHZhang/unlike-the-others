@@ -71,6 +71,26 @@ export class GameRoom {
     this.sendWorldState();
   }
 
+  setPlayerVelocity() {
+    const vector = new Box2d.b2Vec2();
+    const movementUnit = 90 / WORLD_SCALE;
+
+    // Determine horizontal velocity
+    if (this.cursors.right!.isDown) {
+      vector.Set(movementUnit, 0);
+    } else if (this.cursors.left!.isDown) {
+      vector.Set(-movementUnit, 0);
+    }
+    // Determine vertical velocity
+    if (this.cursors.down!.isDown) {
+      vector.Set(vector.x, movementUnit);
+    } else if (this.cursors.up!.isDown) {
+      vector.Set(vector.x, -movementUnit);
+    }
+
+    this.player[0].SetLinearVelocity(vector);
+  }
+
   processInputs() {
     // if valid input, ignoring inputs that don't look valid
     const id = message.entity_id;

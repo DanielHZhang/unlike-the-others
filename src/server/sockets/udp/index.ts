@@ -5,7 +5,7 @@ import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';
 import {GameService} from 'src/server/store';
 import {errors, JWT} from 'jose';
 import {getJWK} from 'src/server/config/jwk';
-import {JwtClaims} from 'src/shared/types';
+import {InputData, JwtClaims} from 'src/shared/types';
 
 let io: GeckosServer;
 
@@ -46,19 +46,19 @@ export function udpHandler(server: http.Server) {
       player.channel = undefined; // Remove reference to this channel
     });
 
-
-    channel.on('joinRoom', (data, senderId) => {
-      const room = GameService.room.getById();
-      // GameService.
+    channel.onRaw((message) => {
+      const buffer = message as ArrayBuffer;
+      console.log('Received raw message on server:', buffer);
     });
 
     const pendingChanges: any[] = [];
     const clients = [];
     const lastProcessedInput = [];
 
-    channel.on('move', (data, senderId) => {
-      // handle inputs from player here
-      console.log('receive move input from client', data);
+    channel.on('input', (data, senderId) => {
+      const d = data as InputData;
+      // data.
+
       pendingChanges.push({dir: data.dir, ts: data.ts});
 
       // Calculate time elapsed since last tick was processed

@@ -1,4 +1,5 @@
 import Peer from 'peerjs';
+import {PlayerInput} from 'src/shared/constants';
 
 declare module 'peerjs' {
   export namespace peerjs {
@@ -33,4 +34,11 @@ export type UdpMessage = {
   seqNum: number;
   entityId: number;
   pressTime: number;
+};
+
+export type InputData = {
+  /** Type of input */
+  t: PlayerInput;
+  /** Timestamp */
+  ts: number;
 };
