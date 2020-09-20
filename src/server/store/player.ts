@@ -1,9 +1,11 @@
+import Box2d from '@supersede/box2d';
 import {Socket} from 'socket.io';
 import {ServerChannel} from '@geckos.io/server';
 import {ObjectService} from 'src/shared/types';
 import {nanoid} from 'src/server/utils/crypto';
 
 export class Player {
+  private static readonly instances = new Map<string, Player>();
   private position = {x: 0, y: 0};
   // private jobs: Job[];
   private spy = false;
@@ -15,59 +17,54 @@ export class Player {
   public socket: Socket;
   public channel?: ServerChannel;
   public active = false;
+  public body?: Box2d.b2Body;
 
-  constructor(socket: Socket, id?: string) {
+  /**
+   * Private constructor to prevent instances from being created outside of static methods
+   * @param socket Reference to the socket object
+   * @param id Id of the room, if any
+   */
+  private constructor(socket: Socket, id: string = nanoid()) {
     this.socket = socket;
-    this.id = id || nanoid();
+    this.id = id;
   }
 
-  joinRoom(roomId: string) {
+  /**
+   * Creates a new room instance with a random id using the provided TCP socket
+   */
+  public static create(socket: Socket, id?: string): Player {
+    const player = new Player(socket, id);
+    Player.instances.set(player.id, player);
+    return player;
+  }
+
+  /**
+   * Get player from player map by their generated id
+   */
+  public static getById(id: string): Player | undefined {
+    return Player.instances.get(id);
+  }
+
+  public joinRoom(roomId: string) {
     this.roomId = roomId;
     this.active = true;
     this.socket.join(roomId);
   }
 
-  leaveRoom(audioIds: string[]) {
+  public leaveRoom(audioIds: string[]) {
     this.socket.emit('connectAudioIds', audioIds);
     this.socket.leave(this.roomId!);
     this.roomId = undefined;
     this.active = false;
   }
 
-  kill(audioIds: string[]) {
+  public kill(audioIds: string[]) {
     this.alive = false;
     this.socket.emit('connectAudioIds', audioIds);
   }
 
-  revive(audioIds: string[]) {
+  public revive(audioIds: string[]) {
     this.alive = true;
     this.socket.emit('connectAudioIds', audioIds);
-  }
-}
-
-export class PlayerService implements ObjectService {
-  private static instance: PlayerService;
-  private players = new Map<string, Player>();
-
-  private constructor() {
-    // Empty private constructor to enforce singleton
-  }
-
-  public static getInstance() {
-    if (!PlayerService.instance) {
-      PlayerService.instance = new PlayerService();
-    }
-    return PlayerService.instance;
-  }
-
-  public create(socket: Socket, id?: string) {
-    const player = new Player(socket, id);
-    this.players.set(player.id, player);
-    return player;
-  }
-
-  /** Get player from player map by their generated id */
-  public getById(id: string) {
-    return this.players.get(id);
   }
 }

@@ -1,11 +1,12 @@
 import http from 'http';
 import geckos, {GeckosServer, iceServers} from '@geckos.io/server';
-import {log} from 'src/server/utils/logs';
-import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';
-import {GameService} from 'src/server/store';
 import {errors, JWT} from 'jose';
+import {GameRoom, Player} from 'src/server/store';
+import {log} from 'src/server/utils/logs';
 import {getJWK} from 'src/server/config/jwk';
 import {InputData, JwtClaims} from 'src/shared/types';
+import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';
+import {bufferDecode} from 'src/server/sockets/udp/decoder';
 
 let io: GeckosServer;
 
@@ -23,7 +24,7 @@ export function udpHandler(server: http.Server) {
           throw new errors.JWTMalformed();
         }
         const claims = JWT.verify(auth, getJWK()) as JwtClaims;
-        const player = GameService.player.getById(claims.userId);
+        const player = Player.getById(claims.userId);
         if (!player) {
           throw 'no player found';
         }
@@ -38,17 +39,21 @@ export function udpHandler(server: http.Server) {
 
   io.onConnection((channel) => {
     log('info', `UDP client connected: ${channel.id}`);
+    let room: GameRoom;
     const playerId = channel.userData.id as string;
-    const player = GameService.player.getById(playerId)!;
+    const player = Player.getById(playerId)!;
     player.channel = channel;
 
     channel.onDisconnect((reason) => {
       player.channel = undefined; // Remove reference to this channel
     });
 
-    channel.onRaw((message) => {
-      const buffer = message as ArrayBuffer;
-      console.log('Received raw message on server:', buffer);
+    channel.onRaw((buffer) => {
+      if (!room) {
+        room = GameRoom.getById(player.roomId)!;
+      }
+      const input = bufferDecode.bufferToMessage(buffer as ArrayBuffer);
+      // room.
     });
 
     const pendingChanges: any[] = [];

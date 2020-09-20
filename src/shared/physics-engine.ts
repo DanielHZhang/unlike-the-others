@@ -9,14 +9,48 @@ import {
 } from 'src/shared/constants';
 
 export class PhysicsEngine {
+  private static readonly LINEAR_DAMPING = 10;
+
   private timestepAccumulator = 0;
   private timestepAccumulatorRatio = 0;
   public world: Box2d.b2World;
+  public entities: Box2d.b2Body[] = [];
 
   constructor() {
     const gravity = new Box2d.b2Vec2(0, 0);
     this.world = new Box2d.b2World(gravity);
     this.world.SetAutoClearForces(false);
+  }
+
+  createPlayer() {
+    // Body definition
+    const body = this.world.CreateBody();
+    body.SetType(Box2d.b2BodyType.b2_dynamicBody);
+    body.SetLinearDamping(PhysicsEngine.LINEAR_DAMPING);
+    body.SetFixedRotation(true); // Prevent angular rotation of bodies
+    // body.SetMassData({
+    //   mass: 1,
+    //   center: new Box2d.b2Vec2(),
+    //   I: 0, // if you set it to zero, bodies won't rotate
+    // });
+    const TEMP_POSX = 300;
+    const TEMP_POSY = 300;
+    body.SetPosition(new Box2d.b2Vec2(TEMP_POSX / WORLD_SCALE, TEMP_POSY / WORLD_SCALE));
+
+    // Shape definition
+    const TEMP_WIDTH = 50;
+    const TEMP_HEIGHT = 50;
+    const shape = new Box2d.b2PolygonShape();
+    shape.SetAsBox(TEMP_WIDTH / 2 / WORLD_SCALE, TEMP_HEIGHT / 2 / WORLD_SCALE);
+
+    // Fixture definition
+    const fixture = new Box2d.b2FixtureDef();
+    fixture.density = 20.0;
+    fixture.friction = 1.0;
+    fixture.shape = shape;
+    body.CreateFixture(fixture);
+
+    return body;
   }
 
   /**

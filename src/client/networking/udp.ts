@@ -8,46 +8,36 @@ export const channel = geckos({
   port: PORT,
 });
 
-/**
- * Array schema: [Uint32, Uint32, Uint32]
- *               [Up/down pressed, left/right pressed, action type]
- */
-// export function emitMovement() {
-//   const buffer = new ArrayBuffer(12); // 1 byte = 8 bits
-//   const inputType = new Uint8Array(buffer, 0, 1);
-//   const upDownSlot = new Uint8Array(buffer, 1, 1);
-//   const leftRightSlot = new Uint8Array(buffer, 2, 1);
-//   const actionSlot = new Uint8Array(buffer, 3, 1);
-//   inputType[0] = InputType.Movement;
-//   upDownSlot[0] = 1;
-//   leftRightSlot[0] = 1;
-// }
-
-class BufferMaker {
-  public buffer: ArrayBuffer;
-  public slots: Uint8Array[];
+class BufferEncoder {
+  public buffer = new ArrayBuffer(7);
+  public slots: [Uint32Array, Uint8Array, Uint8Array, Uint8Array];
+  public sequenceNumber = 0;
 
   // implied that the emitted buffer is still retained in memory
   constructor() {
-    this.buffer = new ArrayBuffer(3);
-    const slots = ['vertical', 'horizontal', 'actionType'];
-    this.slots = slots.map((_, index) => new Uint8Array(this.buffer, index, 1));
+    this.slots = [
+      new Uint32Array(this.buffer, 0, 1), // Input sequence number
+      new Uint8Array(this.buffer, 4, 1), // Up/down pressed
+      new Uint8Array(this.buffer, 5, 1), // Left/right pressed
+      new Uint8Array(this.buffer, 6, 1), // Action type
+    ];
+    this.slots[0][0] = this.sequenceNumber; // Set initial sequence number to 0
   }
 
   up() {
-    this.slots[0][0] = 1;
-  }
-
-  down() {
-    this.slots[0][0] = 2;
-  }
-
-  left() {
     this.slots[1][0] = 1;
   }
 
-  right() {
+  down() {
     this.slots[1][0] = 2;
+  }
+
+  left() {
+    this.slots[2][0] = 1;
+  }
+
+  right() {
+    this.slots[2][0] = 2;
   }
 
   action(type: ActionInput) {
@@ -55,13 +45,20 @@ class BufferMaker {
   }
 
   isEmpty() {
-    return !this.slots.some((uint) => uint[0] !== 0);
+    // Ignore first slot due to sequence number constantly changing
+    for (let i = 1; i < this.slots.length; i++) {
+      if (this.slots[i][0] !== 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   emit() {
     channel.raw.emit(this.buffer);
     this.slots.forEach((uint) => uint.fill(0)); // Reset all slots to 0
+    this.slots[0][0] = ++this.sequenceNumber;
   }
 }
 
-export const bufferChannel = new BufferMaker();
+export const bufferChannel = new BufferEncoder();

@@ -36,6 +36,7 @@ type Settings = {
 };
 
 export class GameRoom {
+  private static readonly instances = new Map<string, GameRoom>();
   private players: Player[] = [];
   private isGameStarted: boolean = false;
   private isVoting: boolean = false;
@@ -61,9 +62,43 @@ export class GameRoom {
   private engine: PhysicsEngine;
   public id: string;
 
-  constructor(roomId: string) {
-    this.id = roomId;
+  /**
+   * Private constructor to prevent instances from being created outside of static methods
+   */
+  private constructor() {
+    this.id = nanoid();
     this.engine = new PhysicsEngine();
+  }
+
+  /**
+   * Retrieves a room instance by its id
+   * @param id Id of the room instance
+   */
+  public static getById(id?: string): GameRoom | undefined {
+    return id ? GameRoom.instances.get(id) : undefined;
+  }
+
+  /**
+   * Creates a new room instance with a random id
+   */
+  public static create(): GameRoom {
+    const newRoom = new GameRoom();
+    GameRoom.instances.set(newRoom.id, newRoom);
+    return newRoom;
+  }
+
+  /**
+   * Only deletes rooms that no longer contain players. Skips if id is not found in the map.
+   * @param id Id of the room instance
+   */
+  public static deleteIfEmpty(id: string = '') {
+    const roomToDelete = GameRoom.instances.get(id);
+    if (!roomToDelete) {
+      return;
+    }
+    if (roomToDelete.size() === 0) {
+      GameRoom.instances.delete(id);
+    }
   }
 
   update() {
@@ -130,6 +165,7 @@ export class GameRoom {
     if (!this.host) {
       this.host = newPlayer;
     }
+    newPlayer.body = this.engine.createPlayer();
     this.players.push(newPlayer);
     newPlayer.joinRoom(this.id);
   }
@@ -221,49 +257,5 @@ export class GameRoom {
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
     log('info', `End voting for room ${this.id}`);
-  }
-}
-
-export class RoomService implements ObjectService {
-  private static instance: RoomService;
-  private rooms = new Map<string, GameRoom>();
-
-  private constructor() {
-    // Empty private constructor to enforce singleton
-  }
-
-  public static getInstance() {
-    if (!RoomService.instance) {
-      RoomService.instance = new RoomService();
-    }
-    return RoomService.instance;
-  }
-
-  create() {
-    const roomId = nanoid();
-    const newRoom = new GameRoom(roomId);
-    this.rooms.set(roomId, newRoom);
-    return newRoom;
-  }
-
-  getById(id?: string) {
-    return id ? this.rooms.get(id) : undefined;
-  }
-
-  /**
-   * Only deletes rooms that no longer contain players. Skips if id is not found in the map.
-   * @param id
-   */
-  deleteIfEmpty(id?: string) {
-    if (!id) {
-      return;
-    }
-    const roomToDelete = this.rooms.get(id);
-    if (!roomToDelete) {
-      return;
-    }
-    if (roomToDelete.size() === 0) {
-      this.rooms.delete(id);
-    }
   }
 }

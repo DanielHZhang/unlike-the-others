@@ -9,7 +9,7 @@
 3. Server verifies and decodes JWT
    1. If JWT is valid, use the `userId` claim to create new player or check if player previously connected
    2. If JWT is invalid, sign new JWT with random `userId` claim and send to client to be saved in `localStorage`
-4. Create new `Player` object with `active: false` and add to `GameService` hashmap (entering in game will change to `active: true`)
+4. Create new `Player` object with `active: false` and add to hashmap (entering in game will change to `active: true`)
 5. Run daemon on server that removes all inactive players every hour to free memory
 
 Implementation allows for auto-reconnect of players, without requiring explicit username/password login.
