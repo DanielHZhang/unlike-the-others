@@ -1,7 +1,6 @@
 import Box2d from '@supersede/box2d';
 import {Socket} from 'socket.io';
 import {ServerChannel} from '@geckos.io/server';
-import {ObjectService} from 'src/shared/types';
 import {nanoid} from 'src/server/utils/crypto';
 
 export class Player {

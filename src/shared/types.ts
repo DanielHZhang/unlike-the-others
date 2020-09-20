@@ -1,16 +1,10 @@
 import Peer from 'peerjs';
-import {PlayerInput} from 'src/shared/constants';
 
 declare module 'peerjs' {
   export namespace peerjs {
     const Peer: {new (...args: any[]): Peer};
     const util: util;
   }
-}
-
-export interface ObjectService {
-  create(...args: any[]): any;
-  getById(...args: any[]): any;
 }
 
 export type GameControls = {

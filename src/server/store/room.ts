@@ -2,7 +2,6 @@ import Box2d from '@supersede/box2d';
 import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
-import {ObjectService} from 'src/shared/types';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 
