@@ -4,6 +4,8 @@ import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
+import {InputData} from 'src/shared/types';
+import {TICK_RATE} from 'src/shared/constants';
 
 export type Voting = {
   timeRemaining: number;
@@ -34,9 +36,15 @@ type Settings = {
   numDifficultJobs: number;
 };
 
+function hrtimeMs() {
+  const time = process.hrtime();
+  return time[0] * 1000 + time[1] / 1000000;
+}
+
 export class GameRoom {
   private static readonly instances = new Map<string, GameRoom>();
-  private players: Player[] = [];
+  private readonly players: Player[] = [];
+  private readonly engine: PhysicsEngine;
   private isGameStarted: boolean = false;
   private isVoting: boolean = false;
   private host?: Player;
@@ -58,7 +66,6 @@ export class GameRoom {
     timeRemaining: 0,
     ballots: [],
   };
-  private engine: PhysicsEngine;
   public id: string;
 
   /**
@@ -67,6 +74,7 @@ export class GameRoom {
   private constructor() {
     this.id = nanoid();
     this.engine = new PhysicsEngine();
+    this.engine.shouldInterpolate = false; // Do not interpolate on the server
   }
 
   /**
@@ -95,14 +103,35 @@ export class GameRoom {
     if (!roomToDelete) {
       return;
     }
-    if (roomToDelete.size() === 0) {
+    if (roomToDelete.players.length === 0) {
       GameRoom.instances.delete(id);
     }
   }
 
-  update() {
+  tick = 0;
+  previous = hrtimeMs();
+
+  loop() {
+    const nextTimeout = setTimeout(this.loop, 1000 / TICK_RATE);
+    const now = hrtimeMs();
+    const delta = (now - this.previous) / 1000; // Delta update time in seconds
+    this.update(delta, this.tick);
+    this.previous = now;
+    this.tick++;
+    return nextTimeout;
+  }
+
+  update(deltaTime: number) {
     this.processInputs();
+    this.engine.fixedStep(deltaTime);
     this.sendWorldState();
+  }
+
+  processInputs(input: InputData) {
+    // if valid input, ignoring inputs that don't look valid
+    const id = message.entity_id;
+    this.entities[id].applyInput(message);
+    this.last_processed_input[id] = message.input_sequence_number;
   }
 
   setPlayerVelocity() {
@@ -125,13 +154,6 @@ export class GameRoom {
     this.player[0].SetLinearVelocity(vector);
   }
 
-  processInputs() {
-    // if valid input, ignoring inputs that don't look valid
-    const id = message.entity_id;
-    this.entities[id].applyInput(message);
-    this.last_processed_input[id] = message.input_sequence_number;
-  }
-
   sendWorldState() {
     // send world state to all connected clients
     var world_state = [];
@@ -152,15 +174,11 @@ export class GameRoom {
     }
   }
 
-  size() {
-    return this.players.length;
-  }
-
-  hasCapacity() {
+  public hasCapacity() {
     return this.players.length < MAX_ROOM_SIZE;
   }
 
-  addPlayer(newPlayer: Player) {
+  public addPlayer(newPlayer: Player) {
     if (!this.host) {
       this.host = newPlayer;
     }
@@ -169,7 +187,7 @@ export class GameRoom {
     newPlayer.joinRoom(this.id);
   }
 
-  removePlayer(player: Player) {
+  public removePlayer(player: Player) {
     const index = this.players.findIndex((p) => p === player);
     if (index > -1) {
       this.players.splice(index, 1);
@@ -181,13 +199,13 @@ export class GameRoom {
     }
   }
 
-  killPlayer(player: Player) {
+  public killPlayer(player: Player) {
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     player.kill(audioIds);
     log('info', `Kill player ${this.id}`);
   }
 
-  revivePlayer(player: Player) {
+  public revivePlayer(player: Player) {
     let channelType = AudioChannel.Silent;
     if (this.isGameStarted && this.isVoting) {
       channelType = AudioChannel.Voting;
@@ -199,7 +217,7 @@ export class GameRoom {
     log('info', `Revive player ${this.id}`);
   }
 
-  getAudioIdsInChannel(channel: AudioChannel): string[] {
+  public getAudioIdsInChannel(channel: AudioChannel): string[] {
     switch (channel) {
       case AudioChannel.Silent: {
         return [];
@@ -220,7 +238,7 @@ export class GameRoom {
     }
   }
 
-  emitToPlayers(event: string, message: any, filter?: (args0: Player) => boolean) {
+  public emitToPlayers(event: string, message: any, filter?: (args0: Player) => boolean) {
     const players = Array.from(this.players.values());
     const filtered = filter ? players.filter(filter) : players;
     filtered.forEach((p) => p.socket.emit(event, message));
@@ -230,28 +248,28 @@ export class GameRoom {
     // TODO
   }
 
-  startGame() {
+  public startGame() {
     this.isGameStarted = true;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `Start game for room ${this.id}`);
   }
 
-  endGame() {
+  public endGame() {
     this.isGameStarted = false;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `End game for room ${this.id}`);
   }
 
-  startVoting() {
+  public startVoting() {
     this.isVoting = true;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Voting);
     this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
     log('info', `Start voting for room ${this.id}`);
   }
 
-  endVoting() {
+  public endVoting() {
     this.isVoting = false;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);

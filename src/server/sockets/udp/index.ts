@@ -38,13 +38,14 @@ export function udpHandler(server: http.Server) {
   io.addServer(server); // Use the port of the HTTP Server
 
   io.onConnection((channel) => {
-    log('info', `UDP client connected: ${channel.id}`);
     let room: GameRoom;
     const playerId = channel.userData.id as string;
     const player = Player.getById(playerId)!;
     player.channel = channel;
+    log('info', `UDP client connected: ${player.id}`);
 
     channel.onDisconnect((reason) => {
+      log('info', `UDP client ${reason}: ${player.id}`);
       player.channel = undefined; // Remove reference to this channel
     });
 
@@ -53,7 +54,7 @@ export function udpHandler(server: http.Server) {
         room = GameRoom.getById(player.roomId)!;
       }
       const input = bufferDecode.bufferToMessage(buffer as ArrayBuffer);
-      // room.
+      player.inputQueue.push(input);
     });
 
     const pendingChanges: any[] = [];

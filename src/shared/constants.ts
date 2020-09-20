@@ -10,13 +10,16 @@ export const PORT = 8080;
 /** Label of the Geckos.io channel */
 export const GECKOS_LABEL = 'udp';
 
-/** How often the physics simulation should be incremented per second */
-export const FIXED_TIMESTEP = 1 / 60;
+/** # of ticks per second the simulation should be updated */
+export const TICK_RATE = 60;
 
-/** How many iterations per increment the velocity solver should take (more iterations = higher fidelity) */
+/** Time allotted for a single physics simulation step */
+export const FIXED_TIMESTEP = 1 / TICK_RATE;
+
+/** # of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
 export const VELOCITY_ITERATIONS = 8;
 
-/** How many iterations per increment the position solver should take (more iterations = higher fidelity) */
+/** # iterations per increment the position solver should take (more iterations = higher fidelity) */
 export const POSITION_ITERATIONS = 3;
 
 /** Conversion between metres and pixels (e.g. 1 metre = x pixels) */

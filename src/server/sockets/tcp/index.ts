@@ -21,7 +21,6 @@ export function tcpHandler(server: http.Server) {
   io = SocketIo(server);
 
   io.on('connection', (socket: SocketIo.Socket) => {
-    log('info', `TCP socket connected: ${socket.client.id}`);
     let player: Player;
 
     // TODO: naive authentication, should be replaced wtih full user account later
@@ -43,6 +42,7 @@ export function tcpHandler(server: http.Server) {
         const newJwt = JWT.sign({userId: player.id}, getJWK());
         socket.emit('authenticateResponse', newJwt);
       }
+      log('info', `TCP client connected: ${player.id}`);
     });
 
     socket.on('disconnecting', () => {

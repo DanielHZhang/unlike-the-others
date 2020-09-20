@@ -31,8 +31,12 @@ export type UdpMessage = {
 };
 
 export type InputData = {
-  /** Type of input */
-  t: PlayerInput;
-  /** Timestamp */
-  ts: number;
+  sequenceNumber: number;
+  verticalMovement: number;
+  horizontalMovement: number;
+  actionType: number;
+  // /** Type of input */
+  // t: PlayerInput;
+  // /** Timestamp */
+  // ts: number;
 };

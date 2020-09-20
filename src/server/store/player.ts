@@ -2,6 +2,7 @@ import Box2d from '@supersede/box2d';
 import {Socket} from 'socket.io';
 import {ServerChannel} from '@geckos.io/server';
 import {nanoid} from 'src/server/utils/crypto';
+import {InputData} from 'src/shared/types';
 
 export class Player {
   private static readonly instances = new Map<string, Player>();
@@ -9,7 +10,7 @@ export class Player {
   // private jobs: Job[];
   private spy = false;
   private meetingsRemaining = 0;
-  public alive: boolean = true;
+  public alive = true;
   public id: string;
   public audioId?: string;
   public roomId?: string;
@@ -17,6 +18,7 @@ export class Player {
   public channel?: ServerChannel;
   public active = false;
   public body?: Box2d.b2Body;
+  public inputQueue: InputData[] = [];
 
   /**
    * Private constructor to prevent instances from being created outside of static methods

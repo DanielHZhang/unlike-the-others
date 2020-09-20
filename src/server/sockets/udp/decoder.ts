@@ -1,5 +1,7 @@
+import {InputData} from 'src/shared/types';
+
 class BufferDecoder {
-  bufferToMessage(buffer: ArrayBuffer) {
+  bufferToMessage(buffer: ArrayBuffer): InputData {
     return {
       sequenceNumber: new Uint32Array(buffer, 0, 1)[0],
       verticalMovement: new Uint8Array(buffer, 4, 1)[0],

@@ -10,11 +10,11 @@ import {
 
 export class PhysicsEngine {
   private static readonly LINEAR_DAMPING = 10;
-
   private timestepAccumulator = 0;
   private timestepAccumulatorRatio = 0;
-  public world: Box2d.b2World;
-  public entities: Box2d.b2Body[] = [];
+  public readonly world: Box2d.b2World;
+  public readonly entities: Box2d.b2Body[] = [];
+  public shouldInterpolate = true;
 
   constructor() {
     const gravity = new Box2d.b2Vec2(0, 0);
@@ -22,7 +22,7 @@ export class PhysicsEngine {
     this.world.SetAutoClearForces(false);
   }
 
-  createPlayer() {
+  public createPlayer() {
     // Body definition
     const body = this.world.CreateBody();
     body.SetType(Box2d.b2BodyType.b2_dynamicBody);
@@ -49,7 +49,6 @@ export class PhysicsEngine {
     fixture.friction = 1.0;
     fixture.shape = shape;
     body.CreateFixture(fixture);
-
     return body;
   }
 
@@ -57,7 +56,7 @@ export class PhysicsEngine {
    * Attempts to consume time created by the renderer to step the physics world forward
    * @param deltaTime Time since the last processed frame was processed and the current frame
    */
-  fixedStep(deltaTime: number) {
+  public fixedStep(deltaTime: number) {
     this.timestepAccumulator += deltaTime;
 
     const numSteps = Math.floor(this.timestepAccumulator / FIXED_TIMESTEP);
@@ -69,12 +68,15 @@ export class PhysicsEngine {
 
     const numStepsClamped = Math.min(numSteps, MAX_STEPS);
     for (let i = 0; i < numStepsClamped; ++i) {
-      // reset smooth states
-      this.resetSmoothStates();
+      if (this.shouldInterpolate) {
+        this.resetSmoothStates(); // Reset position to before interpolation
+      }
       this.singleStep(deltaTime);
     }
     this.world.ClearForces();
-    this.smoothStates();
+    if (this.shouldInterpolate) {
+      this.smoothStates(); // Perform linear interpolation
+    }
   }
 
   /**
