@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import Box2d from '@supersede/box2d';
-import {GameControls} from 'src/shared/types';
+import {BufferInputData, GameControls} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
-import {bufferChannel, channel} from 'src/client/networking/udp';
+import {channel} from 'src/client/networking/udp';
+import {inputModel} from 'src/shared/buffer-schema';
+import {InputHandler} from 'src/client/game/scenes/input';
 
 export class Lobby extends Phaser.Scene {
   public controls: GameControls;
@@ -174,7 +176,6 @@ export class Lobby extends Phaser.Scene {
   receiveNetwork() {
     channel.on('update', (data) => {
       const buffer = data as ArrayBuffer;
-
     });
   }
 
@@ -199,23 +200,23 @@ export class Lobby extends Phaser.Scene {
   }
 
   processPlayerInput() {
+    InputHandler.reset();
+
     // Determine horizontal velocity
     if (this.cursors.right!.isDown) {
-      bufferChannel.right();
+      InputHandler.right();
     } else if (this.cursors.left!.isDown) {
-      bufferChannel.left();
+      InputHandler.left();
     }
 
     // Determine vertical velocity
     if (this.cursors.up!.isDown) {
-      bufferChannel.up();
+      InputHandler.up();
     } else if (this.cursors.down!.isDown) {
-      bufferChannel.down();
+      InputHandler.down();
     }
 
-    if (!bufferChannel.isEmpty()) {
-      bufferChannel.emit();
-    }
+    InputHandler.emit();
   }
 
   processInputs() {
