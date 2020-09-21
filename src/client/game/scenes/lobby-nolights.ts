@@ -171,6 +171,33 @@ export class Lobby extends Phaser.Scene {
     return [box, userData];
   }
 
+  receiveNetwork() {
+    channel.on('update', (data) => {
+      const buffer = data as ArrayBuffer;
+
+    });
+  }
+
+  setPlayerVelocity() {
+    const vector = new Box2d.b2Vec2();
+    const movementUnit = 90 / WORLD_SCALE;
+
+    // Determine horizontal velocity
+    if (this.cursors.right!.isDown) {
+      vector.Set(movementUnit, 0);
+    } else if (this.cursors.left!.isDown) {
+      vector.Set(-movementUnit, 0);
+    }
+    // Determine vertical velocity
+    if (this.cursors.down!.isDown) {
+      vector.Set(vector.x, movementUnit);
+    } else if (this.cursors.up!.isDown) {
+      vector.Set(vector.x, -movementUnit);
+    }
+
+    this.player[0].SetLinearVelocity(vector);
+  }
+
   processPlayerInput() {
     // Determine horizontal velocity
     if (this.cursors.right!.isDown) {

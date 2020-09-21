@@ -12,6 +12,7 @@ export class Player {
   private meetingsRemaining = 0;
   public alive = true;
   public id: string;
+  public uiid?: number; // Unsigned integer id
   public audioId?: string;
   public roomId?: string;
   public socket: Socket;
@@ -19,6 +20,7 @@ export class Player {
   public active = false;
   public body?: Box2d.b2Body;
   public inputQueue: InputData[] = [];
+  public lastProcessedInput = -1;
 
   /**
    * Private constructor to prevent instances from being created outside of static methods

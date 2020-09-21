@@ -21,6 +21,7 @@
     "@emotion/styled": "^11.0.0-next.13",
     "@geckos.io/client": "^1.7.0",
     "@geckos.io/server": "^1.7.0",
+    "@geckos.io/typed-array-buffer-schema": "^1.0.2",
     "@supersede/box2d": "^2.3.3",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",

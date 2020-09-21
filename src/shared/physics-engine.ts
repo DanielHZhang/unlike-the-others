@@ -13,7 +13,7 @@ export class PhysicsEngine {
   private timestepAccumulator = 0;
   private timestepAccumulatorRatio = 0;
   public readonly world: Box2d.b2World;
-  public readonly entities: Box2d.b2Body[] = [];
+  public readonly entities: Box2d.b2Body[] = []; // CURRENTLY UNUSED
   public shouldInterpolate = true;
 
   constructor() {

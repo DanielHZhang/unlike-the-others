@@ -5,7 +5,9 @@ import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 import {InputData} from 'src/shared/types';
-import {TICK_RATE} from 'src/shared/constants';
+import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
+import {findSmallestMissingInt} from 'src/server/utils/array';
+import {snapshotModel} from 'src/shared/buffer-schema';
 
 export type Voting = {
   timeRemaining: number;
@@ -124,53 +126,76 @@ export class GameRoom {
   update(deltaTime: number) {
     this.processInputs();
     this.engine.fixedStep(deltaTime);
-    this.sendWorldState();
+    this.emitWorldState();
   }
 
-  processInputs(input: InputData) {
-    // if valid input, ignoring inputs that don't look valid
-    const id = message.entity_id;
-    this.entities[id].applyInput(message);
-    this.last_processed_input[id] = message.input_sequence_number;
+  processInputs() {
+    for (const player of this.players) {
+      // DOES NOT ENFORCE MAXIMUM AMOUTN OF INPUT TO BE HANDLED
+      while (player.inputQueue.length > 0) {
+        const input = player.inputQueue.shift()!;
+
+        // Check if input contained movement
+        if (input.horizontalMovement || input.verticalMovement) {
+          const vector = new Box2d.b2Vec2();
+          const movementUnit = 90 / WORLD_SCALE;
+          if (input.horizontalMovement === Movement.Right) {
+            vector.Set(movementUnit, 0);
+          } else if (input.horizontalMovement === Movement.Left) {
+            vector.Set(-movementUnit, 0);
+          }
+          if (input.verticalMovement === Movement.Up) {
+            vector.Set(vector.x, movementUnit);
+          } else if (input.verticalMovement === Movement.Up) {
+            vector.Set(vector.x, -movementUnit);
+          }
+          player.body!.SetLinearVelocity(vector);
+          player.lastProcessedInput = input.sequenceNumber;
+        }
+      }
+    }
   }
 
-  setPlayerVelocity() {
-    const vector = new Box2d.b2Vec2();
-    const movementUnit = 90 / WORLD_SCALE;
+  // Naive implementation returns positions of all players within rectangle
+  // Ideal implementation only returns positions of viewable players in raycast
+  emitWorldState() {
+    const VIEW_DISTANCE_X = 1280;
+    const VIEW_DISTANCE_Y = 720;
 
-    // Determine horizontal velocity
-    if (this.cursors.right!.isDown) {
-      vector.Set(movementUnit, 0);
-    } else if (this.cursors.left!.isDown) {
-      vector.Set(-movementUnit, 0);
-    }
-    // Determine vertical velocity
-    if (this.cursors.down!.isDown) {
-      vector.Set(vector.x, movementUnit);
-    } else if (this.cursors.up!.isDown) {
-      vector.Set(vector.x, -movementUnit);
-    }
+    for (const player of this.players) {
+      const playerEntities: {id: string; x: number; y: number; seq?: number}[] = [];
+      const position = player.body!.GetPosition();
+      const bottomLeft = {x: position.x - VIEW_DISTANCE_X / 2, y: position.y - VIEW_DISTANCE_Y / 2};
+      const topRight = {x: position.x + VIEW_DISTANCE_X / 2, y: position.y + VIEW_DISTANCE_Y / 2};
 
-    this.player[0].SetLinearVelocity(vector);
-  }
+      playerEntities.push({
+        id: player.id,
+        x: position.x,
+        y: position.y,
+        seq: player.lastProcessedInput,
+      }); // Add player's own position
 
-  sendWorldState() {
-    // send world state to all connected clients
-    var world_state = [];
-    var num_clients = this.clients.length;
-    for (var i = 0; i < num_clients; i++) {
-      var entity = this.entities[i];
-      world_state.push({
-        entity_id: entity.entity_id,
-        position: entity.x,
-        last_processed_input: this.last_processed_input[i],
-      });
-    }
-
-    // Broadcast the state to all the clients.
-    for (var i = 0; i < num_clients; i++) {
-      var client = this.clients[i];
-      client.network.send(client.lag, world_state);
+      for (const otherPlayer of this.players) {
+        if (player === otherPlayer) {
+          continue;
+        }
+        const otherPosition = otherPlayer.body!.GetPosition();
+        if (
+          otherPosition.x < topRight.x &&
+          otherPosition.x > bottomLeft.x &&
+          otherPosition.y < topRight.y &&
+          otherPosition.y > bottomLeft.y
+        ) {
+          // Other player is within view box, send information
+          playerEntities.push({id: otherPlayer.id, x: otherPosition.x, y: otherPosition.y});
+        }
+      }
+      const state = {
+        tick: this.tick,
+        players: playerEntities,
+      };
+      const buffer = snapshotModel.toBuffer(state);
+      player.channel!.emit('update', buffer);
     }
   }
 
@@ -182,6 +207,7 @@ export class GameRoom {
     if (!this.host) {
       this.host = newPlayer;
     }
+    newPlayer.uiid = findSmallestMissingInt(this.players.map((player) => player.uiid!));
     newPlayer.body = this.engine.createPlayer();
     this.players.push(newPlayer);
     newPlayer.joinRoom(this.id);
@@ -196,6 +222,7 @@ export class GameRoom {
       }
       const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
       player.leaveRoom(audioIds);
+      player.uiid = undefined;
     }
   }
 

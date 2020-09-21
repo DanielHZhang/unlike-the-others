@@ -43,7 +43,7 @@ type Props = RouteComponentProps<any> & {};
 export const HomePage = (props: Props) => {
   const [username, setUsername] = useRecoilState(atoms.username);
   const [room, setRoom] = useRecoilState(atoms.room);
-  const [state, setState] = useState({joining: false, modalVisible: false});
+  const [state, setState] = useState({joining: false, errorModalVisible: false});
   const onJoinButtonClick = useCallback(() => {
     socket.emit('joinRoom', room.id);
     channel.emit('joinRoom', room.id);
@@ -52,20 +52,23 @@ export const HomePage = (props: Props) => {
   useDidMount(() => {
     socket.once('createRoomResponse', (res: SocketResponse) => {
       if (res.status >= 400) {
-        setState({...state, modalVisible: true});
+        setState({...state, errorModalVisible: true});
       } else {
-        console.log('Created room:', res.payload);
-        socket.emit('joinRoom', res.payload);
-        channel.emit('joinRoom', res.payload);
+        const roomId = res.payload;
+        console.log('Created room:', roomId);
+        socket.emit('joinRoom', roomId);
+        channel.emit('joinRoom', roomId);
       }
     });
 
     socket.once('joinRoomResponse', (res: SocketResponse) => {
       if (res.status >= 400) {
-        setState({...state, modalVisible: true});
+        setState({...state, errorModalVisible: true});
       } else {
-        console.log('Joined room:', res.payload);
-        setRoom({id: res.payload});
+        const roomId = res.payload;
+        console.log('Joined room:', roomId);
+        channel.emit('joinRoom', roomId);
+        setRoom({id: roomId});
         props.history.push('/game');
       }
     });
@@ -109,8 +112,8 @@ export const HomePage = (props: Props) => {
       </HeroWrapper>
       <Modal
         title='Whoops!'
-        visible={state.modalVisible}
-        onVisibleChange={(visibility) => setState({...state, modalVisible: visibility})}
+        visible={state.errorModalVisible}
+        onVisibleChange={(visibility) => setState({...state, errorModalVisible: visibility})}
       >
         <ModalText>There is no active game with that code!</ModalText>
       </Modal>

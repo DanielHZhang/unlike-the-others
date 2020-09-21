@@ -4,9 +4,9 @@ import {errors, JWT} from 'jose';
 import {GameRoom, Player} from 'src/server/store';
 import {log} from 'src/server/utils/logs';
 import {getJWK} from 'src/server/config/jwk';
-import {InputData, JwtClaims} from 'src/shared/types';
+import {JwtClaims} from 'src/shared/types';
 import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';
-import {bufferDecode} from 'src/server/sockets/udp/decoder';
+import {inputModel} from 'src/shared/buffer-schema';
 
 let io: GeckosServer;
 
@@ -49,54 +49,14 @@ export function udpHandler(server: http.Server) {
       player.channel = undefined; // Remove reference to this channel
     });
 
-    channel.onRaw((buffer) => {
-      if (!room) {
-        room = GameRoom.getById(player.roomId)!;
-      }
-      const input = bufferDecode.bufferToMessage(buffer as ArrayBuffer);
-      player.inputQueue.push(input);
+    channel.on('joinRoom', () => {
+      room = GameRoom.getById(player.roomId)!;
     });
 
-    const pendingChanges: any[] = [];
-    const clients = [];
-    const lastProcessedInput = [];
-
-    channel.on('input', (data, senderId) => {
-      const d = data as InputData;
-      // data.
-
-      pendingChanges.push({dir: data.dir, ts: data.ts});
-
-      // Calculate time elapsed since last tick was processed
-      let prevTs = 0;
-      const delta = Date.now() - prevTS;
-      prevTS = now;
-
-      const message = {};
-      message.clientAdjust = [];
-
-      const player = gameState.players[client.id];
-      const pendingMoves = pendingChanges.players[client.id].moves;
-
-      let ack;
-      // Process all pending moves, which came from the client before
-      // the start of this tick, and update the game state
-      while (pendingMoves.lenth > 0) {
-        const move = pendingMoves.shift();
-        player.x = player.x + move.dir * 0.6 * delta;
-        ack = move.ts;
-      }
-
-      // Send a message back to client with the newly calculated position.
-      // Attach the timestamp of the most recently processed client move.
-      message.clientAdjust.push({
-        id: client.id,
-        ts: ack,
-        x: player.x,
-      });
-
-      // Send message back to client
-      io.emit('gameState', message);
+    channel.on('input', (data) => {
+      const buffer = data as ArrayBuffer;
+      const input = inputModel.fromBuffer(buffer);
+      player.inputQueue.push(input);
     });
   });
 }

@@ -28,6 +28,13 @@ export const WORLD_SCALE = 30;
 /** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
 export const MAX_STEPS = 5;
 
+export enum Movement {
+  Up = 1,
+  Down,
+  Left,
+  Right
+}
+
 export enum ActionInput {
   Kill,
   Report,
