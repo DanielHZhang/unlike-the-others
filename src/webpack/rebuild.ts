@@ -53,7 +53,7 @@ export async function buildWebpackDll() {
   const localDepsFile = path.join(localFolderPath, 'dependencies.json');
   try {
     await Promise.all([fs.promises.access(localDepsFile), fs.promises.access(BUILD_FOLDER_PATH)]);
-    const localJson = await import('../../../.local/dependencies.json');
+    const localJson = await import('../../.local/dependencies.json');
     if (
       localJson.dependencies &&
       localJson.devDependencies &&

@@ -11,6 +11,7 @@
   "license": "MIT",
   "private": "true",
   "scripts": {
+    "build": "ts-node src/webpack/deploy.ts",
     "start": "nodemon src/server/index.js"
   },
   "dependencies": {

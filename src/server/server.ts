@@ -4,7 +4,7 @@ import express from 'express';
 import webpack from 'webpack';
 import {json, urlencoded} from 'body-parser';
 import {log} from 'src/server/utils/logs';
-import {buildWebpackDll} from 'src/server/utils/rebuild';
+import {buildWebpackDll} from 'src/webpack/rebuild';
 import {makeDevMiddleware, makeHotMiddleware} from 'src/server/middleware';
 import {ASSETS_FOLDER_PATH, BUILD_FOLDER_PATH} from 'src/server/config/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';

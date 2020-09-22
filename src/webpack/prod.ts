@@ -1,30 +1,21 @@
 import path from 'path';
 import webpack from 'webpack';
 import {TsconfigPathsPlugin} from 'tsconfig-paths-webpack-plugin';
-import {ProgressWebpackPlugin} from '@supersede/progress-webpack-plugin';
-import {
-  APP_ENTRY_PATH,
-  BUILD_FOLDER_PATH,
-  PUBLIC_PATH,
-  VENDOR_JSON_PATH,
-} from 'src/server/config/constants';
+import {APP_ENTRY_PATH, BUILD_FOLDER_PATH, PUBLIC_PATH, vendors} from 'src/server/config/constants';
 
-/**
- * Webpack configuration for development.
- */
 export const config: webpack.Configuration = {
-  mode: 'development',
+  mode: 'production',
   target: 'web',
   entry: {
-    app: ['webpack-hot-middleware/client', 'webpack/hot/only-dev-server', APP_ENTRY_PATH],
+    vendor: vendors,
+    app: [APP_ENTRY_PATH],
   },
   output: {
     filename: '[name].bundle.js',
-    chunkFilename: '[name].bundle.js',
+    library: '[name]',
     path: BUILD_FOLDER_PATH,
     publicPath: PUBLIC_PATH,
   },
-  devtool: 'source-map',
   module: {
     rules: [
       {
@@ -53,11 +44,5 @@ export const config: webpack.Configuration = {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
     plugins: [new TsconfigPathsPlugin({configFile: path.join(process.cwd(), 'tsconfig.json')})],
   },
-  plugins: [
-    new ProgressWebpackPlugin(),
-    new webpack.DllReferencePlugin({context: process.cwd(), manifest: require(VENDOR_JSON_PATH)}),
-    new webpack.EnvironmentPlugin(['NODE_ENV']),
-    new webpack.HotModuleReplacementPlugin(),
-    // new BundleAnalyzerPlugin(),
-  ],
+  plugins: [new webpack.EnvironmentPlugin(['NODE_ENV'])],
 };
