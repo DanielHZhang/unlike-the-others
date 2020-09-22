@@ -4,7 +4,7 @@ import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
-import {InputData} from 'src/shared/types';
+import {BufferPlayerData, BufferSnapshotData, InputData} from 'src/shared/types';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import {snapshotModel} from 'src/shared/buffer-schema';
@@ -100,28 +100,23 @@ export class GameRoom {
    * Only deletes rooms that no longer contain players. Skips if id is not found in the map.
    * @param id Id of the room instance
    */
-  public static deleteIfEmpty(id: string = '') {
-    const roomToDelete = GameRoom.instances.get(id);
-    if (!roomToDelete) {
-      return;
-    }
-    if (roomToDelete.players.length === 0) {
-      GameRoom.instances.delete(id);
-    }
+  public static delete(id: string) {
+    GameRoom.instances.delete(id);
   }
 
   tick = 0;
-  previous = hrtimeMs();
+  previous = 0;
+  timeout: NodeJS.Timeout;
 
-  loop() {
-    const nextTimeout = setTimeout(this.loop, 1000 / TICK_RATE);
+  loop = () => {
+    this.timeout = setTimeout(this.loop, 1000 / TICK_RATE);
     const now = hrtimeMs();
     const delta = (now - this.previous) / 1000; // Delta update time in seconds
-    this.update(delta, this.tick);
+    // console.log('Looping delta:', delta);
+    this.update(delta);
     this.previous = now;
     this.tick++;
-    return nextTimeout;
-  }
+  };
 
   update(deltaTime: number) {
     this.processInputs();
@@ -136,21 +131,21 @@ export class GameRoom {
         const input = player.inputQueue.shift()!;
 
         // Check if input contained movement
-        if (input.horizontalMovement || input.verticalMovement) {
+        if (input.h || input.v) {
           const vector = new Box2d.b2Vec2();
           const movementUnit = 90 / WORLD_SCALE;
-          if (input.horizontalMovement === Movement.Right) {
+          if (input.h === Movement.Right) {
             vector.Set(movementUnit, 0);
-          } else if (input.horizontalMovement === Movement.Left) {
+          } else if (input.h === Movement.Left) {
             vector.Set(-movementUnit, 0);
           }
-          if (input.verticalMovement === Movement.Up) {
+          if (input.v === Movement.Up) {
             vector.Set(vector.x, movementUnit);
-          } else if (input.verticalMovement === Movement.Up) {
+          } else if (input.v === Movement.Up) {
             vector.Set(vector.x, -movementUnit);
           }
           player.body!.SetLinearVelocity(vector);
-          player.lastProcessedInput = input.sequenceNumber;
+          player.lastProcessedInput = input.s;
         }
       }
     }
@@ -163,17 +158,17 @@ export class GameRoom {
     const VIEW_DISTANCE_Y = 720;
 
     for (const player of this.players) {
-      const playerEntities: {id: string; x: number; y: number; seq?: number}[] = [];
+      const playerEntities: BufferPlayerData[] = [];
       const position = player.body!.GetPosition();
       const bottomLeft = {x: position.x - VIEW_DISTANCE_X / 2, y: position.y - VIEW_DISTANCE_Y / 2};
       const topRight = {x: position.x + VIEW_DISTANCE_X / 2, y: position.y + VIEW_DISTANCE_Y / 2};
 
+      // Add player's own position
       playerEntities.push({
-        id: player.id,
+        uiid: player.uiid!,
         x: position.x,
         y: position.y,
-        seq: player.lastProcessedInput,
-      }); // Add player's own position
+      });
 
       for (const otherPlayer of this.players) {
         if (player === otherPlayer) {
@@ -187,16 +182,26 @@ export class GameRoom {
           otherPosition.y > bottomLeft.y
         ) {
           // Other player is within view box, send information
-          playerEntities.push({id: otherPlayer.id, x: otherPosition.x, y: otherPosition.y});
+          playerEntities.push({
+            uiid: otherPlayer.uiid!,
+            x: otherPosition.x,
+            y: otherPosition.y,
+          });
         }
       }
-      const state = {
+      const state: BufferSnapshotData = {
+        seq: player.lastProcessedInput,
         tick: this.tick,
         players: playerEntities,
       };
+      console.log('State:', state);
       const buffer = snapshotModel.toBuffer(state);
       player.channel!.emit('update', buffer);
     }
+  }
+
+  public isEmpty() {
+    return this.players.length === 0;
   }
 
   public hasCapacity() {
@@ -277,6 +282,7 @@ export class GameRoom {
 
   public startGame() {
     this.isGameStarted = true;
+    this.loop();
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `Start game for room ${this.id}`);
@@ -284,6 +290,7 @@ export class GameRoom {
 
   public endGame() {
     this.isGameStarted = false;
+    clearTimeout(this.timeout);
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `End game for room ${this.id}`);

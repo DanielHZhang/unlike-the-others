@@ -57,7 +57,6 @@ export const HomePage = (props: Props) => {
         const roomId = res.payload;
         console.log('Created room:', roomId);
         socket.emit('joinRoom', roomId);
-        channel.emit('joinRoom', roomId);
       }
     });
 
@@ -67,7 +66,6 @@ export const HomePage = (props: Props) => {
       } else {
         const roomId = res.payload;
         console.log('Joined room:', roomId);
-        channel.emit('joinRoom', roomId);
         setRoom({id: roomId});
         props.history.push('/game');
       }

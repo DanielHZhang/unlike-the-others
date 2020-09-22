@@ -5,7 +5,7 @@ import {BufferInputData} from 'src/shared/types';
 
 export const InputHandler = new (class {
   private input: BufferInputData = {
-    seq: 1,
+    s: 1,
     h: 0,
     v: 0,
   };
@@ -34,9 +34,8 @@ export const InputHandler = new (class {
   public emit() {
     // Only emit if h or v have non-zero values
     if (this.input.h > 0 || this.input.v > 0) {
-      const buffer = inputModel.toBuffer(this.input);
-      channel.emit('input', buffer);
-      this.input.seq++;
+      channel.raw.emit(inputModel.toBuffer(this.input));
+      this.input.s++;
       this.reset();
     }
   }

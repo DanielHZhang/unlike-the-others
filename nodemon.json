@@ -13,6 +13,7 @@
   ],
   "verbose": true,
   "watch": [
-    "src/server/**/*"
+    "src/server/**/*",
+    "src/webpack/**/*"
   ]
 }

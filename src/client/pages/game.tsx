@@ -8,20 +8,19 @@ import {GameWindow} from 'src/client/game';
 import {socket} from 'src/client/networking/tcp';
 import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/utils/hooks';
-import {Chat} from 'src/client/pages/chat';
 import {Chatbox} from 'src/client/components/chatbox';
 
 export const GamePage = () => {
-  // const room = useRecoilValue(Atoms.room);
+  const room = useRecoilValue(atoms.room);
   // if (!room.id) {
   //   return <Redirect to='/' />; // Prevent accessing page unless room has been assigned
   // }
 
-  // useDidMount(() => {
-  //   return () => {
-  //     socket.emit('leaveRoom', room.id);
-  //   };
-  // });
+  useDidMount(() => {
+    return () => {
+      socket.emit('leaveRoom', room.id); // Leave room on page unmount
+    };
+  });
 
   return <GameWindow />;
 

@@ -16,7 +16,6 @@ import {
 export const config: webpack.Configuration = {
   mode: 'development',
   context: process.cwd(), // Use current working directory
-  devtool: false,
   entry: {
     vendor: vendors,
     app: ['webpack-hot-middleware/client'],

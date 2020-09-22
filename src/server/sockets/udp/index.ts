@@ -49,13 +49,11 @@ export function udpHandler(server: http.Server) {
       player.channel = undefined; // Remove reference to this channel
     });
 
-    channel.on('joinRoom', () => {
-      room = GameRoom.getById(player.roomId)!;
-    });
-
-    channel.on('input', (data) => {
-      const buffer = data as ArrayBuffer;
-      const input = inputModel.fromBuffer(buffer);
+    channel.onRaw((buffer) => {
+      if (!room) {
+        room = GameRoom.getById(player.roomId)!;
+      }
+      const input = inputModel.fromBuffer(buffer as ArrayBuffer);
       player.inputQueue.push(input);
     });
   });

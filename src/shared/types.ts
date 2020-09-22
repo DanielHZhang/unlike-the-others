@@ -45,16 +45,16 @@ export type BufferPlayerData = {
   uiid: number;
   x: number;
   y: number;
-  seq: number;
 };
 
 export type BufferInputData = {
-  seq: number;
+  s: number; // Sequence number
   h: number;
   v: number;
 };
 
 export type BufferSnapshotData = {
+  seq: number;
   tick: number;
   players: BufferPlayerData[];
 };

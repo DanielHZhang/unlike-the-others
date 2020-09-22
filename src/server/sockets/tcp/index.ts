@@ -46,8 +46,14 @@ export function tcpHandler(server: http.Server) {
     });
 
     socket.on('disconnecting', () => {
-      GameRoom.getById(player.roomId)?.removePlayer(player);
-      GameRoom.deleteIfEmpty(player.roomId);
+      const room = GameRoom.getById(player.roomId);
+      if (room) {
+        room.removePlayer(player);
+        if (room.isEmpty()) {
+          room.endGame(); // TODO: account for endLobby
+          GameRoom.delete(room.id);
+        }
+      }
       log('info', `TCP Client disconnecting: ${player.id}`);
     });
 
@@ -63,6 +69,8 @@ export function tcpHandler(server: http.Server) {
         throw new Error(`No room found with id: ${roomId}, or room has reached full capacity`);
       }
       room.addPlayer(player);
+      // TODO: change to startLobby
+      room.startGame();
       log('info', `Client ${player.id} joined room ${room.id}`);
       socket.emit('joinRoomResponse', send(200, roomId));
     });
@@ -73,6 +81,10 @@ export function tcpHandler(server: http.Server) {
         throw new Error(`No room found with id: ${roomId}`);
       }
       room.removePlayer(player);
+      if (room.isEmpty()) {
+        room.endGame(); // TODO: change to endLobby
+        GameRoom.delete(room.id);
+      }
       log('info', `Client ${player.id} left room ${room.id}`);
       socket.emit('leaveRoomResponse', send(200, roomId));
     });
