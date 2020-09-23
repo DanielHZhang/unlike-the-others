@@ -1,7 +1,7 @@
 import path from 'path';
 import webpack from 'webpack';
 import {TsconfigPathsPlugin} from 'tsconfig-paths-webpack-plugin';
-import {APP_ENTRY_PATH, BUILD_FOLDER_PATH, PUBLIC_PATH, vendors} from 'src/server/config/constants';
+import {APP_ENTRY_PATH, BUILD_FOLDER_PATH, PUBLIC_PATH, vendors} from 'src/webpack/constants';
 
 export const config: webpack.Configuration = {
   mode: 'production',

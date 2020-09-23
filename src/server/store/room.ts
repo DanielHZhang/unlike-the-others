@@ -3,7 +3,7 @@ import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
-import {PhysicsEngine} from 'src/shared/physics-engine';
+import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
 import {BufferPlayerData, BufferSnapshotData, InputData} from 'src/shared/types';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
@@ -77,6 +77,7 @@ export class GameRoom {
     this.id = nanoid();
     this.engine = new PhysicsEngine();
     this.engine.shouldInterpolate = false; // Do not interpolate on the server
+    TEMP_createWorldBoundaries(this.engine.world);
   }
 
   /**
@@ -129,9 +130,8 @@ export class GameRoom {
       // DOES NOT ENFORCE MAXIMUM AMOUTN OF INPUT TO BE HANDLED
       while (player.inputQueue.length > 0) {
         const input = player.inputQueue.shift()!;
-
         // Check if input contained movement
-        if (input.h || input.v) {
+        if (input.h > 0 || input.v > 0) {
           const vector = new Box2d.b2Vec2();
           const movementUnit = 90 / WORLD_SCALE;
           if (input.h === Movement.Right) {
@@ -139,12 +139,14 @@ export class GameRoom {
           } else if (input.h === Movement.Left) {
             vector.Set(-movementUnit, 0);
           }
-          if (input.v === Movement.Up) {
-            vector.Set(vector.x, movementUnit);
+          if (input.v === Movement.Down) {
+            vector.y = movementUnit;
           } else if (input.v === Movement.Up) {
-            vector.Set(vector.x, -movementUnit);
+            vector.y = -movementUnit;
           }
           player.body!.SetLinearVelocity(vector);
+          const vel = player.body!.GetLinearVelocity();
+          console.log('input:', input, `|| velocity: ${vel.x}, ${vel.y}`);
           player.lastProcessedInput = input.s;
         }
       }
@@ -158,6 +160,9 @@ export class GameRoom {
     const VIEW_DISTANCE_Y = 720;
 
     for (const player of this.players) {
+      if (!player.channel) {
+        continue; // Player has disconnected or left the room
+      }
       const playerEntities: BufferPlayerData[] = [];
       const position = player.body!.GetPosition();
       const bottomLeft = {x: position.x - VIEW_DISTANCE_X / 2, y: position.y - VIEW_DISTANCE_Y / 2};
@@ -194,9 +199,9 @@ export class GameRoom {
         tick: this.tick,
         players: playerEntities,
       };
-      console.log('State:', state);
+      // console.log('State:', state);
       const buffer = snapshotModel.toBuffer(state);
-      player.channel!.emit('update', buffer);
+      player.channel.emit('update', buffer);
     }
   }
 

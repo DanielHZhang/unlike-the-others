@@ -38,8 +38,8 @@ export class PhysicsEngine {
     body.SetPosition(new Box2d.b2Vec2(TEMP_POSX / WORLD_SCALE, TEMP_POSY / WORLD_SCALE));
 
     // Shape definition
-    const TEMP_WIDTH = 50;
-    const TEMP_HEIGHT = 50;
+    const TEMP_WIDTH = 100;
+    const TEMP_HEIGHT = 100;
     const shape = new Box2d.b2PolygonShape();
     shape.SetAsBox(TEMP_WIDTH / 2 / WORLD_SCALE, TEMP_HEIGHT / 2 / WORLD_SCALE);
 
@@ -121,5 +121,59 @@ export class PhysicsEngine {
     // this.updateControllers(deltaTime);
     this.world.Step(FIXED_TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
     // this.consumeContacts();
+  }
+}
+
+export function TEMP_createWorldBoundaries(world: Box2d.b2World) {
+  // create the top ceiling edge
+  {
+    const bodyDef = new Box2d.b2BodyDef();
+    const ground = world.CreateBody(bodyDef);
+    const shape = new Box2d.b2EdgeShape();
+    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+    shape.SetTwoSided(
+      new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+      new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
+    );
+    ground.CreateFixture(shape, 0);
+  }
+
+  // create the left edge
+  {
+    const bodyDef = new Box2d.b2BodyDef();
+    const leftSide = world.CreateBody(bodyDef);
+    const shape = new Box2d.b2EdgeShape();
+    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+    shape.SetTwoSided(
+      new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+      new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
+    );
+    leftSide.CreateFixture(shape, 0);
+  }
+
+  // create the bottom edge
+  {
+    const bodyDef = new Box2d.b2BodyDef();
+    const bottom = world.CreateBody(bodyDef);
+    const shape = new Box2d.b2EdgeShape();
+    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+    shape.SetTwoSided(
+      new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
+      new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+    );
+    bottom.CreateFixture(shape, 0);
+  }
+
+  // create the right edge
+  {
+    const bodyDef = new Box2d.b2BodyDef();
+    const rightSide = world.CreateBody(bodyDef);
+    const shape = new Box2d.b2EdgeShape();
+    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+    shape.SetTwoSided(
+      new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
+      new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+    );
+    rightSide.CreateFixture(shape, 0);
   }
 }

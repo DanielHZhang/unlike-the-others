@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import webpack from 'webpack';
 import {log} from 'src/server/utils/logs';
-import {BUILD_FOLDER_PATH, vendors} from 'src/server/config/constants';
+import {BUILD_FOLDER_PATH, vendors} from 'src/webpack/constants';
 
 function compile(config: webpack.Configuration) {
   return new Promise<webpack.Stats>((resolve, reject) => {

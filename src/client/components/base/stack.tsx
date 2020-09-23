@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import {css} from '@emotion/react';
-import {Flex} from 'src/client/components/flex';
+import {Flex} from 'src/client/components/base/flex';
 
 type Props = {
   spacing?: string;

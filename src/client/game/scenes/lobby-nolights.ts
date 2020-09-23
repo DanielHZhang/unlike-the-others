@@ -4,7 +4,7 @@ import {BufferInputData, GameControls} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 import {channel} from 'src/client/networking/udp';
-import {inputModel} from 'src/shared/buffer-schema';
+import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
 import {InputHandler} from 'src/client/game/scenes/input';
 
 export class Lobby extends Phaser.Scene {
@@ -109,14 +109,25 @@ export class Lobby extends Phaser.Scene {
       rightSide.SetUserData(userData);
     }
 
-    this.player = this.createBox(300, 300, 100, 100, true);
+    const playerBody = this.engine.createPlayer();
+    const color = new Phaser.Display.Color();
+    color.random();
+    color.brighten(50).saturate(100);
+    const userData = this.add.graphics();
+    userData.fillStyle(color.color, 1);
+    userData.fillRect(-100 / 2, -100 / 2, 100, 100);
+    playerBody.SetUserData(userData);
+    this.player = [playerBody, userData];
+
+    // this.player = this.createBox(300, 300, 100, 100, true);
 
     this.time.addEvent({
-      delay: 1000,
+      delay: 500,
       loop: true,
       callback: () => {
         const pos = this.player[0].GetPosition();
-        console.log(`${pos.x}, ${pos.y}`);
+        const velocity = this.player[0].GetLinearVelocity();
+        console.log(`Position: ${pos.x}, ${pos.y}\nVelocity: ${velocity.x}, ${velocity.y}`);
       },
     });
   }
@@ -174,8 +185,10 @@ export class Lobby extends Phaser.Scene {
   }
 
   receiveNetwork() {
-    channel.on('update', (data) => {
+    channel.onRaw((data) => {
       const buffer = data as ArrayBuffer;
+      const same = snapshotModel.fromBuffer(buffer);
+      console.log(same);
     });
   }
 
@@ -227,6 +240,7 @@ export class Lobby extends Phaser.Scene {
 
   update(currentTime: number, deltaTime: number) {
     this.processPlayerInput();
+    this.setPlayerVelocity();
     this.engine.fixedStep(deltaTime);
   }
 }

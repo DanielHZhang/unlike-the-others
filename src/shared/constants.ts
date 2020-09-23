@@ -10,16 +10,16 @@ export const PORT = 8080;
 /** Label of the Geckos.io channel */
 export const GECKOS_LABEL = 'udp';
 
-/** # of ticks per second the simulation should be updated */
+/** Number of ticks per second the simulation should be updated */
 export const TICK_RATE = 60;
 
 /** Time allotted for a single physics simulation step */
 export const FIXED_TIMESTEP = 1 / TICK_RATE;
 
-/** # of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
+/** Number of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
 export const VELOCITY_ITERATIONS = 8;
 
-/** # iterations per increment the position solver should take (more iterations = higher fidelity) */
+/** Number iterations per increment the position solver should take (more iterations = higher fidelity) */
 export const POSITION_ITERATIONS = 3;
 
 /** Conversion between metres and pixels (e.g. 1 metre = x pixels) */
@@ -32,7 +32,7 @@ export enum Movement {
   Up = 1,
   Down,
   Left,
-  Right
+  Right,
 }
 
 export enum ActionInput {

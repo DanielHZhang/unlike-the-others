@@ -15,7 +15,6 @@ socket.on('authenticateResponse', (jwt?: string) => {
   if (jwt) {
     localStorage.setItem(StorageKeys.Jwt, jwt);
   }
-
   // Connect to UDP channel only after authentication has been completed
   channel.onConnect(console.error);
 });

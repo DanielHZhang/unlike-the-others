@@ -2,12 +2,7 @@ import path from 'path';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import {
-  BUILD_FOLDER_PATH,
-  PUBLIC_PATH,
-  TEMPLATE_HTML_PATH,
-  vendors,
-} from 'src/server/config/constants';
+import {BUILD_FOLDER_PATH, PUBLIC_PATH, TEMPLATE_HTML_PATH, vendors} from 'src/webpack/constants';
 
 /**
  * Webpack configuration for common vendor bundle, using DllPlugin for long-term
@@ -15,6 +10,8 @@ import {
  */
 export const config: webpack.Configuration = {
   mode: 'development',
+  target: 'web',
+  devtool: 'cheap-module-source-map',
   context: process.cwd(), // Use current working directory
   entry: {
     vendor: vendors,

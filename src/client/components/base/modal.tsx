@@ -1,8 +1,8 @@
 import React, {FC, useState, useEffect} from 'react';
 import styled from '@emotion/styled';
 import {createPortal} from 'react-dom';
-import {Button} from 'src/client/components/button';
-import {Flex} from 'src/client/components/flex';
+import {Button} from 'src/client/components/base/button';
+import {Flex} from 'src/client/components/base/flex';
 import {Icon} from 'src/client/components/icons';
 
 const Mask = styled(Flex)`

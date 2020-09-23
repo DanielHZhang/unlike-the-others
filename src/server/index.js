@@ -4,16 +4,15 @@ if (!process.env.NODE_ENV) {
 }
 
 const path = require('path');
-const tsConfig = require('../../tsconfig.json');
 const tsConfigPaths = require('tsconfig-paths');
 const tsNode = require('ts-node');
 const dotenv = require('dotenv');
+const {
+  compilerOptions: {baseUrl, paths},
+} = require('../../tsconfig.json');
 
 // Configure tsconfig-paths for non-relative path names
-tsConfigPaths.register({
-  baseUrl: tsConfig.compilerOptions.baseUrl,
-  paths: tsConfig.compilerOptions.paths,
-});
+tsConfigPaths.register({baseUrl, paths});
 
 // Configure ts-node for server transpilation
 tsNode.register({transpileOnly: true});

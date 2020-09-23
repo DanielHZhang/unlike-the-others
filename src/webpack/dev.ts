@@ -7,7 +7,7 @@ import {
   BUILD_FOLDER_PATH,
   PUBLIC_PATH,
   VENDOR_JSON_PATH,
-} from 'src/server/config/constants';
+} from 'src/webpack/constants';
 
 /**
  * Webpack configuration for development.
