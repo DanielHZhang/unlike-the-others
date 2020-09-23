@@ -7,6 +7,22 @@ import {channel} from 'src/client/networking/udp';
 import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
 import {InputHandler} from 'src/client/game/scenes/input';
 
+function coordToBoundaryPhaserGraphic(
+  scene: Phaser.Scene,
+  body: Box2d.b2Body,
+  x1: [number, number],
+  x2: [number, number],
+  horizontal: boolean
+) {
+  const color = new Phaser.Display.Color();
+  color.random().brighten(50).saturate(100);
+  const userData = scene.add.graphics();
+  userData.fillStyle(color.color, 1);
+  const thickness = 2;
+  userData.fillRect(x1[0], x1[1], horizontal ? x2[0] : thickness, horizontal ? thickness : x2[1]);
+  body.SetUserData(userData);
+}
+
 export class Lobby extends Phaser.Scene {
   public controls: GameControls;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -33,81 +49,21 @@ export class Lobby extends Phaser.Scene {
     this.grid.setVisible(true);
     this.grid.setOrigin(0, 0);
 
-    // create the top ceiling edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const ground = this.engine.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
-      );
-      ground.CreateFixture(shape, 0);
-      const color = new Phaser.Display.Color();
-      color.random().brighten(50).saturate(100);
-      const userData = this.add.graphics();
-      userData.fillStyle(color.color, 1);
-      userData.fillRect(5, 5, 600, 2);
-      ground.SetUserData(userData);
-    }
+    // top edge
+    const top = this.engine.TEMP_createBoundary([5, 5], [600, 5]);
+    coordToBoundaryPhaserGraphic(this, top, [5, 5], [600, 5], true);
 
-    // create the left edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const leftSide = this.engine.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
-      );
-      leftSide.CreateFixture(shape, 0);
-      const color = new Phaser.Display.Color();
-      color.random().brighten(50).saturate(100);
-      const userData = this.add.graphics();
-      userData.fillStyle(color.color, 1);
-      userData.fillRect(5, 5, 2, 600);
-      leftSide.SetUserData(userData);
-    }
+    // bottom edge
+    const bottom = this.engine.TEMP_createBoundary([5, 600], [600, 600]);
+    coordToBoundaryPhaserGraphic(this, bottom, [5, 600], [600, 600], true);
 
-    // create the bottom edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const bottom = this.engine.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-      );
-      bottom.CreateFixture(shape, 0);
-      const color = new Phaser.Display.Color();
-      color.random().brighten(50).saturate(100);
-      const userData = this.add.graphics();
-      userData.fillStyle(color.color, 1);
-      userData.fillRect(5, 600, 600, 2);
-      bottom.SetUserData(userData);
-    }
+    // right edge
+    const right = this.engine.TEMP_createBoundary([600, 5], [600, 600]);
+    coordToBoundaryPhaserGraphic(this, right, [600, 5], [600, 600], false);
 
-    // create the right edge
-    {
-      const bodyDef = new Box2d.b2BodyDef();
-      const rightSide = this.engine.world.CreateBody(bodyDef);
-      const shape = new Box2d.b2EdgeShape();
-      bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-      shape.SetTwoSided(
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
-        new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-      );
-      rightSide.CreateFixture(shape, 0);
-      const color = new Phaser.Display.Color();
-      color.random().brighten(50).saturate(100);
-      const userData = this.add.graphics();
-      userData.fillStyle(color.color, 1);
-      userData.fillRect(600, 5, 2, 600);
-      rightSide.SetUserData(userData);
-    }
+    // left edge
+    const left = this.engine.TEMP_createBoundary([5, 5], [5, 600]);
+    coordToBoundaryPhaserGraphic(this, left, [5, 5], [5, 600], false);
 
     const playerBody = this.engine.createPlayer();
     const color = new Phaser.Display.Color();
@@ -204,9 +160,9 @@ export class Lobby extends Phaser.Scene {
     }
     // Determine vertical velocity
     if (this.cursors.down!.isDown) {
-      vector.Set(vector.x, movementUnit);
+      vector.y = movementUnit;
     } else if (this.cursors.up!.isDown) {
-      vector.Set(vector.x, -movementUnit);
+      vector.y = -movementUnit;
     }
 
     this.player[0].SetLinearVelocity(vector);

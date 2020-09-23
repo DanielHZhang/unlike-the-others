@@ -77,7 +77,7 @@ export class GameRoom {
     this.id = nanoid();
     this.engine = new PhysicsEngine();
     this.engine.shouldInterpolate = false; // Do not interpolate on the server
-    TEMP_createWorldBoundaries(this.engine.world);
+    TEMP_createWorldBoundaries(this.engine);
   }
 
   /**
@@ -112,7 +112,7 @@ export class GameRoom {
   loop = () => {
     this.timeout = setTimeout(this.loop, 1000 / TICK_RATE);
     const now = hrtimeMs();
-    const delta = (now - this.previous) / 1000; // Delta update time in seconds
+    const delta = now - this.previous; // Delta update time in milliseconds
     // console.log('Looping delta:', delta);
     this.update(delta);
     this.previous = now;
@@ -199,7 +199,7 @@ export class GameRoom {
         tick: this.tick,
         players: playerEntities,
       };
-      // console.log('State:', state);
+      console.log('State:', state);
       const buffer = snapshotModel.toBuffer(state);
       player.channel.emit('update', buffer);
     }

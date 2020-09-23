@@ -9,6 +9,13 @@ import {
 } from 'src/shared/constants';
 
 export class PhysicsEngine {
+  // private static readonly CATEGORY_TERRAIN = 0x0001;
+  // private static readonly CATEGORY_PLAYER = 0x0002;
+  // private static readonly MASK_PLAYER =
+  //   PhysicsEngine.CATEGORY_PLAYER | PhysicsEngine.CATEGORY_PLAYER;
+  // private static readonly MASK_TERRAIN = -1; // Collide with everything
+  public static readonly GROUP_PLAYER = -1; // Do not collide with others of same group
+  public static readonly GROUP_TERRAIN = 1; // Always collide with everything else
   private static readonly LINEAR_DAMPING = 10;
   private timestepAccumulator = 0;
   private timestepAccumulatorRatio = 0;
@@ -23,20 +30,6 @@ export class PhysicsEngine {
   }
 
   public createPlayer() {
-    // Body definition
-    const body = this.world.CreateBody();
-    body.SetType(Box2d.b2BodyType.b2_dynamicBody);
-    body.SetLinearDamping(PhysicsEngine.LINEAR_DAMPING);
-    body.SetFixedRotation(true); // Prevent angular rotation of bodies
-    // body.SetMassData({
-    //   mass: 1,
-    //   center: new Box2d.b2Vec2(),
-    //   I: 0, // if you set it to zero, bodies won't rotate
-    // });
-    const TEMP_POSX = 300;
-    const TEMP_POSY = 300;
-    body.SetPosition(new Box2d.b2Vec2(TEMP_POSX / WORLD_SCALE, TEMP_POSY / WORLD_SCALE));
-
     // Shape definition
     const TEMP_WIDTH = 100;
     const TEMP_HEIGHT = 100;
@@ -48,6 +41,37 @@ export class PhysicsEngine {
     fixture.density = 20.0;
     fixture.friction = 1.0;
     fixture.shape = shape;
+    fixture.filter.groupIndex = PhysicsEngine.GROUP_PLAYER;
+
+    // Body definition
+    const body = this.world.CreateBody();
+    body.SetType(Box2d.b2BodyType.b2_dynamicBody);
+    body.SetLinearDamping(PhysicsEngine.LINEAR_DAMPING);
+    body.SetFixedRotation(true); // Prevent angular rotation of bodies
+    const TEMP_POSX = 300;
+    const TEMP_POSY = 300;
+    body.SetPosition(new Box2d.b2Vec2(TEMP_POSX / WORLD_SCALE, TEMP_POSY / WORLD_SCALE));
+    body.CreateFixture(fixture);
+    return body;
+  }
+
+  public TEMP_createBoundary(x1: [number, number], x2: [number, number]) {
+    // Shape definition
+    const shape = new Box2d.b2EdgeShape();
+    shape.SetTwoSided(
+      new Box2d.b2Vec2(x1[0] / WORLD_SCALE, x1[1] / WORLD_SCALE),
+      new Box2d.b2Vec2(x2[0] / WORLD_SCALE, x2[1] / WORLD_SCALE)
+    );
+
+    // Fixture definition
+    const fixture = new Box2d.b2FixtureDef();
+    fixture.density = 0;
+    fixture.shape = shape;
+    fixture.filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
+
+    // Body definition
+    const body = this.world.CreateBody();
+    body.SetType(Box2d.b2BodyType.b2_staticBody);
     body.CreateFixture(fixture);
     return body;
   }
@@ -124,56 +148,96 @@ export class PhysicsEngine {
   }
 }
 
-export function TEMP_createWorldBoundaries(world: Box2d.b2World) {
-  // create the top ceiling edge
-  {
-    const bodyDef = new Box2d.b2BodyDef();
-    const ground = world.CreateBody(bodyDef);
-    const shape = new Box2d.b2EdgeShape();
-    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-    shape.SetTwoSided(
-      new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-      new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
-    );
-    ground.CreateFixture(shape, 0);
-  }
-
-  // create the left edge
-  {
-    const bodyDef = new Box2d.b2BodyDef();
-    const leftSide = world.CreateBody(bodyDef);
-    const shape = new Box2d.b2EdgeShape();
-    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-    shape.SetTwoSided(
-      new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-      new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
-    );
-    leftSide.CreateFixture(shape, 0);
-  }
-
-  // create the bottom edge
-  {
-    const bodyDef = new Box2d.b2BodyDef();
-    const bottom = world.CreateBody(bodyDef);
-    const shape = new Box2d.b2EdgeShape();
-    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-    shape.SetTwoSided(
-      new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
-      new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-    );
-    bottom.CreateFixture(shape, 0);
-  }
-
-  // create the right edge
-  {
-    const bodyDef = new Box2d.b2BodyDef();
-    const rightSide = world.CreateBody(bodyDef);
-    const shape = new Box2d.b2EdgeShape();
-    bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-    shape.SetTwoSided(
-      new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
-      new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-    );
-    rightSide.CreateFixture(shape, 0);
-  }
+export function TEMP_createWorldBoundaries(engine: PhysicsEngine) {
+  const top = engine.TEMP_createBoundary([5, 5], [600, 5]);
+  const bottom = engine.TEMP_createBoundary([5, 600], [600, 600]);
+  const right = engine.TEMP_createBoundary([600, 5], [600, 600]);
+  const left = engine.TEMP_createBoundary([5, 5], [5, 600]);
 }
+
+// {
+//   const bodyDef = new Box2d.b2BodyDef();
+//   const topSide = this.engine.world.CreateBody(bodyDef);
+//   const shape = new Box2d.b2EdgeShape();
+//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+//   shape.SetTwoSided(
+//     new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+//     new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
+//   );
+//   const fixture = topSide.CreateFixture(shape, 0);
+//   const filter = new Box2d.b2Filter();
+//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
+//   fixture.SetFilterData(filter);
+//   const color = new Phaser.Display.Color();
+//   color.random().brighten(50).saturate(100);
+//   const userData = this.add.graphics();
+//   userData.fillStyle(color.color, 1);
+//   userData.fillRect(5, 5, 600, 2);
+//   topSide.SetUserData(userData);
+// }
+
+// // create the left edge
+// {
+//   const bodyDef = new Box2d.b2BodyDef();
+//   const leftSide = this.engine.world.CreateBody(bodyDef);
+//   const shape = new Box2d.b2EdgeShape();
+//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+//   shape.SetTwoSided(
+//     new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
+//     new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
+//   );
+//   const fixture = leftSide.CreateFixture(shape, 0);
+//   const filter = new Box2d.b2Filter();
+//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
+//   fixture.SetFilterData(filter);
+//   const color = new Phaser.Display.Color();
+//   color.random().brighten(50).saturate(100);
+//   const userData = this.add.graphics();
+//   userData.fillStyle(color.color, 1);
+//   userData.fillRect(5, 5, 2, 600);
+//   leftSide.SetUserData(userData);
+// }
+
+// // create the bottom edge
+// {
+//   const bodyDef = new Box2d.b2BodyDef();
+//   const bottom = this.engine.world.CreateBody(bodyDef);
+//   const shape = new Box2d.b2EdgeShape();
+//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+//   shape.SetTwoSided(
+//     new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
+//     new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+//   );
+//   const fixture = bottom.CreateFixture(shape, 0);
+//   const filter = new Box2d.b2Filter();
+//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
+//   fixture.SetFilterData(filter);
+//   const color = new Phaser.Display.Color();
+//   color.random().brighten(50).saturate(100);
+//   const userData = this.add.graphics();
+//   userData.fillStyle(color.color, 1);
+//   userData.fillRect(5, 600, 600, 2);
+//   bottom.SetUserData(userData);
+// }
+
+// // create the right edge
+// {
+//   const bodyDef = new Box2d.b2BodyDef();
+//   const rightSide = this.engine.world.CreateBody(bodyDef);
+//   const shape = new Box2d.b2EdgeShape();
+//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
+//   shape.SetTwoSided(
+//     new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
+//     new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
+//   );
+//   const fixture = rightSide.CreateFixture(shape, 0);
+//   const filter = new Box2d.b2Filter();
+//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
+//   fixture.SetFilterData(filter);
+//   const color = new Phaser.Display.Color();
+//   color.random().brighten(50).saturate(100);
+//   const userData = this.add.graphics();
+//   userData.fillStyle(color.color, 1);
+//   userData.fillRect(600, 5, 2, 600);
+//   rightSide.SetUserData(userData);
+// }
