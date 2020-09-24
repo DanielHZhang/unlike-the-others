@@ -8,6 +8,10 @@ export const channel = geckos({
   port: PORT,
 });
 
+window.addEventListener('beforeunload', () => {
+  channel.close(); // Close the channel on page navigation or reload
+});
+
 class BufferEncoder {
   public buffer = new ArrayBuffer(7);
   public slots: [Uint32Array, Uint8Array, Uint8Array, Uint8Array];

@@ -34,6 +34,7 @@ export class Lobby extends Phaser.Scene {
     super('PlayGame');
     this.controls = controls;
     this.engine = new PhysicsEngine();
+    this.receiveNetwork();
   }
 
   init() {
@@ -89,9 +90,16 @@ export class Lobby extends Phaser.Scene {
   receiveNetwork() {
     channel.onRaw((data) => {
       const buffer = data as ArrayBuffer;
-      const same = snapshotModel.fromBuffer(buffer);
-      console.log(same);
+      const snapshot = snapshotModel.fromBuffer(buffer);
+      // console.log('Data from update:', snapshot);
+      InputHandler.dequeue(snapshot, this.player[0]);
     });
+    // channel.on('update', (data) => {
+    //   console.log('data from update:', data);
+    //   // const buffer = data as ArrayBuffer;
+    //   // const snapshot = snapshotModel.fromBuffer(buffer);
+    //   // console.log(snapshot);
+    // });
   }
 
   setPlayerVelocity() {
@@ -130,7 +138,7 @@ export class Lobby extends Phaser.Scene {
     } else if (this.cursors.down!.isDown) {
       InputHandler.down();
     }
-
+    InputHandler.enqueue();
     InputHandler.emit();
   }
 

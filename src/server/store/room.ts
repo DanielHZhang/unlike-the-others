@@ -144,7 +144,7 @@ export class GameRoom {
           }
           player.body!.SetLinearVelocity(vector);
           const vel = player.body!.GetLinearVelocity();
-          console.log('input:', input, `|| velocity: ${vel.x}, ${vel.y}`);
+          // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
           player.lastProcessedInput = input.s;
         }
       }
@@ -199,7 +199,7 @@ export class GameRoom {
       };
       console.log('State:', state);
       const buffer = snapshotModel.toBuffer(state);
-      player.channel.emit('update', buffer);
+      player.channel.raw.emit(buffer);
     }
   }
 
