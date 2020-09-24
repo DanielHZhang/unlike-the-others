@@ -5,6 +5,7 @@ import {nanoid} from 'src/server/utils/crypto';
 import {BufferInputData, InputData} from 'src/shared/types';
 
 export class Player {
+  public static readonly MAX_QUEUE_SIZE = 20;
   private static readonly instances = new Map<string, Player>();
   private position = {x: 0, y: 0};
   // private jobs: Job[];
@@ -19,7 +20,7 @@ export class Player {
   public channel?: ServerChannel;
   public active = false;
   public body?: Box2d.b2Body;
-  public inputQueue: BufferInputData[] = [];
+  private inputQueue: BufferInputData[] = [];
   public lastProcessedInput = 0;
 
   /**
@@ -48,6 +49,21 @@ export class Player {
     return Player.instances.get(id);
   }
 
+  public enqueueInput(input: BufferInputData) {
+    this.inputQueue.push(input);
+    if (this.inputQueue.length > Player.MAX_QUEUE_SIZE) {
+      this.inputQueue.shift(); // Drop the previously queued input
+    }
+  }
+
+  public dequeueInput() {
+    return this.inputQueue.shift();
+  }
+
+  public processInputs() {
+    // POTENTIALLY HANDLE PLAYER INPUTS HERE
+  }
+
   public joinRoom(roomId: string) {
     this.roomId = roomId;
     this.active = true;
@@ -57,8 +73,10 @@ export class Player {
   public leaveRoom(audioIds: string[]) {
     this.socket.emit('connectAudioIds', audioIds);
     this.socket.leave(this.roomId!);
-    this.roomId = undefined;
     this.active = false;
+    this.roomId = undefined;
+    this.uiid = undefined;
+    this.inputQueue = []; // Drop all input when leaving room
   }
 
   public kill(audioIds: string[]) {

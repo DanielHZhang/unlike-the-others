@@ -4,7 +4,7 @@ import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
-import {BufferPlayerData, BufferSnapshotData, InputData} from 'src/shared/types';
+import {BufferInputData, BufferPlayerData, BufferSnapshotData, InputData} from 'src/shared/types';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import {snapshotModel} from 'src/shared/buffer-schema';
@@ -69,6 +69,9 @@ export class GameRoom {
     ballots: [],
   };
   public id: string;
+  tick = 0;
+  previous = 0;
+  timeout?: NodeJS.Timeout;
 
   /**
    * Private constructor to prevent instances from being created outside of static methods
@@ -105,10 +108,6 @@ export class GameRoom {
     GameRoom.instances.delete(id);
   }
 
-  tick = 0;
-  previous = 0;
-  timeout: NodeJS.Timeout;
-
   loop = () => {
     this.timeout = setTimeout(this.loop, 1000 / TICK_RATE);
     const now = hrtimeMs();
@@ -127,9 +126,8 @@ export class GameRoom {
 
   processInputs() {
     for (const player of this.players) {
-      // DOES NOT ENFORCE MAXIMUM AMOUTN OF INPUT TO BE HANDLED
-      while (player.inputQueue.length > 0) {
-        const input = player.inputQueue.shift()!;
+      let input: BufferInputData | undefined;
+      while ((input = player.dequeueInput()) !== undefined) {
         // Check if input contained movement
         if (input.h > 0 || input.v > 0) {
           const vector = new Box2d.b2Vec2();
@@ -205,6 +203,11 @@ export class GameRoom {
     }
   }
 
+  private isKillValid(player: Player) {
+    // determine if player attempting to kill is valid to do so
+    // check if player is within kill range of all other players
+  }
+
   public isEmpty() {
     return this.players.length === 0;
   }
@@ -217,9 +220,9 @@ export class GameRoom {
     if (!this.host) {
       this.host = newPlayer;
     }
+    this.players.push(newPlayer);
     newPlayer.uiid = findSmallestMissingInt(this.players.map((player) => player.uiid!));
     newPlayer.body = this.engine.createPlayer();
-    this.players.push(newPlayer);
     newPlayer.joinRoom(this.id);
   }
 
@@ -232,7 +235,6 @@ export class GameRoom {
       }
       const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
       player.leaveRoom(audioIds);
-      player.uiid = undefined;
     }
   }
 
@@ -295,7 +297,9 @@ export class GameRoom {
 
   public endGame() {
     this.isGameStarted = false;
-    clearTimeout(this.timeout);
+    if (this.timeout !== undefined) {
+      clearTimeout(this.timeout);
+    }
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `End game for room ${this.id}`);

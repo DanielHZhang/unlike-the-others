@@ -65,17 +65,15 @@ export class Lobby extends Phaser.Scene {
     const left = this.engine.TEMP_createBoundary([5, 5], [5, 600]);
     coordToBoundaryPhaserGraphic(this, left, [5, 5], [5, 600], false);
 
+    // player
     const playerBody = this.engine.createPlayer();
     const color = new Phaser.Display.Color();
-    color.random();
-    color.brighten(50).saturate(100);
+    color.random().brighten(50).saturate(100);
     const userData = this.add.graphics();
     userData.fillStyle(color.color, 1);
     userData.fillRect(-100 / 2, -100 / 2, 100, 100);
     playerBody.SetUserData(userData);
     this.player = [playerBody, userData];
-
-    // this.player = this.createBox(300, 300, 100, 100, true);
 
     this.time.addEvent({
       delay: 500,
@@ -86,58 +84,6 @@ export class Lobby extends Phaser.Scene {
         console.log(`Position: ${pos.x}, ${pos.y}\nVelocity: ${velocity.x}, ${velocity.y}`);
       },
     });
-  }
-
-  // here we go with some Box2D stuff
-  // arguments: x, y coordinates of the center, with and height of the box, in pixels
-  // we'll conver pixels to meters inside the method
-  createBox(
-    posX: number,
-    posY: number,
-    width: number,
-    height: number,
-    isDynamic: boolean
-  ): [Box2d.b2Body, Phaser.GameObjects.Graphics] {
-    // this is how we create a generic Box2D body
-    let box = this.engine.world.CreateBody();
-    if (isDynamic) {
-      // Box2D bodies born as static bodies, but we can make them dynamic
-      box.SetType(Box2d.b2BodyType.b2_dynamicBody);
-      box.SetLinearDamping(10);
-      box.SetFixedRotation(true);
-    }
-
-    // a body can have one or more fixtures. This is how we create a box fixture inside a body
-    const boxShape = new Box2d.b2PolygonShape();
-    boxShape.SetAsBox(width / 2 / WORLD_SCALE, height / 2 / WORLD_SCALE);
-    const fixtureDef = new Box2d.b2FixtureDef();
-    fixtureDef.density = 20.0;
-    fixtureDef.friction = 1.0;
-    fixtureDef.shape = boxShape;
-    box.CreateFixture(fixtureDef);
-
-    // now we place the body in the world
-    box.SetPosition(new Box2d.b2Vec2(posX / WORLD_SCALE, posY / WORLD_SCALE));
-
-    // time to set mass information
-    box.SetMassData({
-      mass: 1,
-      center: new Box2d.b2Vec2(),
-      I: 0, // if you set it to zero, bodies won't rotate
-    });
-
-    // now we create a graphics object representing the body
-    const color = new Phaser.Display.Color();
-    color.random();
-    color.brighten(50).saturate(100);
-    let userData = this.add.graphics();
-    userData.fillStyle(color.color, 1);
-    userData.fillRect(-width / 2, -height / 2, width, height);
-
-    // a body can have anything in its user data, normally it's used to store its sprite
-    box.SetUserData(userData);
-
-    return [box, userData];
   }
 
   receiveNetwork() {

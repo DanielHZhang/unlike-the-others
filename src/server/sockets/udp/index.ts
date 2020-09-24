@@ -53,8 +53,9 @@ export function udpHandler(server: http.Server) {
       if (!room) {
         room = GameRoom.getById(player.roomId)!;
       }
+      // DOES NOT HANDLE ANY ERROR
       const input = inputModel.fromBuffer(buffer as ArrayBuffer);
-      player.inputQueue.push(input);
+      player.enqueueInput(input);
     });
   });
 }

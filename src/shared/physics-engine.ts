@@ -38,7 +38,7 @@ export class PhysicsEngine {
 
     // Fixture definition
     const fixture = new Box2d.b2FixtureDef();
-    fixture.density = 20.0;
+    fixture.density = 20.0; // MIGHT NOT BE NECESSARY, GIVEN 0 GRAVITY
     fixture.friction = 1.0;
     fixture.shape = shape;
     fixture.filter.groupIndex = PhysicsEngine.GROUP_PLAYER;
