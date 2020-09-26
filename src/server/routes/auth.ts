@@ -1,14 +1,6 @@
 import {Router} from 'express';
-
-export const authRouter = Router();
-
-
-import bcrypt from 'bcryptjs';
-
-import {sign} from 'jsonwebtoken';
 import {User, PrismaClientKnownRequestError} from '@prisma/client';
-import {prisma} from 'src/server';
-import {keys} from 'src/config/keys';
+import {prisma} from 'src/server/prisma';
 
 export const userRouter = Router();
 
