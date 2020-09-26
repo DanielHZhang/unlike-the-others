@@ -11,6 +11,7 @@ import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {tcpHandler} from 'src/server/sockets/tcp';
 import {udpHandler} from 'src/server/sockets/udp';
+import {apiRouter} from 'src/server/routes';
 
 export async function main() {
   const app = express();
@@ -37,6 +38,7 @@ export async function main() {
   app.use('/assets', express.static(ASSETS_FOLDER_PATH));
   app.use(json({limit: '10mb'}));
   app.use(urlencoded({extended: true, limit: '10mb'}));
+  app.use('/api', apiRouter);
   app.use((_, res) => res.sendFile(indexFile));
 
   // Create socket handlers
