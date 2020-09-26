@@ -1,51 +1,39 @@
 import {Router} from 'express';
-import {User, PrismaClientKnownRequestError} from '@prisma/client';
+import {JWT} from 'jose';
+import {PrismaClientKnownRequestError} from '@prisma/client';
 import {prisma} from 'src/server/prisma';
+import {log} from 'src/server/utils/logs';
+import {hashPassword, verifyPassword} from 'src/server/utils/scrypt';
+import {getJWK} from 'src/server/config/jwk';
 
-export const userRouter = Router();
+export const authRouter = Router();
 
-const signAccessToken = (user: User) => {
-  return new Promise<string>((resolve, reject) => {
-    sign(
-      {userId: user.id},
-      keys.jwt.secret,
-      {
-        expiresIn: '90d',
-        issuer: 'calamity',
-        subject: user.email,
-        // audience: 'https://calamity.com'
-      },
-      (error, token) => (error ? reject(error) : resolve(token))
-    );
-  });
-};
-
-userRouter.post('/sign-up', async (req, res) => {
+authRouter.post('/sign-up', async (req, res) => {
   try {
-    const {name, email, password} = req.body;
-    const hash = await bcrypt.hash(password, 10);
+    const {username, email, password} = req.body;
+    const hash = await hashPassword(password);
     const newUser = await prisma.user.create({
       data: {
-        name,
+        username,
         email,
-        password: hash,
+        password: hash.toString('base64'),
       },
     });
-    console.log('Created new user:', newUser);
-    const token = await signAccessToken(newUser);
+
+    log('info', `Created new user: ${newUser.id}`);
+
+    const newJwt = JWT.sign({userId: newUser.id}, getJWK());
     res.send({
-      accessToken: token,
-      name: newUser.name,
+      accessToken: newJwt,
+      username: newUser.username,
       email: newUser.email,
     });
   } catch (error) {
     console.error(error);
     const values: Record<string, string> = {};
     if (error instanceof PrismaClientKnownRequestError) {
+      // Unique constraint failed on fields
       if (error.code === 'P2002') {
-        // Unique constraint failed on fields
-        // const meta = error.meta as {target: string[]} | undefined;
-        // meta?.target.forEach((field) => values[field] = '')
         values.email = 'Email is already registered.';
       }
       res.status(400);
@@ -56,21 +44,24 @@ userRouter.post('/sign-up', async (req, res) => {
   }
 });
 
-userRouter.post('/login', async (req, res) => {
+authRouter.post('/login', async (req, res) => {
   try {
     const {email, password} = req.body;
     const foundUser = await prisma.user.findOne({where: {email}});
+
     if (!foundUser) {
       throw 404;
     }
-    const passwordMatch = await bcrypt.compare(password, foundUser.password);
+
+    const passwordMatch = await verifyPassword(password, foundUser.password);
     if (!passwordMatch) {
       throw 401;
     }
-    const token = await signAccessToken(foundUser);
+
+    const token = JWT.sign({userId: foundUser.id}, getJWK());
     res.send({
       accessToken: token,
-      name: foundUser.name,
+      username: foundUser.username,
       email: foundUser.email,
     });
   } catch (error) {
