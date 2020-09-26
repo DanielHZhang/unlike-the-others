@@ -21,4 +21,4 @@ tsNode.register({transpileOnly: true});
 dotenv.config({path: path.join(process.cwd(), '.local', '.env')});
 
 // Run sever entry point
-require('./server').main().catch(console.error);
+require('./server').main();

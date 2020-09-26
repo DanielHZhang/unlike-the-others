@@ -12,37 +12,44 @@ import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {tcpHandler} from 'src/server/sockets/tcp';
 import {udpHandler} from 'src/server/sockets/udp';
 import {apiRouter} from 'src/server/routes';
+import {prisma} from 'src/server/prisma';
 
 export async function main() {
-  const app = express();
-  const server = http.createServer(app);
-  const indexFile = path.join(BUILD_FOLDER_PATH, 'index.html');
+  try {
+    const app = express();
+    const server = http.createServer(app);
+    const indexFile = path.join(BUILD_FOLDER_PATH, 'index.html');
 
-  // Configure hot reloading for dev environments
-  if (!IS_PRODUCTION_ENV) {
-    try {
-      await buildWebpackDll();
-    } catch (error) {
-      log('error', `Building the webpack dll failed. ${error}`);
-      process.exit(0);
+    // Configure hot reloading for dev environments
+    if (!IS_PRODUCTION_ENV) {
+      try {
+        await buildWebpackDll();
+      } catch (error) {
+        log('error', `Building the webpack dll failed. ${error}`);
+        process.exit(0);
+      }
+      log('info', 'Building client...');
+      const {config} = await import('src/webpack/dev');
+      const compiler = webpack(config);
+      app.use(makeDevMiddleware(compiler, config.output!.publicPath!));
+      app.use(makeHotMiddleware(compiler));
     }
-    log('info', 'Building client...');
-    const {config} = await import('src/webpack/dev');
-    const compiler = webpack(config);
-    app.use(makeDevMiddleware(compiler, config.output!.publicPath!));
-    app.use(makeHotMiddleware(compiler));
+
+    // Apply express middlewares
+    app.use('/static', express.static(BUILD_FOLDER_PATH));
+    app.use('/assets', express.static(ASSETS_FOLDER_PATH));
+    app.use(json({limit: '10mb'}));
+    app.use(urlencoded({extended: true, limit: '10mb'}));
+    app.use('/api', apiRouter);
+    app.use((_, res) => res.sendFile(indexFile));
+
+    // Create socket handlers
+    tcpHandler(server);
+    udpHandler(server);
+    server.listen(PORT);
+  } catch (error) {
+    console.error('Critical error in main function:', error);
+  } finally {
+    await prisma.$disconnect();
   }
-
-  // Apply express middlewares
-  app.use('/static', express.static(BUILD_FOLDER_PATH));
-  app.use('/assets', express.static(ASSETS_FOLDER_PATH));
-  app.use(json({limit: '10mb'}));
-  app.use(urlencoded({extended: true, limit: '10mb'}));
-  app.use('/api', apiRouter);
-  app.use((_, res) => res.sendFile(indexFile));
-
-  // Create socket handlers
-  tcpHandler(server);
-  udpHandler(server);
-  server.listen(PORT);
 }
