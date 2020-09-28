@@ -1,55 +1,62 @@
-import http from 'http';
-import path from 'path';
-import express from 'express';
-import webpack from 'webpack';
-import {json, urlencoded} from 'body-parser';
-import {log} from 'src/server/utils/logs';
-import {buildWebpackDll} from 'src/webpack/rebuild';
-import {makeDevMiddleware, makeHotMiddleware} from 'src/server/middleware';
-import {ASSETS_FOLDER_PATH} from 'src/server/config/constants';
-import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
-import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
-import {tcpHandler} from 'src/server/sockets/tcp';
+import fastify from 'fastify';
+import fastifyStatic from 'fastify-static';
+import fastifyCookie from 'fastify-cookie';
+import {websockets} from 'src/server/sockets/tcp';
 import {udpHandler} from 'src/server/sockets/udp';
-import {apiRouter} from 'src/server/routes';
+import {routes} from 'src/server/routes';
 import {prisma} from 'src/server/prisma';
+import {ASSETS_FOLDER_PATH} from 'src/server/config/constants';
+import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
+import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
 
 export async function main() {
+  const app = fastify({logger: true, ignoreTrailingSlash: true});
   try {
-    const app = express();
-    const server = http.createServer(app);
-    const indexFile = path.join(BUILD_FOLDER_PATH, 'index.html');
-
     // Configure hot reloading for dev environments
     if (!IS_PRODUCTION_ENV) {
+      // Require dev imports asyncronously to avoid bloating production bundle
+      const [{buildWebpackDll}, {webpackHmrPlugin}] = await Promise.all([
+        import('src/webpack/rebuild'),
+        import('src/webpack/middleware'),
+      ]);
       try {
         await buildWebpackDll();
       } catch (error) {
-        log('error', `Building the webpack dll failed. ${error}`);
-        process.exit(0);
+        app.log.error(`Building the webpack dll failed. ${error}`);
+        process.exit(1);
       }
-      log('info', 'Building client...');
-      const {config} = await import('src/webpack/dev');
-      const compiler = webpack(config);
-      app.use(makeDevMiddleware(compiler, config.output!.publicPath!));
-      app.use(makeHotMiddleware(compiler));
+      app.log.info('Building client...');
+      app.register(webpackHmrPlugin);
     }
 
-    // Apply express middlewares
-    app.use('/static', express.static(BUILD_FOLDER_PATH));
-    app.use('/assets', express.static(ASSETS_FOLDER_PATH));
-    app.use(json({limit: '10mb'}));
-    app.use(urlencoded({extended: true, limit: '10mb'}));
-    app.use('/api', apiRouter);
-    app.use((_, res) => res.sendFile(indexFile));
+    // Serve static files
+    app.register(fastifyStatic, {
+      root: BUILD_FOLDER_PATH,
+      prefix: '/static',
+    });
+    app.register(fastifyStatic, {
+      root: ASSETS_FOLDER_PATH,
+      prefix: '/assets',
+      decorateReply: false,
+    });
 
-    // Create socket handlers
-    tcpHandler(server);
-    udpHandler(server);
-    server.listen(PORT);
+    // Add route and socket handlers
+    app.register(fastifyCookie);
+    app.register(routes);
+    app.register(websockets);
+    udpHandler(app.server);
+
+    app.listen(PORT, (error, address) => {
+      if (error) {
+        throw error;
+      }
+    });
   } catch (error) {
-    console.error('Critical error in main function:', error);
+    app.log.error(error);
+    process.exit(1);
   } finally {
     await prisma.$disconnect();
   }
 }
+
+main();

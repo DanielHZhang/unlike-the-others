@@ -156,7 +156,7 @@ export const BackgroundParticles = memo(
   () => {
     const [state, setState] = useState<{container?: Container}>({container: undefined});
     const destroy = () => {
-      state.container!.destroy();
+      state.container?.destroy();
       setState({...state, container: undefined});
     };
     const setCanvas = (canvas: HTMLCanvasElement) => {

@@ -7,6 +7,7 @@ import {AudioChannel} from 'src/server/config/constants';
 import {getJWK} from 'src/server/config/jwk';
 import {JwtClaims} from 'src/shared/types';
 import {Player} from 'src/server/store/player';
+import {FastifyPluginCallback} from 'fastify';
 
 let io: SocketIo.Server;
 
@@ -14,11 +15,11 @@ function send<T = string>(status: number, payload: T) {
   return {status, payload};
 }
 
-export function tcpHandler(server: http.Server) {
+export const websockets: FastifyPluginCallback = async (fastify, options, next) => {
   if (io) {
     throw new Error('Attempted to re-instantiate the TCP server singleton.');
   }
-  io = SocketIo(server);
+  io = SocketIo(fastify.server, {transports: ['websocket']});
 
   io.on('connection', (socket: SocketIo.Socket) => {
     let player: Player;
@@ -139,4 +140,4 @@ export function tcpHandler(server: http.Server) {
       room.endVoting();
     });
   });
-}
+};
