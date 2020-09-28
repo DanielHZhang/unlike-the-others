@@ -2,7 +2,7 @@
 export const IS_PRODUCTION_ENV = process.env.NODE_ENV === 'production';
 
 /** Base URL of the website */
-export const ROOT_URL = IS_PRODUCTION_ENV ? '' : 'http://localhost:8080/';
+export const ROOT_URL = IS_PRODUCTION_ENV ? '' : 'localhost:8080';
 
 /** Port to connect to the TCP server */
 export const PORT = 8080;

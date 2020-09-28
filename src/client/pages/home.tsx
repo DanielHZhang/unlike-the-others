@@ -54,33 +54,33 @@ export const HomePage = (props: Props) => {
     channel.emit('joinRoom', room.id);
   }, [room.id]);
 
-  useDidMount(() => {
-    socket.once('createRoomResponse', (res: SocketResponse) => {
-      if (res.status >= 400) {
-        setState({...state, errorModalVisible: true});
-      } else {
-        const roomId = res.payload;
-        console.log('Created room:', roomId);
-        socket.emit('joinRoom', roomId);
-      }
-    });
+  // useDidMount(() => {
+  //   socket.once('createRoomResponse', (res: SocketResponse) => {
+  //     if (res.status >= 400) {
+  //       setState({...state, errorModalVisible: true});
+  //     } else {
+  //       const roomId = res.payload;
+  //       console.log('Created room:', roomId);
+  //       socket.emit('joinRoom', roomId);
+  //     }
+  //   });
 
-    socket.once('joinRoomResponse', (res: SocketResponse) => {
-      if (res.status >= 400) {
-        setState({...state, errorModalVisible: true});
-      } else {
-        const roomId = res.payload;
-        console.log('Joined room:', roomId);
-        setRoom({id: roomId});
-        props.history.push('/game');
-      }
-    });
+  //   socket.once('joinRoomResponse', (res: SocketResponse) => {
+  //     if (res.status >= 400) {
+  //       setState({...state, errorModalVisible: true});
+  //     } else {
+  //       const roomId = res.payload;
+  //       console.log('Joined room:', roomId);
+  //       setRoom({id: roomId});
+  //       props.history.push('/game');
+  //     }
+  //   });
 
-    return () => {
-      socket.off('createRoomResponse');
-      socket.off('joinRoomResponse');
-    };
-  });
+  //   return () => {
+  //     socket.off('createRoomResponse');
+  //     socket.off('joinRoomResponse');
+  //   };
+  // });
 
   return (
     <Layout>

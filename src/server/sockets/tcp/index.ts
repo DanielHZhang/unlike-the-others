@@ -1,3 +1,4 @@
+import fp from 'fastify-plugin';
 import http from 'http';
 import SocketIo from 'socket.io';
 import {JWT, errors} from 'jose';
@@ -19,7 +20,8 @@ export const websockets: FastifyPluginCallback = async (fastify, options, next) 
   if (io) {
     throw new Error('Attempted to re-instantiate the TCP server singleton.');
   }
-  io = SocketIo(fastify.server, {transports: ['websocket']});
+  // COMPAT: Disable perMessageDeflate as per https://github.com/socketio/socket.io/issues/3477
+  io = SocketIo(fastify.server, {transports: ['websocket'], perMessageDeflate: false});
 
   io.on('connection', (socket: SocketIo.Socket) => {
     let player: Player;

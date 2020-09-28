@@ -17,8 +17,9 @@ tsConfigPaths.register({baseUrl, paths});
 // Configure ts-node for server transpilation
 tsNode.register({transpileOnly: true});
 
-// Load environment variables from .env file
+// Load environment variables from .env files
 dotenv.config({path: path.join(process.cwd(), '.local', '.env')});
+dotenv.config({path: path.join(process.cwd(), 'prisma', '.env')});
 
 // Run sever entry point
 require('./server');

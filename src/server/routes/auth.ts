@@ -102,5 +102,6 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
     }
   });
 
+  next();
   return Promise.resolve();
 };

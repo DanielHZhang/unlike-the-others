@@ -5,10 +5,11 @@ import WebpackDevMiddleware from 'webpack-dev-middleware';
 import WebpackHotMiddleware from 'webpack-hot-middleware';
 import {ROOT_URL} from 'src/shared/constants';
 
-export const webpackHmrPlugin = fp(async (instance) => {
-  if (instance.hasDecorator('webpack')) {
+export const webpackHmrPlugin = fp(async (fastify) => {
+  if (fastify.hasDecorator('webpack')) {
     throw new Error('Webpack HMR plugin has already been registered.');
   }
+  fastify.log.info('Building client...');
   const {config} = await import('src/webpack/dev');
   const compiler = webpack(config);
 
@@ -18,18 +19,16 @@ export const webpackHmrPlugin = fp(async (instance) => {
     publicPath: config.output!.publicPath,
   });
   devMiddleware.waitUntilValid(() => {
-    instance.log.info(`Ready on ${ROOT_URL}`);
+    fastify.log.info(`Ready on http://${ROOT_URL}\nConnected to db: ${process.env.DB_ENDPOINT}`);
   });
-  await instance.register(middie);
-  instance.use(devMiddleware);
+  await fastify.register(middie);
+  fastify.use(devMiddleware);
 
   // Set up webpack-hot-middleware
   const hotMiddleware = WebpackHotMiddleware(compiler, {log: () => null}); // Remove output
-  instance.use(hotMiddleware);
+  fastify.use(hotMiddleware);
 
   // Shut down dev middleware on close
-  instance.addHook('onClose', (instance, next) => {
-    devMiddleware.close(next);
-  });
-  instance.decorate('webpack-hmr', Symbol.for('webpack-hmr'));
+  fastify.addHook('onClose', (instance, next) => devMiddleware.close(next));
+  fastify.decorate('webpack-hmr', Symbol.for('webpack-hmr'));
 });

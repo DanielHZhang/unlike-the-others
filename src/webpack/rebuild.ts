@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import webpack from 'webpack';
-import {log} from 'src/server/utils/logs';
+import type {Logger} from 'pino';
 import {BUILD_FOLDER_PATH, vendors} from 'src/webpack/constants';
 
 function compile(config: webpack.Configuration) {
@@ -37,7 +37,7 @@ function isFlatArrayEqual<T>(a: T[], b: T[]) {
   return true;
 }
 
-export async function buildWebpackDll() {
+export async function buildWebpackDll(logger: Logger) {
   const packageJson = await import('package.json');
   const {config} = await import('src/webpack/dll');
 
@@ -62,13 +62,13 @@ export async function buildWebpackDll() {
       isFlatObjectEqual(localJson.devDependencies, packageJson.devDependencies) &&
       isFlatArrayEqual(localJson.vendors, vendors)
     ) {
-      log('success', 'DLL up-to-date, skipping rebuild.');
+      logger.info('DLL up-to-date, skipping rebuild.');
     } else {
       throw new Error('Rebuild required.');
     }
   } catch (error) {
     // If dependencies or versions have changed, recompile dll and write new dependencies
-    log('info', 'Building webpack DLL bundle...');
+    logger.info('Building webpack DLL bundle...');
     const newDependencies = {
       vendors,
       dependencies: packageJson.dependencies,
@@ -77,6 +77,6 @@ export async function buildWebpackDll() {
     const stringified = JSON.stringify(newDependencies, null, 2);
     await fs.promises.writeFile(localDepsFile, stringified, {flag: 'w'});
     await compile(config);
-    log('success', `Webpack DLL built and emitted to ${config.output!.path}`);
+    logger.info(`Webpack DLL built and emitted to ${config.output!.path}`);
   }
 }
