@@ -7,6 +7,12 @@ declare module 'peerjs' {
   }
 }
 
+declare module 'fastify' {
+  interface FastifyRequest {
+    generateCsrfToken: () => string;
+  }
+}
+
 export type GameControls = {
   up: number;
   left: number;
@@ -58,3 +64,5 @@ export type BufferSnapshotData = {
   tick: number;
   players: BufferPlayerData[];
 };
+
+export type SocketMessage = [string, any];

@@ -1,21 +1,17 @@
-import http from 'http';
-import geckos, {GeckosServer, iceServers} from '@geckos.io/server';
+import fp from 'fastify-plugin';
+import geckos, {iceServers} from '@geckos.io/server';
 import {errors, JWT} from 'jose';
 import {GameRoom, Player} from 'src/server/store';
 import {log} from 'src/server/utils/logs';
-import {getJWK} from 'src/server/config/jwk';
+import {getJwtKey} from 'src/server/config/keys';
 import {JwtClaims} from 'src/shared/types';
 import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';
 import {inputModel} from 'src/shared/buffer-schema';
+import {FastifyPluginCallback} from 'fastify';
 
-let io: GeckosServer;
-
-export function udpHandler(server: http.Server) {
-  if (io) {
-    throw new Error('Attempted to re-instantiate the UDP server singleton.');
-  }
+const handler: FastifyPluginCallback = (fastify, options, next) => {
   // TODO: Add custom ice servers for production
-  io = geckos({
+  const io = geckos({
     iceServers: IS_PRODUCTION_ENV ? iceServers : undefined,
     label: GECKOS_LABEL,
     authorization: async (auth, request) => {
@@ -23,8 +19,8 @@ export function udpHandler(server: http.Server) {
         if (!auth) {
           throw new errors.JWTMalformed();
         }
-        const claims = JWT.verify(auth, getJWK()) as JwtClaims;
-        const player = Player.getById(claims.userId);
+        const claims = JWT.verify(auth, getJwk()) as JwtClaims;
+        const player = await Player.getById(claims.userId);
         if (!player) {
           throw 'no player found';
         }
@@ -35,7 +31,7 @@ export function udpHandler(server: http.Server) {
       }
     },
   });
-  io.addServer(server); // Use the port of the HTTP Server
+  io.addServer(fastify.server); // Use the port of the HTTP Server
 
   io.onConnection((channel) => {
     let room: GameRoom;
@@ -58,4 +54,8 @@ export function udpHandler(server: http.Server) {
       player.enqueueInput(input);
     });
   });
-}
+
+  next();
+};
+
+export const webrtcHandler = fp(handler);

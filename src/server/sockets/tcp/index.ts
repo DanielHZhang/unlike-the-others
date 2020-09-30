@@ -1,38 +1,69 @@
 import fp from 'fastify-plugin';
-import http from 'http';
-import SocketIo from 'socket.io';
+import WebSocket from 'ws';
+import {FastifyPluginCallback} from 'fastify';
 import {JWT, errors} from 'jose';
-import {log} from 'src/server/utils/logs';
 import {GameRoom} from 'src/server/store';
 import {AudioChannel} from 'src/server/config/constants';
-import {getJWK} from 'src/server/config/jwk';
-import {JwtClaims} from 'src/shared/types';
+import {JwtClaims, SocketMessage} from 'src/shared/types';
 import {Player} from 'src/server/store/player';
-import {FastifyPluginCallback} from 'fastify';
 
-let io: SocketIo.Server;
+class Socket {
+  private listeners: Record<string, Function[]> = {};
+  public connection: WebSocket;
 
-function send<T = string>(status: number, payload: T) {
-  return {status, payload};
+  public constructor(socket: WebSocket) {
+    this.connection = socket;
+    socket.onmessage = (event) => {
+      if (typeof event === 'string') {
+        const json = JSON.parse(event);
+        if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
+          throw new Error('Improperly formatted socket message.');
+        }
+        this.dispatch(json[0], json[1]);
+      }
+    };
+  }
+
+  public on(eventName: string, callback: (data: any) => any) {
+    if (this.listeners[eventName]) {
+      this.listeners[eventName].push(callback);
+    } else {
+      this.listeners[eventName] = [callback];
+    }
+  }
+
+  public emit(eventName: string, data?: unknown, status = 200) {
+    const stringified = JSON.stringify([eventName, status, data]);
+    this.connection.send(stringified);
+  }
+
+  private dispatch(eventName: string, data: any) {
+    const handlers = this.listeners[eventName];
+    if (handlers) {
+      handlers.forEach((handler) => handler(data));
+    }
+  }
 }
 
-export const websockets: FastifyPluginCallback = async (fastify, options, next) => {
-  if (io) {
-    throw new Error('Attempted to re-instantiate the TCP server singleton.');
-  }
-  // COMPAT: Disable perMessageDeflate as per https://github.com/socketio/socket.io/issues/3477
-  io = SocketIo(fastify.server, {transports: ['websocket'], perMessageDeflate: false});
+const handler: FastifyPluginCallback = (fastify, options, next) => {
+  const ws = new WebSocket.Server({server: fastify.server, path: '/sock'});
 
-  io.on('connection', (socket: SocketIo.Socket) => {
+  fastify.decorate('websocketServer', ws);
+
+  fastify.addHook('onClose', (fastify, done) => {
+    ws.close(done);
+  });
+
+  ws.on('connection', (connection) => {
+    const socket = new Socket(connection);
     let player: Player;
 
-    // TODO: naive authentication, should be replaced wtih full user account later
-    socket.on('authenticate', (jwt?: string | null) => {
+    socket.on('authenticate', (jwt) => {
       try {
         if (!jwt) {
           throw new errors.JWTMalformed();
         }
-        const claims = JWT.verify(jwt, getJWK()) as JwtClaims;
+        const claims = JWT.verify(jwt, getJwk()) as JwtClaims;
         // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
         // attempt to dispose of entire socket instead of just the player object
         const playerExists = Player.getById(claims.userId);
@@ -42,13 +73,14 @@ export const websockets: FastifyPluginCallback = async (fastify, options, next) 
       } catch (error) {
         // Client does not have a valid JWT
         player = Player.create(socket);
-        const newJwt = JWT.sign({userId: player.id}, getJWK());
+        const newJwt = JWT.sign({userId: player.id}, getJwk());
         socket.emit('authenticateResponse', newJwt);
       }
       log('info', `TCP client connected: ${player.id}`);
     });
 
-    socket.on('disconnecting', () => {
+    // Handle socket disconnect
+    socket.on('close', (reason) => {
       const room = GameRoom.getById(player.roomId);
       if (room) {
         room.removePlayer(player);
@@ -57,7 +89,7 @@ export const websockets: FastifyPluginCallback = async (fastify, options, next) 
           GameRoom.delete(room.id);
         }
       }
-      log('info', `TCP Client disconnecting: ${player.id}`);
+      fastify.log.info(`TCP Client disconnecting: ${player.id}`);
     });
 
     socket.on('createRoom', () => {
@@ -142,4 +174,8 @@ export const websockets: FastifyPluginCallback = async (fastify, options, next) 
       room.endVoting();
     });
   });
+
+  next();
 };
+
+export const websocketHandler = fp(handler);

@@ -71,7 +71,7 @@ function getDerivedKeyStructure(buffer: ArrayBuffer) {
 export async function hashPassword(
   password: string | Buffer,
   params: KDFParams = {logN: 15, r: 8, p: 1}
-): Promise<Buffer> {
+): Promise<string> {
   // range-check logN, r, p
   const logN = Math.round(params.logN);
   const r = Math.round(params.r);
@@ -127,7 +127,7 @@ export async function hashPassword(
     const hmacHash = crypto.createHmac('sha256', hmacKey.slice(32)).update(prefix64).digest();
     struct.hmachash.set(hmacHash);
 
-    return Buffer.from(buffer); // return ArrayBuffer as Buffer/Uint8Array
+    return Buffer.from(buffer).toString('base64'); // return ArrayBuffer as Buffer/Uint8Array
   } catch (e) {
     throw new Error(e.message); // e.g. memory limit exceeded; localise error to this function
   }
@@ -135,20 +135,19 @@ export async function hashPassword(
 
 /**
  * Check whether key was generated from passphrase.
- * @param key - Derived key obtained from Scrypt.kdf().
- * @param passphrase - Passphrase originally used to generate key.
+ * @param attempt - Derived key obtained from Scrypt.kdf().
+ * @param truth - Passphrase originally used to generate key.
  * @returns True if key was generated from passphrase.
  * @example
  *   const key = (await hashPassword('my secret password', {logN: 15})).toString('base64');
  *   const valid = await verifyPassword(Buffer.from(key, 'base64'), 'my secret password');
  */
-export async function verifyPassword(
-  key: Buffer | Uint8Array,
-  passphrase: string | Buffer
-): Promise<boolean> {
+export async function verifyPassword(attempt: string, truth: string | Buffer): Promise<boolean> {
+  const key = Buffer.from(attempt, 'base64');
   if (key.length !== 96) {
     throw new RangeError('Invalid key');
   }
+
   // use the underlying ArrayBuffer to view key in different formats
   const buffer = key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength);
   const struct = getDerivedKeyStructure(buffer); // a structured view of the derived key
@@ -171,7 +170,7 @@ export async function verifyPassword(
     };
 
     // apply scrypt kdf to salt to derive hmac key
-    const hmacKey = await scrypt(passphrase, struct.salt, 64, params);
+    const hmacKey = await scrypt(truth, struct.salt, 64, params);
 
     // get hmachash of params, salt, & checksum, using 1st 32 bytes of scrypt hash as key
     const prefix64 = new Uint8Array(buffer, 0, 64);

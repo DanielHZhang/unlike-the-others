@@ -1,107 +1,186 @@
-import {JWT} from 'jose';
 import {FastifyPluginCallback} from 'fastify';
 import {PrismaClientKnownRequestError} from '@prisma/client';
 import {prisma} from 'src/server/prisma';
-import {log} from 'src/server/utils/logs';
-import {getJWK} from 'src/server/config/jwk';
+import {signJwt, verifyJwt} from 'src/server/config/keys';
 import {hashPassword, verifyPassword} from 'src/server/utils/scrypt';
 import {IS_PRODUCTION_ENV} from 'src/shared/constants';
 
 export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
-  fastify.post('/sign-up', async (req, reply) => {
-    try {
-      const {username, email, password} = req.body as {
-        username: string;
-        email: string;
-        password: string;
-      };
-      const hash = await hashPassword(password);
-      const newUser = await prisma.user.create({
-        data: {
-          username,
-          email,
-          password: hash.toString('base64'),
+  fastify.route({
+    url: '/sign-up',
+    method: 'POST',
+    schema: {
+      body: {
+        type: 'object',
+        required: ['email', 'password', 'username'],
+        properties: {
+          email: {
+            type: 'string',
+            maxLength: 50,
+          },
+          password: {
+            type: 'string',
+            maxLength: 50,
+          },
+          username: {
+            type: 'string',
+            maxLength: 16,
+          },
         },
-      });
+      },
+    },
+    attachValidation: true,
+    handler: async (req, reply) => {
+      try {
+        const {username, email, password} = req.body as {
+          username: string;
+          email: string;
+          password: string;
+        };
 
-      log('info', `Created new user: ${newUser.id}`);
+        const hash = await hashPassword(password);
+        const newUser = await prisma.user.create({
+          data: {
+            username,
+            email,
+            password: hash,
+          },
+        });
 
-      const newJwt = JWT.sign({userId: newUser.id}, getJWK());
-      return {
-        accessToken: newJwt,
-        username: newUser.username,
-        email: newUser.email,
-      };
-    } catch (error) {
-      console.error(error);
-      const values: Record<string, string> = {};
-      if (error instanceof PrismaClientKnownRequestError) {
-        // Unique constraint failed on fields
-        if (error.code === 'P2002') {
-          values.email = 'Email is already registered.';
+        fastify.log.info(`Created new user: ${newUser.id}`);
+
+        const accessToken = signJwt({userId: newUser.id});
+        reply.setCookie('token', accessToken, {httpOnly: true, secure: IS_PRODUCTION_ENV});
+
+        return {
+          accessToken,
+        };
+      } catch (error) {
+        fastify.log.error(error);
+        const values: Record<string, string> = {};
+        if (error instanceof PrismaClientKnownRequestError) {
+          // Unique constraint failed on fields
+          if (error.code === 'P2002') {
+            values.email = 'Email is already registered.';
+          }
+          reply.status(400);
+        } else {
+          reply.status(500);
         }
-        reply.status(400);
-      } else {
-        reply.status(500);
+        return {
+          message: '',
+          values,
+        };
       }
-      return {
-        message: '',
-        values,
-      };
-    }
+    },
   });
 
-  fastify.post('/login', async (req, reply) => {
-    try {
-      const {email, password} = req.body;
-      const foundUser = await prisma.user.findOne({where: {email}});
+  fastify.route({
+    url: '/login',
+    method: 'POST',
+    schema: {
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: {
+            type: 'string',
+            maxLength: 50,
+          },
+          password: {
+            type: 'string',
+            maxLength: 50,
+          },
+        },
+      },
+    },
+    attachValidation: true,
+    handler: async (req, reply) => {
+      try {
+        if (req.validationError) {
+          throw req.validationError;
+        }
 
-      if (!foundUser) {
-        throw 404;
-      }
+        const {email, password} = req.body as {email: string; password: string};
+        const foundUser = await prisma.user.findOne({where: {email}});
 
-      const passwordMatch = await verifyPassword(password, foundUser.password);
-      if (!passwordMatch) {
-        throw 401;
-      }
+        if (!foundUser) {
+          throw 404;
+        }
 
-      const token = JWT.sign({userId: foundUser.id}, getJWK());
-      reply.cookie('token', token, {httpOnly: true, secure: IS_PRODUCTION_ENV});
-      reply.send({
-        accessToken: token,
-        username: foundUser.username,
-        email: foundUser.email,
-      });
-    } catch (error) {
-      console.error(error);
+        const passwordMatch = await verifyPassword(password, foundUser.password);
+        if (!passwordMatch) {
+          throw 401;
+        }
 
-      if (error instanceof PrismaClientKnownRequestError) {
-        reply.status(400);
-      } else if (typeof error === 'number') {
-        reply.status(error);
+        const accessToken = signJwt({userId: foundUser.id});
+        reply.setCookie('token', accessToken, {httpOnly: true, secure: IS_PRODUCTION_ENV});
+
         return {
-          message: 'Invalid email or password.',
-          values: {email: true, password: true},
+          accessToken,
         };
-      } else {
-        reply.status(500);
+      } catch (error) {
+        fastify.log.error(error);
+
+        if (error instanceof PrismaClientKnownRequestError) {
+          reply.status(400);
+        } else if (typeof error === 'number') {
+          reply.status(error);
+          return {
+            message: 'Invalid email or password.',
+            values: {email: true, password: true},
+          };
+        } else {
+          reply.status(500);
+        }
+        return {};
       }
-      return {};
-    }
+    },
+  });
+
+  fastify.route({
+    url: '/jwt',
+    method: 'GET',
+    schema: {
+      headers: {
+        type: 'object',
+        required: ['authorization'],
+        properties: {
+          authorization: {type: 'string'},
+        },
+      },
+    },
+    attachValidation: true,
+    handler: async (req, reply) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          throw 401;
+        }
+        const claims = verifyJwt(authHeader);
+        return {
+          accessToken: authHeader,
+        };
+      } catch (error) {
+        fastify.log.error(error);
+        reply.status(500);
+        return {};
+      }
+    },
   });
 
   fastify.get('/csrf', async (req, reply) => {
     try {
+      console.log('reaches route', req.generateCsrfToken());
       return {
-        csrfToken: req.csrfToken(),
+        csrfToken: null,
       };
     } catch (error) {
-      console.error(error);
+      fastify.log.error(error);
       reply.status(500);
       return {};
     }
   });
 
   next();
-  return Promise.resolve();
 };

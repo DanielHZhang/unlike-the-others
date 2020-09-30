@@ -9,7 +9,8 @@ import {StorageKeys} from 'src/client/config/constants';
 
 const App: FC = (props) => {
   useAsyncEffect(async () => {
-    const res = await Axios.get('/login');
+    const res = await Axios.get('/api/auth/csrf');
+    console.log('received response:', res.data);
   });
 
   return (

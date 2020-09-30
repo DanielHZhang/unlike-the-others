@@ -2,6 +2,7 @@
 // import {StorageKeys} from 'src/client/config/constants';
 // import {channel} from 'src/client/networking/udp';
 
+import {StorageKeys} from 'src/client/config/constants';
 import {ROOT_URL} from 'src/shared/constants';
 
 // export const socket = io({
@@ -21,21 +22,34 @@ import {ROOT_URL} from 'src/shared/constants';
 //   channel.onConnect(console.error);
 // });
 
-export const socket = new WebSocket(`ws://${ROOT_URL}/ws`);
+export const socket = new (class Socket {
+  private socket = new WebSocket(`ws://${ROOT_URL}/sock`);
 
-socket.onopen = (event) => {
-  console.log('on open event:', event);
-  socket.send('wow this is on open');
-};
+  public constructor() {
+    this.socket.onopen = (event) => {
+      console.log('Connected to TCP server.');
+      this.emit('authenticate', localStorage.getItem(StorageKeys.Jwt));
+    };
 
-socket.onclose = (event) => {
-  console.log('on message event:', event);
-};
+    this.socket.onclose = (event) => {
+      console.log('on message event:', event);
+    };
 
-socket.onerror = (event) => {
-  console.error('error occured in socket:', event);
-};
+    this.socket.onerror = (event) => {
+      console.error('error occured in socket:', event);
+    };
 
-socket.onmessage = (event) => {
-  console.log('received message from server:', event);
-};
+    this.socket.onmessage = (event) => {
+      console.log('received message from server:', event);
+    };
+
+    window.addEventListener('beforeunload', () => {
+      this.socket.close();
+    });
+  }
+
+  public emit(eventName: string, payload: any) {
+    this.socket.send();
+  }
+
+})();
