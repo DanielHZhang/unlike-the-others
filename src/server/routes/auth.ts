@@ -1,9 +1,11 @@
+import {errors} from 'jose';
 import {FastifyPluginCallback} from 'fastify';
 import {PrismaClientKnownRequestError} from '@prisma/client';
 import {prisma} from 'src/server/prisma';
 import {signJwt, verifyJwt} from 'src/server/config/keys';
 import {hashPassword, verifyPassword} from 'src/server/utils/scrypt';
 import {IS_PRODUCTION_ENV} from 'src/shared/constants';
+import {CookieKeys} from 'src/server/config/constants';
 
 export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
   fastify.route({
@@ -49,12 +51,12 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
 
         fastify.log.info(`Created new user: ${newUser.id}`);
 
-        const accessToken = signJwt({userId: newUser.id});
-        reply.setCookie('token', accessToken, {httpOnly: true, secure: IS_PRODUCTION_ENV});
-
-        return {
-          accessToken,
-        };
+        const refreshToken = signJwt('refresh', {userId: newUser.id});
+        reply.setCookie(CookieKeys.RefreshToken, refreshToken, {
+          httpOnly: true,
+          secure: IS_PRODUCTION_ENV,
+        });
+        return {success: true};
       } catch (error) {
         fastify.log.error(error);
         const values: Record<string, string> = {};
@@ -113,12 +115,13 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
           throw 401;
         }
 
-        const accessToken = signJwt({userId: foundUser.id});
-        reply.setCookie('token', accessToken, {httpOnly: true, secure: IS_PRODUCTION_ENV});
+        const refreshToken = signJwt('refresh', {userId: foundUser.id});
+        reply.setCookie(CookieKeys.RefreshToken, refreshToken, {
+          httpOnly: true,
+          secure: IS_PRODUCTION_ENV,
+        });
 
-        return {
-          accessToken,
-        };
+        return {success: true};
       } catch (error) {
         fastify.log.error(error);
 
@@ -139,47 +142,38 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
   });
 
   fastify.route({
-    url: '/jwt',
+    url: '/access',
     method: 'GET',
-    schema: {
-      headers: {
-        type: 'object',
-        required: ['authorization'],
-        properties: {
-          authorization: {type: 'string'},
-        },
-      },
-    },
-    attachValidation: true,
     handler: async (req, reply) => {
       try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
+        const refreshToken = req.cookies[CookieKeys.RefreshToken];
+        if (!refreshToken) {
           throw 401;
         }
-        const claims = verifyJwt(authHeader);
-        return {
-          accessToken: authHeader,
-        };
+
+        const claims = verifyJwt('refresh', refreshToken);
+        const user = await prisma.user.findOne({where: {id: claims.userId}});
+        if (!user) {
+          throw 404;
+        }
+
+        const accessToken = signJwt('access', {userId: user.id});
+        return accessToken;
       } catch (error) {
-        fastify.log.error(error);
-        reply.status(500);
+        if (typeof error === 'number') {
+          reply.status(error);
+        } else if (error instanceof errors.JWTMalformed) {
+          reply.status(401);
+        } else {
+          reply.status(500);
+        }
         return {};
       }
     },
   });
 
   fastify.get('/csrf', async (req, reply) => {
-    try {
-      console.log('reaches route', req.generateCsrfToken());
-      return {
-        csrfToken: null,
-      };
-    } catch (error) {
-      fastify.log.error(error);
-      reply.status(500);
-      return {};
-    }
+    return req.generateCsrfToken();
   });
 
   next();

@@ -2,16 +2,20 @@ import fs from 'fs';
 import path from 'path';
 import {JWK, JWKS, JWT} from 'jose';
 import {JwtClaims} from 'src/shared/types';
+import {LOCAL_FOLDER_PATH} from 'src/server/config/constants';
 
-const key = JWK.asKey(fs.readFileSync(path.join(process.cwd(), '.local', 'jwk.pem')));
-const keyStore = new JWKS.KeyStore([key]);
+type JwtType = 'access' | 'refresh';
 
-export function verifyJwt(jwt: string) {
-  const claims = JWT.verify(jwt, key);
+const refreshKey = JWK.asKey(fs.readFileSync(path.join(LOCAL_FOLDER_PATH, 'refresh.pem')));
+const accessKey = JWK.asKey(fs.readFileSync(path.join(LOCAL_FOLDER_PATH, 'access.pem')));
+const keyStore = new JWKS.KeyStore([refreshKey, accessKey]);
+
+export function verifyJwt(type: JwtType, jwt: string) {
+  const claims = JWT.verify(jwt, type === 'refresh' ? refreshKey : accessKey);
   return claims as JwtClaims;
 }
 
-export function signJwt(data: Partial<JwtClaims>) {
-  const newJwt = JWT.sign(data, key);
+export function signJwt(type: JwtType, data: Partial<JwtClaims>) {
+  const newJwt = JWT.sign(data, type === 'refresh' ? refreshKey : accessKey);
   return newJwt;
 }

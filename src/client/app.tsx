@@ -9,9 +9,14 @@ import {StorageKeys} from 'src/client/config/constants';
 
 const App: FC = (props) => {
   useAsyncEffect(async () => {
-    const res = await Axios.get('/api/auth/csrf');
-    console.log('received response:', res.data);
-  });
+    const [{data: accessToken}, {data: csrfToken}] = await Promise.all([
+      Axios.get('/api/auth/access'),
+      Axios.get('/api/auth/csrf'),
+    ]);
+    
+    Axios.defaults.headers.common[]
+    Axios.defaults.headers.post['x-csrf-token'] = csrfToken;
+  }, []);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

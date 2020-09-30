@@ -45,6 +45,8 @@ class Socket {
   }
 }
 
+// TODO: CHECK  maxPayload: 1024 * 1024, // Max messages of 1 Mb
+
 const handler: FastifyPluginCallback = (fastify, options, next) => {
   const ws = new WebSocket.Server({server: fastify.server, path: '/sock'});
 

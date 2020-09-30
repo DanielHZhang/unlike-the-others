@@ -3,6 +3,7 @@ import path from 'path';
 import webpack from 'webpack';
 import type {Logger} from 'pino';
 import {BUILD_FOLDER_PATH, vendors} from 'src/webpack/constants';
+import {LOCAL_FOLDER_PATH} from 'src/server/config/constants';
 
 function compile(config: webpack.Configuration) {
   return new Promise<webpack.Stats>((resolve, reject) => {
@@ -42,15 +43,14 @@ export async function buildWebpackDll(logger: Logger) {
   const {config} = await import('src/webpack/dll');
 
   // Ensure .local folder exists
-  const localFolderPath = path.join(process.cwd(), '.local');
   try {
-    await fs.promises.access(localFolderPath);
+    await fs.promises.access(LOCAL_FOLDER_PATH);
   } catch (error) {
-    await fs.promises.mkdir(localFolderPath);
+    await fs.promises.mkdir(LOCAL_FOLDER_PATH);
   }
 
   // Ensure .local dependency file exists
-  const localDepsFile = path.join(localFolderPath, 'dependencies.json');
+  const localDepsFile = path.join(LOCAL_FOLDER_PATH, 'dependencies.json');
   try {
     await Promise.all([fs.promises.access(localDepsFile), fs.promises.access(BUILD_FOLDER_PATH)]);
     const localJson = await import('../../.local/dependencies.json');

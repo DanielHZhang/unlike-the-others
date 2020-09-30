@@ -1,21 +1,23 @@
 import fp from 'fastify-plugin';
 import {FastifyPluginCallback, FastifyRequest} from 'fastify';
 import {CsrfTokenizer} from 'src/server/utils/csrf';
+import {IS_PRODUCTION_ENV} from 'src/shared/constants';
+import {CookieKeys} from 'src/server/config/constants';
 
-const csrf: FastifyPluginCallback = (fastify, options, next) => {
+const plugin: FastifyPluginCallback = (fastify, options, next) => {
   const ignoreMethods = ['GET', 'HEAD', 'OPTIONS'];
-  const cookieOpts = {
-    key: '_csrf',
-    path: '/',
-  };
   const tokenizer = new CsrfTokenizer();
 
   fastify.addHook('preHandler', async (request, reply) => {
-    let secret = request.cookies[cookieOpts.key];
+    let secret = request.cookies[CookieKeys.Csrf];
     if (!secret) {
       secret = await tokenizer.secret();
-      request.cookies[cookieOpts.key] = secret;
-      reply.setCookie(cookieOpts.key, secret, cookieOpts);
+      request.cookies[CookieKeys.Csrf] = secret;
+      reply.setCookie(CookieKeys.Csrf, secret, {
+        path: '/',
+        sameSite: 'strict',
+        secure: IS_PRODUCTION_ENV,
+      });
     }
 
     const rawToken =
@@ -35,14 +37,14 @@ const csrf: FastifyPluginCallback = (fastify, options, next) => {
   });
 
   fastify.decorateRequest('generateCsrfToken', function (this: FastifyRequest) {
-    const secret = this.cookies[cookieOpts.key];
+    const secret = this.cookies[CookieKeys.Csrf];
     return tokenizer.create(secret);
   });
 
   next();
 };
 
-export const fastifyCsrf = fp(csrf, {
+export const fastifyCsrf = fp(plugin, {
   fastify: '>=1.0.0',
   name: 'fastify-csrf',
   dependencies: ['fastify-cookie'],

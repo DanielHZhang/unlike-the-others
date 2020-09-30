@@ -55,15 +55,6 @@ export async function main() {
     // Add route and socket handlers
     app.register(fastifyCookie);
     app.register(fastifyCsrf);
-    // app.register(fastifyWebsocket, {
-    //   // handle: (connection) => {
-    //   //   connection.pipe(connection);
-    //   // },
-    //   options: {
-    //     maxPayload: 1024 * 1024, // Max messages of 1 Mb
-    //     path: '/sock',
-    //   },
-    // });
     app.register(websocketHandler);
     app.register(webrtcHandler);
     app.register(apiRoutes, {prefix: '/api'});
