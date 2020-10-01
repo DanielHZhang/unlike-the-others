@@ -2,7 +2,7 @@ import pino from 'pino';
 import fastify from 'fastify';
 import fastifyStatic from 'fastify-static';
 import fastifyCookie from 'fastify-cookie';
-import fastifyWebsocket from 'fastify-websocket';
+import {fastifyCsrf} from 'src/server/plugins';
 import {apiRoutes} from 'src/server/routes';
 import {prisma} from 'src/server/prisma';
 import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constants';
@@ -10,7 +10,6 @@ import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
 import {websocketHandler} from 'src/server/sockets/tcp';
 import {webrtcHandler} from 'src/server/sockets/udp';
-import {fastifyCsrf} from 'src/server/plugins';
 
 export async function main() {
   const app = fastify({

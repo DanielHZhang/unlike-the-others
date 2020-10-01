@@ -2,20 +2,24 @@ import Axios from 'axios';
 import React, {FC, Suspense} from 'react';
 import {hot} from 'react-hot-loader/root';
 import {Switch, Route} from 'react-router-dom';
-import {useAsyncEffect, useDidMount} from 'src/client/utils/hooks';
-import {socket} from 'src/client/networking/tcp';
 import {routes} from 'src/client/routes';
-import {StorageKeys} from 'src/client/config/constants';
+import {useAsyncEffect} from 'src/client/utils/hooks';
 
 const App: FC = (props) => {
   useAsyncEffect(async () => {
-    const [{data: accessToken}, {data: csrfToken}] = await Promise.all([
+    const [access, csrf] = await Promise.allSettled([
       Axios.get('/api/auth/access'),
       Axios.get('/api/auth/csrf'),
     ]);
-    
-    Axios.defaults.headers.common[]
-    Axios.defaults.headers.post['x-csrf-token'] = csrfToken;
+    const {headers} = Axios.defaults;
+    if (access.status === 'fulfilled') {
+      const {data: accessToken} = access.value;
+      headers.common.authorization = accessToken;
+    }
+    if (csrf.status === 'fulfilled') {
+      const {data: csrfToken} = csrf.value;
+      headers.post['x-csrf-token'] = csrfToken;
+    }
   }, []);
 
   return (

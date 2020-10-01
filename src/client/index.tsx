@@ -1,3 +1,4 @@
+import 'src/client/utils/polyfills';
 import React from 'react';
 import Axios from 'axios';
 import App from 'src/client/app';
