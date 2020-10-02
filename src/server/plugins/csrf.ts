@@ -2,7 +2,7 @@ import fp from 'fastify-plugin';
 import {FastifyPluginCallback, FastifyRequest} from 'fastify';
 import {CsrfTokenizer} from 'src/server/utils/csrf';
 import {IS_PRODUCTION_ENV} from 'src/shared/constants';
-import {CookieKeys} from 'src/server/config/constants';
+import {CookieKeys, FASTIFY_SEM_VER} from 'src/server/config/constants';
 
 const plugin: FastifyPluginCallback = (fastify, options, next) => {
   const ignoreMethods = ['GET', 'HEAD', 'OPTIONS'];
@@ -44,8 +44,8 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
   next();
 };
 
-export const fastifyCsrf = fp(plugin, {
-  fastify: '>=1.0.0',
+export const csrf = fp(plugin, {
+  fastify: FASTIFY_SEM_VER,
   name: 'fastify-csrf',
   dependencies: ['fastify-cookie'],
 });

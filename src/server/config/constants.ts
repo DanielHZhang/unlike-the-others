@@ -12,6 +12,9 @@ export const MAX_ROOM_SIZE = 15;
 /** Number of seconds before running server shutdown on SIGTERM. */
 export const SHUTDOWN_WAIT_TIME = 10;
 
+/** Semantic versioning of fastify required by plugins. */
+export const FASTIFY_SEM_VER = '>=3.0.0';
+
 /** Defines which channel the player is in. */
 export enum AudioChannel {
   Lobby,

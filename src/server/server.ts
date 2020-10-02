@@ -1,15 +1,13 @@
 import pino from 'pino';
 import fastify from 'fastify';
-import fastifyStatic from 'fastify-static';
-import fastifyCookie from 'fastify-cookie';
-import {fastifyCsrf} from 'src/server/plugins';
+import serveStatic from 'fastify-static';
+import cookie from 'fastify-cookie';
+import {csrf, webrtc, websocket} from 'src/server/plugins';
 import {apiRoutes} from 'src/server/routes';
 import {prisma} from 'src/server/prisma';
 import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
-import {websocketHandler} from 'src/server/sockets/tcp';
-import {webrtcHandler} from 'src/server/sockets/udp';
 
 export async function main() {
   const app = fastify({
@@ -29,7 +27,7 @@ export async function main() {
       // Require dev imports asyncronously to avoid bloating production bundle
       const [{buildWebpackDll}, {webpackHmrPlugin}] = await Promise.all([
         import('src/webpack/rebuild'),
-        import('src/webpack/middleware'),
+        import('src/webpack/plugin'),
       ]);
       try {
         await buildWebpackDll(app.log);
@@ -41,23 +39,23 @@ export async function main() {
     }
 
     // Serve static files
-    app.register(fastifyStatic, {
+    app.register(serveStatic, {
       root: BUILD_FOLDER_PATH,
       prefix: '/static',
     });
-    app.register(fastifyStatic, {
+    app.register(serveStatic, {
       root: ASSETS_FOLDER_PATH,
       prefix: '/assets',
       decorateReply: false,
     });
 
     // Add route and socket handlers
-    app.register(fastifyCookie);
-    app.register(fastifyCsrf);
-    app.register(websocketHandler);
-    app.register(webrtcHandler);
+    app.register(cookie);
+    app.register(csrf);
+    app.register(websocket);
+    app.register(webrtc);
     app.register(apiRoutes, {prefix: '/api'});
-    app.get('*', (req, reply) => {
+    app.get('*', (_, reply) => {
       reply.sendFile('index.html', BUILD_FOLDER_PATH);
     });
 
@@ -73,7 +71,7 @@ export async function main() {
         // See: https://blog.laputa.io/graceful-shutdown-in-kubernetes-85f1c8d586da
         setTimeout(async () => {
           // Close all websocket connections
-          // app.websocketServer?.clients.forEach((client) => client.close());
+          app.websocketServer.clients.forEach((client) => client.close());
           await prisma.$disconnect();
           await app.close();
           process.exit(0);

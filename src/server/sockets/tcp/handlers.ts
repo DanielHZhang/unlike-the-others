@@ -1,70 +1,64 @@
-/*
-The MIT License (MIT)
-Copyright (c) 2014 Ismael Celis
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
--------------------------------*/
-/*
-Simplified WebSocket events dispatcher (no channels, no users)
-var socket = new FancyWebSocket();
-// bind to server events
-socket.bind('some_event', function(data){
-  alert(data.name + ' says: ' + data.message)
-});
-// broadcast events to all connected users
-socket.send( 'some_event', {name: 'ismael', message : 'Hello world'} );
-*/
+import WebSocket from 'ws';
 
-var FancyWebSocket = function (url) {
-  var conn = new WebSocket(url);
+export class Socket {
+  /**
+   * Max message size of 1 MB.
+   * 1 UTF-16 character = 16 bits = 2 bytes
+   * 500k characters = 1 MB
+   */
+  private static readonly MAX_MESSAGE_SIZE = 5e5;
+  private listeners: Record<string, ((...args: any[]) => any)[]> = {};
+  private connection: WebSocket;
 
-  var callbacks = {};
+  public constructor(socket: WebSocket) {
+    this.connection = socket;
+    this.connection.on('message', (data) => {
+      // Only process string data messages
+      if (typeof data === 'string') {
+        if (data.length > Socket.MAX_MESSAGE_SIZE) {
+          throw new Error('Socket message was too long.');
+        }
+        const json = JSON.parse(data);
+        if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
+          throw new Error('Improperly formatted socket message.');
+        }
+        this.dispatch(json[0], json[1]);
+      }
+    });
+  }
 
-  this.bind = function (event_name, callback) {
-    callbacks[event_name] = callbacks[event_name] || [];
-    callbacks[event_name].push(callback);
-    return this; // chainable
-  };
-
-  this.send = function (event_name, event_data) {
-    var payload = JSON.stringify({event: event_name, data: event_data});
-    conn.send(payload); // <= send JSON data to socket server
-    return this;
-  };
-
-  // dispatch to the right handlers
-  conn.onmessage = function (evt) {
-    var json = JSON.parse(evt.data);
-    dispatch(json.event, json.data);
-  };
-
-  conn.onclose = function () {
-    dispatch('close', null);
-  };
-  conn.onopen = function () {
-    dispatch('open', null);
-  };
-
-  var dispatch = function (event_name, message) {
-    var chain = callbacks[event_name];
-    if (typeof chain === 'undefined') {
-      return;
-    } // no callbacks for this event
-    for (var i = 0; i < chain.length; i++) {
-      chain[i](message);
+  public on(eventName: 'close', callback: (code: number, reason: string) => void): void;
+  public on(eventName: 'error', callback: (error: Error) => void): void;
+  public on(eventName: string, callback: (data: unknown) => any): void;
+  public on(eventName: string, callback: (...args: any[]) => any): void {
+    switch (eventName) {
+      case 'close': {
+        this.connection.on('close', callback);
+        return;
+      }
+      case 'error': {
+        this.connection.on('error', callback);
+        return;
+      }
+      default: {
+        if (this.listeners[eventName]) {
+          this.listeners[eventName].push(callback);
+        } else {
+          this.listeners[eventName] = [callback];
+        }
+      }
     }
-  };
-};
+  }
+
+  public emit(eventName: string, data?: unknown, status = 200) {
+    const stringified = JSON.stringify([eventName, status, data]);
+    this.connection.send(stringified);
+  }
+
+  private dispatch(eventName: string, data: any) {
+    const handlers = this.listeners[eventName];
+    if (handlers) {
+      handlers.forEach((handler) => handler(data));
+    }
+  }
+}

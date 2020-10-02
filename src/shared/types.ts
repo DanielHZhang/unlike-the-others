@@ -1,4 +1,5 @@
 import Peer from 'peerjs';
+import WebSocket from 'ws';
 
 declare module 'peerjs' {
   export namespace peerjs {
@@ -10,6 +11,10 @@ declare module 'peerjs' {
 declare module 'fastify' {
   interface FastifyRequest {
     generateCsrfToken: () => string;
+  }
+
+  interface FastifyInstance {
+    websocketServer: WebSocket.Server;
   }
 }
 
