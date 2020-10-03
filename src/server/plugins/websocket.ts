@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import fp from 'fastify-plugin';
 import {FastifyInstance, FastifyPluginCallback} from 'fastify';
 import {FASTIFY_SEM_VER} from 'src/server/config/constants';
-import {socketConnection} from 'src/server/sockets/tcp';
+import {connectionHandler} from 'src/server/services/sockets';
 
 const DECORATOR_KEY: Partial<keyof FastifyInstance> = 'websocket';
 const HEARTBEAT_INTERVAL = 30; // Number of seconds between heartbeat messages
@@ -33,7 +33,7 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
     }
   }, HEARTBEAT_INTERVAL * 1000);
 
-  ws.on('connection', socketConnection(fastify));
+  ws.on('connection', connectionHandler(fastify));
   ws.on('close', () => {
     clearInterval(interval);
     ws.clients.forEach((client) => client.close());

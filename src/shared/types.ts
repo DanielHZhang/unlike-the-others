@@ -1,6 +1,6 @@
 import type Peer from 'peerjs';
 import type {Server} from 'ws';
-import type {Socket} from 'src/server/sockets/tcp/socket';
+import type {Socket} from 'src/server/services/sockets';
 
 declare module 'peerjs' {
   export namespace peerjs {

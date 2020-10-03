@@ -4,7 +4,7 @@
 
 import {StorageKeys} from 'src/client/config/constants';
 import {ROOT_URL} from 'src/shared/constants';
-import {AbstractSocket} from 'src/shared/socket';
+import {AbstractSocket} from 'src/shared/abstract-socket';
 import {AnyFunction} from 'src/shared/types';
 
 // export const socket = io({
@@ -66,7 +66,6 @@ class Socket extends AbstractSocket<WebSocket> {
     const stringified = JSON.stringify([eventName, payload]);
     this.connection.send(stringified);
   }
-
 }
 
 export const socket = Socket.getInstance();

@@ -1,16 +1,15 @@
-import jose from 'jose';
 import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
-import {Socket} from 'src/server/sockets/tcp/socket';
+import {Socket} from 'src/server/services/sockets';
 import {AudioChannel} from 'src/server/config/constants';
 import {verifyJwt} from 'src/server/config/keys';
 
 /**
  * Handles onConnection event for WebSockets.
  */
-export const socketConnection = (fastify: FastifyInstance) => (
+export const connectionHandler = (fastify: FastifyInstance) => (
   raw: WebSocket,
   msg: IncomingMessage
 ) => {
@@ -19,9 +18,10 @@ export const socketConnection = (fastify: FastifyInstance) => (
   }
   const socket = new Socket(raw);
   fastify.websocket.clients.push(socket);
+
   let player: Player;
 
-  // Handle socket disconnect
+  /** Handle socket disconnect */
   socket.on('close', (code, reason) => {
     const room = GameRoom.getById(player.roomId);
     if (room) {

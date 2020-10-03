@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import {AbstractSocket} from 'src/shared/socket';
+import {AbstractSocket} from 'src/shared/abstract-socket';
 
 export class Socket extends AbstractSocket<WebSocket> {
   private isDisposed = false;
@@ -73,3 +73,5 @@ export class Socket extends AbstractSocket<WebSocket> {
     this.connection.ping();
   }
 }
+
+export * from './connection';
