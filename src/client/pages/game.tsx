@@ -5,10 +5,11 @@ import {AudioCall} from 'src/client/components/audio-call';
 import {Button} from 'src/client/components/base/button';
 import {Stack} from 'src/client/components/base/stack';
 import {GameWindow} from 'src/client/game';
-import {socket} from 'src/client/networking/tcp';
+import {ClientSocket} from 'src/client/networking/tcp';
 import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/utils/hooks';
 import {Chatbox} from 'src/client/components/chatbox';
+import Axios from 'axios';
 
 export const GamePage = () => {
   const room = useRecoilValue(atoms.room);
@@ -17,8 +18,11 @@ export const GamePage = () => {
   // }
 
   useDidMount(() => {
+    const socket = new ClientSocket();
+
+    // Leave room on page unmount
     return () => {
-      socket.emit('leaveRoom', room.id); // Leave room on page unmount
+      Axios.delete(`/api/room/${room.id}/leave`);
     };
   });
 

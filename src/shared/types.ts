@@ -32,7 +32,8 @@ export type GameControls = {
 };
 
 export type JwtClaims = {
-  userId: string;
+  guestId?: string;
+  userId?: string;
   iat: number;
 };
 

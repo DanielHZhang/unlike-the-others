@@ -15,7 +15,10 @@ export function verifyJwt(type: JwtType, jwt: string) {
   return claims as JwtClaims;
 }
 
-export function signJwt(type: JwtType, data: Partial<JwtClaims>) {
+export function signJwt(
+  type: JwtType,
+  data: Pick<JwtClaims, 'userId'> | Pick<JwtClaims, 'guestId'>
+) {
   const newJwt = JWT.sign(data, type === 'refresh' ? refreshKey : accessKey);
   return newJwt;
 }

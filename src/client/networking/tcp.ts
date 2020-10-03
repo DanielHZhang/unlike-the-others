@@ -1,37 +1,18 @@
-// import io from 'socket.io-client';
-// import {StorageKeys} from 'src/client/config/constants';
-// import {channel} from 'src/client/networking/udp';
-
+import {AbstractSocket} from 'src/shared/abstract-socket';
 import {StorageKeys} from 'src/client/config/constants';
 import {ROOT_URL} from 'src/shared/constants';
-import {AbstractSocket} from 'src/shared/abstract-socket';
-import {AnyFunction} from 'src/shared/types';
 
-// export const socket = io({
-//   transports: ['websocket'],
-// });
+export class ClientSocket extends AbstractSocket<WebSocket> {
+  // private static instance: Socket;
 
-// socket.on('connect', () => {
-//   console.log('Connected to TCP server.');
-//   socket.emit('authenticate', localStorage.getItem(StorageKeys.Jwt));
-// });
-
-// socket.on('authenticateResponse', (jwt?: string) => {
-//   if (jwt) {
-//     localStorage.setItem(StorageKeys.Jwt, jwt);
-//   }
-//   // Connect to UDP channel only after authentication has been completed
-//   channel.onConnect(console.error);
-// });
-
-class Socket extends AbstractSocket<WebSocket> {
-  private static instance: Socket;
-
-  private constructor() {
+  public constructor() {
     super(new WebSocket(`ws://${ROOT_URL}/sock`));
-    this.connection.onopen = (event) => {
-      console.log('Connected to TCP server.');
-      this.emit('authenticate', localStorage.getItem(StorageKeys.Jwt));
+    this.connection.onopen = () => {
+      console.log('Websocket connection established.');
+      // this.emit('authenticate', localStorage.getItem(StorageKeys.Jwt));
+
+      //   // Connect to UDP channel only after authentication has been completed
+      //   channel.onConnect(console.error);
     };
 
     this.connection.onclose = (event) => {
@@ -51,12 +32,12 @@ class Socket extends AbstractSocket<WebSocket> {
     });
   }
 
-  public static getInstance() {
-    if (!Socket.instance) {
-      Socket.instance = new Socket();
-    }
-    return Socket.instance;
-  }
+  // public static getInstance() {
+  //   if (!Socket.instance) {
+  //     Socket.instance = new Socket();
+  //   }
+  //   return Socket.instance;
+  // }
 
   // public on(eventName: string, callback: AnyFunction) {
   //   super.dispatch();
@@ -66,6 +47,10 @@ class Socket extends AbstractSocket<WebSocket> {
     const stringified = JSON.stringify([eventName, payload]);
     this.connection.send(stringified);
   }
+
+  public dispose() {
+    this.connection.close();
+  }
 }
 
-export const socket = Socket.getInstance();
+// export const socket = Socket.getInstance();

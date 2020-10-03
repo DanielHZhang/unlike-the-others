@@ -25,6 +25,8 @@ export abstract class AbstractSocket<T> {
 
   public abstract emit(eventName: string, status: number, data?: unknown): void;
 
+  public abstract dispose(): void;
+
   protected dispatch(eventName: string, data: any) {
     const handlers = this.listeners.get(eventName);
     if (handlers) {

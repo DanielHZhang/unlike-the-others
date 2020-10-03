@@ -35,63 +35,25 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('authenticate', (jwt) => {
-    // try {
-    //   if (!jwt || typeof jwt !== 'string') {
-    //     throw new jose.errors.JWTMalformed();
-    //   }
-    //   const c = verifyJwt();
-    //   const claims = JWT.verify(jwt, getJwk());
-    //   // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
-    //   // attempt to dispose of entire socket instead of just the player object
-    //   const playerExists = Player.getById(claims.userId);
-    //   // Player doesn't exist in map, create it with the userId contained in the JWT
-    //   player = playerExists || Player.create(socket, claims.userId);
-    //   socket.emit('authenticateResponse');
-    // } catch (error) {
-    //   // Client does not have a valid JWT
-    //   player = Player.create(socket);
-    //   const newJwt = JWT.sign({userId: player.id}, getJwk());
-    //   socket.emit('authenticateResponse', newJwt);
-    // }
-    // log('info', `TCP client connected: ${player.id}`);
-  });
+    try {
+      if (!jwt || typeof jwt !== 'string') {
+        throw new jose.errors.JWTMalformed();
+      }
 
-  socket.on('createRoom', () => {
-    const room = GameRoom.create();
-    fastify.log.info(`Client ${player.id} created room ${room.id}`);
-    socket.emit('createRoomResponse', room.id);
-  });
-
-  socket.on('joinRoom', (roomId) => {
-    if (typeof roomId !== 'string') {
-      throw new Error();
+      const claims = JWT.verify(jwt, getJwk());
+      // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
+      // attempt to dispose of entire socket instead of just the player object
+      const playerExists = Player.getById(claims.userId);
+      // Player doesn't exist in map, create it with the userId contained in the JWT
+      player = playerExists || Player.create(socket, claims.userId);
+      socket.emit('authenticateResponse');
+    } catch (error) {
+      // Client does not have a valid JWT
+      player = Player.create(socket);
+      const newJwt = JWT.sign({userId: player.id}, getJwk());
+      socket.emit('authenticateResponse', newJwt);
     }
-    const room = GameRoom.getById(roomId);
-    if (!room || !room.hasCapacity()) {
-      throw new Error(`No room found with id: ${roomId}, or room has reached full capacity`);
-    }
-    room.addPlayer(player);
-    // TODO: change to startLobby
-    room.startGame();
-    fastify.log.info(`Client ${player.id} joined room ${room.id}`);
-    socket.emit('joinRoomResponse', roomId);
-  });
-
-  socket.on('leaveRoom', (roomId) => {
-    if (typeof roomId !== 'string') {
-      throw new Error();
-    }
-    const room = GameRoom.getById(roomId);
-    if (!room) {
-      throw new Error(`No room found with id: ${roomId}`);
-    }
-    room.removePlayer(player);
-    if (room.isEmpty()) {
-      room.endGame(); // TODO: change to endLobby
-      GameRoom.delete(room.id);
-    }
-    fastify.log.info(`Client ${player.id} left room ${room.id}`);
-    socket.emit('leaveRoomResponse', roomId);
+    log('info', `TCP client connected: ${player.id}`);
   });
 
   socket.on('registerAudioId', (audioId) => {

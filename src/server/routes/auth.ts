@@ -1,4 +1,5 @@
-import {errors} from 'jose';
+import jose from 'jose';
+import {nanoid} from 'nanoid/async';
 import {FastifyPluginCallback} from 'fastify';
 import {PrismaClientKnownRequestError} from '@prisma/client';
 import {prisma} from 'src/server/prisma';
@@ -152,17 +153,23 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
         }
 
         const claims = verifyJwt('refresh', refreshToken);
-        const user = await prisma.user.findOne({where: {id: claims.userId}});
-        if (!user) {
-          throw 404;
-        }
 
-        const accessToken = signJwt('access', {userId: user.id});
-        return accessToken;
+        if (claims.guestId) {
+          const guestId = await nanoid();
+          const accessToken = signJwt('access', {guestId});
+          return accessToken;
+        } else {
+          const user = await prisma.user.findOne({where: {id: claims.userId}});
+          if (!user) {
+            throw 404;
+          }
+          const accessToken = signJwt('access', {userId: user.id});
+          return accessToken;
+        }
       } catch (error) {
         if (typeof error === 'number') {
           reply.status(error);
-        } else if (error instanceof errors.JWTMalformed) {
+        } else if (error instanceof jose.errors.JWTMalformed) {
           reply.status(401);
         } else {
           reply.status(500);
