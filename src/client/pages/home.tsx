@@ -40,12 +40,14 @@ const ModalText = styled.div`
   font-weight: 500;
 `;
 
+// const
+
 type Props = RouteComponentProps<any> & {};
 
 export const HomePage = (props: Props) => {
   const [username, setUsername] = useRecoilState(atoms.username);
   const [room, setRoom] = useRecoilState(atoms.room);
-  const [state, setState] = useState({joining: false, errorModalVisible: false});
+  const [state, setState] = useState({joining: false, errorModalVisible: false, loading: false});
 
   const onJoinClick = async () => {
     try {
@@ -60,6 +62,7 @@ export const HomePage = (props: Props) => {
   const onCreateClick = async () => {
     try {
       const {data: roomId} = await Axios.post<string>('/api/room/create');
+      await Axios.post(`/api/room/${roomId}/join`);
       setRoom({id: roomId});
       props.history.push('/game');
     } catch (error) {

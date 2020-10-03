@@ -23,13 +23,11 @@ const App: FC = (props) => {
   }, []);
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Switch>
-        {routes.map((props, index) => (
-          <Route key={index} {...props} />
-        ))}
-      </Switch>
-    </Suspense>
+    <Switch>
+      {routes.map((props, index) => (
+        <Route key={index} {...props} />
+      ))}
+    </Switch>
   );
 };
 

@@ -1,5 +1,5 @@
 import 'src/client/utils/polyfills';
-import React from 'react';
+import React, {StrictMode} from 'react';
 import Axios from 'axios';
 import App from 'src/client/app';
 import {render} from 'react-dom';
@@ -13,13 +13,15 @@ import {ROOT_URL} from 'src/shared/constants';
 Axios.defaults.baseURL = `http://${ROOT_URL}`;
 
 render(
-  <RecoilRoot>
-    <ThemeProvider theme={theme}>
-      <Global styles={globalStyles} />
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
-  </RecoilRoot>,
+  <StrictMode>
+    <RecoilRoot>
+      <ThemeProvider theme={theme}>
+        <Global styles={globalStyles} />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+    </RecoilRoot>
+  </StrictMode>,
   document.getElementById('root')
 );

@@ -19,6 +19,8 @@ export const GamePage = () => {
 
   useDidMount(() => {
     const socket = new ClientSocket();
+    // Axios.defaults.headers.common.authorization
+    // socket.emit('authenticate', room.id);
 
     // Leave room on page unmount
     return () => {

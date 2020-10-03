@@ -16,9 +16,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         }
         const claims = verifyJwt('access', jwt);
         const playerId = claims.guestId || claims.userId!;
-        const player = Player.create(playerId);
         const room = GameRoom.create(playerId);
-        room.addPlayer(player);
 
         fastify.log.info(`Client ${playerId} created room ${room.id}`);
 

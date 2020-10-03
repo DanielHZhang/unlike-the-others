@@ -47,6 +47,7 @@ export class GameRoom {
   private static readonly instances = new Map<string, GameRoom>();
   private readonly players: Player[] = [];
   private readonly engine: PhysicsEngine;
+  private readonly createdAt: Date;
   private isGameStarted: boolean = false;
   private isVoting: boolean = false;
   private host?: Player;
@@ -78,6 +79,7 @@ export class GameRoom {
    * Private constructor to prevent instances from being created outside of static methods
    */
   private constructor(creatorId: string) {
+    this.createdAt = new Date();
     this.creatorId = creatorId;
     this.id = nanoid();
     this.engine = new PhysicsEngine();

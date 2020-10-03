@@ -1,3 +1,4 @@
+import jose from 'jose';
 import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
@@ -18,6 +19,8 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   }
   const socket = new Socket(raw);
   fastify.websocket.clients.push(socket);
+
+  console.log('HEADERS:', msg.headers);
 
   let player: Player;
 
@@ -44,7 +47,10 @@ export const connectionHandler = (fastify: FastifyInstance) => (
         throw new jose.errors.JWTMalformed();
       }
 
-      const claims = JWT.verify(jwt, getJwk());
+      const claims = verifyJwt('access', jwt);
+      const playerId = claims.guestId || claims.userId!;
+      const foundPlayer = Player.getById(playerId) || Player.create();
+
       // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
       // attempt to dispose of entire socket instead of just the player object
       const playerExists = Player.getById(claims.userId);
