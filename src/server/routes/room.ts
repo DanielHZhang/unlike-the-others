@@ -15,14 +15,12 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
           throw 401;
         }
         const claims = verifyJwt('access', jwt);
-        // const user = await prisma.user.findOne({where: {id: claims.userId}});
-        // if (!user) {
-        //   throw 401;
-        // }
-        const player = Player.create();
-        const room = GameRoom.create();
-        room.addPlayer()
-        fastify.log.info(`Client ${player.id} created room ${room.id}`);
+        const playerId = claims.guestId || claims.userId!;
+        const player = Player.create(playerId);
+        const room = GameRoom.create(playerId);
+        room.addPlayer(player);
+
+        fastify.log.info(`Client ${playerId} created room ${room.id}`);
 
         return room.id;
       } catch (error) {
@@ -33,45 +31,41 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
   });
 
   fastify.route({
-    url: '/join',
-    method: 'PUT',
+    url: '/:id/join',
+    method: 'POST',
     handler: async (req, reply) => {
-      if (typeof roomId !== 'string') {
-        throw new Error();
+      try {
+        const {id: roomId} = req.params as {id: string};
+        const jwt = req.headers.authorization;
+        if (!jwt) {
+          throw 401;
+        }
+        if (!roomId || typeof roomId !== 'string') {
+          throw 400;
+        }
+
+        const room = GameRoom.getById(roomId);
+        if (!room || !room.hasCapacity()) {
+          throw new Error(`No room found with id: ${roomId}, or room has reached full capacity.`);
+        }
+
+        const claims = verifyJwt('access', jwt);
+        const playerId = claims.guestId || claims.userId!;
+        const player = Player.getById(playerId);
+
+        if (!player) {
+          throw 400;
+        }
+
+        room.addPlayer(player);
+        fastify.log.info(`Client ${player.id} joined room ${room.id}`);
+        return {success: true};
+      } catch (error) {
+        console.error(error);
+        return error;
       }
-      const room = GameRoom.getById(roomId);
-      if (!room || !room.hasCapacity()) {
-        throw new Error(`No room found with id: ${roomId}, or room has reached full capacity`);
-      }
-      room.addPlayer(player);
-      // TODO: change to startLobby
-      room.startGame();
-      fastify.log.info(`Client ${player.id} joined room ${room.id}`);
-      socket.emit('joinRoomResponse', roomId);
     },
   });
-
-  fastify.route({
-    url: '/:id/leave',
-    method: 'DELETE',
-    handler: async (req, reply) => {
-      if (typeof roomId !== 'string') {
-        throw new Error();
-      }
-      const room = GameRoom.getById(roomId);
-      if (!room) {
-        throw new Error(`No room found with id: ${roomId}`);
-      }
-      room.removePlayer(player);
-      if (room.isEmpty()) {
-        room.endGame(); // TODO: change to endLobby
-        GameRoom.delete(room.id);
-      }
-      fastify.log.info(`Client ${player.id} left room ${room.id}`);
-      socket.emit('leaveRoomResponse', roomId);
-    },
-  });
-
 
   next();
 };

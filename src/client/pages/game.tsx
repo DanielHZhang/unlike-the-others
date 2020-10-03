@@ -22,7 +22,7 @@ export const GamePage = () => {
 
     // Leave room on page unmount
     return () => {
-      Axios.delete(`/api/room/${room.id}/leave`);
+      socket.dispose();
     };
   });
 

@@ -4,10 +4,10 @@ import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
-import type {BufferInputData, BufferPlayerData, BufferSnapshotData} from 'src/shared/types';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import {snapshotModel} from 'src/shared/buffer-schema';
+import type {BufferInputData, BufferPlayerData, BufferSnapshotData} from 'src/shared/types';
 
 export type Voting = {
   timeRemaining: number;
@@ -68,6 +68,7 @@ export class GameRoom {
     timeRemaining: 0,
     ballots: [],
   };
+  public creatorId: string;
   public id: string;
   tick = 0;
   previous = 0;
@@ -76,7 +77,8 @@ export class GameRoom {
   /**
    * Private constructor to prevent instances from being created outside of static methods
    */
-  private constructor() {
+  private constructor(creatorId: string) {
+    this.creatorId = creatorId;
     this.id = nanoid();
     this.engine = new PhysicsEngine();
     this.engine.shouldInterpolate = false; // Do not interpolate on the server
@@ -94,8 +96,8 @@ export class GameRoom {
   /**
    * Creates a new room instance with a random id
    */
-  public static create(): GameRoom {
-    const newRoom = new GameRoom();
+  public static create(creatorId: string): GameRoom {
+    const newRoom = new GameRoom(creatorId);
     GameRoom.instances.set(newRoom.id, newRoom);
     return newRoom;
   }

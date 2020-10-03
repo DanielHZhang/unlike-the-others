@@ -9,8 +9,6 @@ export class ClientSocket extends AbstractSocket<WebSocket> {
     super(new WebSocket(`ws://${ROOT_URL}/sock`));
     this.connection.onopen = () => {
       console.log('Websocket connection established.');
-      // this.emit('authenticate', localStorage.getItem(StorageKeys.Jwt));
-
       //   // Connect to UDP channel only after authentication has been completed
       //   channel.onConnect(console.error);
     };

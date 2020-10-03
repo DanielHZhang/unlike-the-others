@@ -1,15 +1,12 @@
-import React, {useCallback, useState} from 'react';
+import Axios from 'axios';
+import React, {useState} from 'react';
 import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
-import {useDidMount} from 'src/client/utils/hooks';
 import {atoms} from 'src/client/store';
-import {socket} from 'src/client/networking/tcp';
 import {Button, Input, Modal, Stack} from 'src/client/components/base';
-import type {SocketResponse} from 'src/shared/types';
-import {channel} from 'src/client/networking/udp';
-import {StorageKeys} from 'src/client/config/constants';
 import {BackgroundParticles} from 'src/client/components/particles';
+import {StorageKeys} from 'src/client/config/constants';
 
 const Layout = styled.div`
   background: black;
@@ -49,38 +46,27 @@ export const HomePage = (props: Props) => {
   const [username, setUsername] = useRecoilState(atoms.username);
   const [room, setRoom] = useRecoilState(atoms.room);
   const [state, setState] = useState({joining: false, errorModalVisible: false});
-  const onJoinButtonClick = useCallback(() => {
-    socket.emit('joinRoom', room.id);
-    channel.emit('joinRoom', room.id);
-  }, [room.id]);
 
-  // useDidMount(() => {
-  //   socket.once('createRoomResponse', (res: SocketResponse) => {
-  //     if (res.status >= 400) {
-  //       setState({...state, errorModalVisible: true});
-  //     } else {
-  //       const roomId = res.payload;
-  //       console.log('Created room:', roomId);
-  //       socket.emit('joinRoom', roomId);
-  //     }
-  //   });
+  const onJoinClick = async () => {
+    try {
+      await Axios.put(`/api/room/${room.id}/join`);
+      props.history.push('/game');
+    } catch (error) {
+      console.error(error);
+      setState({...state, errorModalVisible: true});
+    }
+  };
 
-  //   socket.once('joinRoomResponse', (res: SocketResponse) => {
-  //     if (res.status >= 400) {
-  //       setState({...state, errorModalVisible: true});
-  //     } else {
-  //       const roomId = res.payload;
-  //       console.log('Joined room:', roomId);
-  //       setRoom({id: roomId});
-  //       props.history.push('/game');
-  //     }
-  //   });
-
-  //   return () => {
-  //     socket.off('createRoomResponse');
-  //     socket.off('joinRoomResponse');
-  //   };
-  // });
+  const onCreateClick = async () => {
+    try {
+      const {data: roomId} = await Axios.post<string>('/api/room/create');
+      setRoom({id: roomId});
+      props.history.push('/game');
+    } catch (error) {
+      console.error(error);
+      setState({...state, errorModalVisible: true});
+    }
+  };
 
   return (
     <Layout>
@@ -96,7 +82,9 @@ export const HomePage = (props: Props) => {
               value={username}
               maxLength={32}
             />
-            <Button onClick={() => socket.emit('createRoom')}>HOST NEW GAME</Button>
+            <Button disabled={true} onClick={onCreateClick}>
+              HOST NEW GAME
+            </Button>
             {state.joining ? (
               <Stack flow='row'>
                 <Input
@@ -106,7 +94,7 @@ export const HomePage = (props: Props) => {
                   maxLength={32}
                   style={{flexGrow: 1}}
                 />
-                <Button onClick={onJoinButtonClick}>JOIN</Button>
+                <Button onClick={onJoinClick}>JOIN</Button>
               </Stack>
             ) : (
               <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>

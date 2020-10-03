@@ -24,13 +24,17 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   /** Handle socket disconnect */
   socket.on('close', (code, reason) => {
     const room = GameRoom.getById(player.roomId);
-    if (room) {
-      room.removePlayer(player);
-      if (room.isEmpty()) {
-        room.endGame(); // TODO: account for endLobby
-        GameRoom.delete(room.id);
-      }
+    if (!room) {
+      throw new Error(`No room found with id: ${player.roomId}`);
     }
+
+    room.removePlayer(player);
+    if (room.isEmpty()) {
+      room.endGame(); // TODO: account for endLobby
+      GameRoom.delete(room.id);
+    }
+
+    fastify.log.info(`Client ${player.id} left room ${room.id}`);
     fastify.log.info(`Websocket ${player.id} closed, code: ${code}, reason: ${reason}`);
   });
 

@@ -1,7 +1,7 @@
 import Box2d from '@supersede/box2d';
-import {Socket} from 'socket.io';
 import {ServerChannel} from '@geckos.io/server';
 import {nanoid} from 'src/server/utils/crypto';
+import {Socket} from 'src/server/services/sockets';
 import type {BufferInputData, InputData} from 'src/shared/types';
 
 export class Player {
@@ -16,7 +16,7 @@ export class Player {
   public uiid?: number; // Unsigned integer id
   public audioId?: string;
   public roomId?: string;
-  public socket: Socket;
+  public socket?: Socket;
   public channel?: ServerChannel;
   public active = false;
   public body?: Box2d.b2Body;
@@ -28,16 +28,16 @@ export class Player {
    * @param socket Reference to the socket object
    * @param id Id of the room, if any
    */
-  private constructor(socket: Socket, id: string = nanoid()) {
-    this.socket = socket;
+  private constructor(id: string) {
+    // this.socket = socket;
     this.id = id;
   }
 
   /**
    * Creates a new room instance with a random id using the provided TCP socket
    */
-  public static create(socket: Socket, id?: string): Player {
-    const player = new Player(socket, id);
+  public static create(id: string): Player {
+    const player = new Player(id);
     Player.instances.set(player.id, player);
     return player;
   }
