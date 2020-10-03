@@ -1,4 +1,4 @@
-import {InputData} from 'src/shared/types';
+import type {InputData} from 'src/shared/types';
 
 class BufferDecoder {
   bufferToMessage(buffer: ArrayBuffer): InputData {

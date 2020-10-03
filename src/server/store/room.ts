@@ -4,7 +4,7 @@ import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
-import {BufferInputData, BufferPlayerData, BufferSnapshotData, InputData} from 'src/shared/types';
+import type {BufferInputData, BufferPlayerData, BufferSnapshotData} from 'src/shared/types';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import {snapshotModel} from 'src/shared/buffer-schema';

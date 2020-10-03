@@ -2,7 +2,7 @@ import Box2d from '@supersede/box2d';
 import {channel} from 'src/client/networking/udp';
 import {inputModel} from 'src/shared/buffer-schema';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
-import {BufferInputData, BufferSnapshotData} from 'src/shared/types';
+import type {BufferInputData, BufferSnapshotData} from 'src/shared/types';
 
 export const InputHandler = new (class {
   public pendingInputs: BufferInputData[] = [];

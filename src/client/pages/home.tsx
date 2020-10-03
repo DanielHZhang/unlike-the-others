@@ -6,7 +6,7 @@ import {useDidMount} from 'src/client/utils/hooks';
 import {atoms} from 'src/client/store';
 import {socket} from 'src/client/networking/tcp';
 import {Button, Input, Modal, Stack} from 'src/client/components/base';
-import {SocketResponse} from 'src/shared/types';
+import type {SocketResponse} from 'src/shared/types';
 import {channel} from 'src/client/networking/udp';
 import {StorageKeys} from 'src/client/config/constants';
 import {BackgroundParticles} from 'src/client/components/particles';

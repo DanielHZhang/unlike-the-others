@@ -70,8 +70,6 @@ export async function main() {
         app.log.info('Received SIGTERM, waiting 10s for k8s iptables update.');
         // See: https://blog.laputa.io/graceful-shutdown-in-kubernetes-85f1c8d586da
         setTimeout(async () => {
-          // Close all websocket connections
-          app.websocketServer.clients.forEach((client) => client.close());
           await prisma.$disconnect();
           await app.close();
           process.exit(0);

@@ -4,6 +4,8 @@
 
 import {StorageKeys} from 'src/client/config/constants';
 import {ROOT_URL} from 'src/shared/constants';
+import {AbstractSocket} from 'src/shared/socket';
+import {AnyFunction} from 'src/shared/types';
 
 // export const socket = io({
 //   transports: ['websocket'],
@@ -22,34 +24,49 @@ import {ROOT_URL} from 'src/shared/constants';
 //   channel.onConnect(console.error);
 // });
 
-export const socket = new (class Socket {
-  private socket = new WebSocket(`ws://${ROOT_URL}/sock`);
+class Socket extends AbstractSocket<WebSocket> {
+  private static instance: Socket;
 
-  public constructor() {
-    this.socket.onopen = (event) => {
+  private constructor() {
+    super(new WebSocket(`ws://${ROOT_URL}/sock`));
+    this.connection.onopen = (event) => {
       console.log('Connected to TCP server.');
       this.emit('authenticate', localStorage.getItem(StorageKeys.Jwt));
     };
 
-    this.socket.onclose = (event) => {
+    this.connection.onclose = (event) => {
       console.log('on message event:', event);
     };
 
-    this.socket.onerror = (event) => {
+    this.connection.onerror = (event) => {
       console.error('error occured in socket:', event);
     };
 
-    this.socket.onmessage = (event) => {
+    this.connection.onmessage = (event) => {
       console.log('received message from server:', event);
     };
 
     window.addEventListener('beforeunload', () => {
-      this.socket.close();
+      this.connection.close();
     });
   }
 
-  public emit(eventName: string, payload: any) {
-    this.socket.send();
+  public static getInstance() {
+    if (!Socket.instance) {
+      Socket.instance = new Socket();
+    }
+    return Socket.instance;
   }
 
-})();
+  // public on(eventName: string, callback: AnyFunction) {
+  //   super.dispatch();
+  // }
+
+  public emit(eventName: string, payload: any) {
+    const stringified = JSON.stringify([eventName, payload]);
+    this.connection.send(stringified);
+  }
+
+}
+
+export const socket = Socket.getInstance();

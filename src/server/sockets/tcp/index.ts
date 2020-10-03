@@ -5,17 +5,20 @@ import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
 import {Socket} from 'src/server/sockets/tcp/socket';
 import {AudioChannel} from 'src/server/config/constants';
+import {verifyJwt} from 'src/server/config/keys';
 
+/**
+ * Handles onConnection event for WebSockets.
+ */
 export const socketConnection = (fastify: FastifyInstance) => (
   raw: WebSocket,
   msg: IncomingMessage
 ) => {
-  console.log('msg aborted', msg.aborted, 'destroyed', msg.destroyed);
   if (msg.aborted || msg.destroyed) {
     return;
   }
-
   const socket = new Socket(raw);
+  fastify.websocket.clients.push(socket);
   let player: Player;
 
   // Handle socket disconnect
@@ -32,31 +35,31 @@ export const socketConnection = (fastify: FastifyInstance) => (
   });
 
   socket.on('authenticate', (jwt) => {
-    try {
-      if (!jwt || typeof jwt !== 'string') {
-        throw new jose.errors.JWTMalformed();
-      }
-
-      const claims = JWT.verify(jwt, getJwk());
-      // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
-      // attempt to dispose of entire socket instead of just the player object
-      const playerExists = Player.getById(claims.userId);
-      // Player doesn't exist in map, create it with the userId contained in the JWT
-      player = playerExists || Player.create(socket, claims.userId);
-      socket.emit('authenticateResponse');
-    } catch (error) {
-      // Client does not have a valid JWT
-      player = Player.create(socket);
-      const newJwt = JWT.sign({userId: player.id}, getJwk());
-      socket.emit('authenticateResponse', newJwt);
-    }
-    log('info', `TCP client connected: ${player.id}`);
+    // try {
+    //   if (!jwt || typeof jwt !== 'string') {
+    //     throw new jose.errors.JWTMalformed();
+    //   }
+    //   const c = verifyJwt();
+    //   const claims = JWT.verify(jwt, getJwk());
+    //   // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
+    //   // attempt to dispose of entire socket instead of just the player object
+    //   const playerExists = Player.getById(claims.userId);
+    //   // Player doesn't exist in map, create it with the userId contained in the JWT
+    //   player = playerExists || Player.create(socket, claims.userId);
+    //   socket.emit('authenticateResponse');
+    // } catch (error) {
+    //   // Client does not have a valid JWT
+    //   player = Player.create(socket);
+    //   const newJwt = JWT.sign({userId: player.id}, getJwk());
+    //   socket.emit('authenticateResponse', newJwt);
+    // }
+    // log('info', `TCP client connected: ${player.id}`);
   });
 
   socket.on('createRoom', () => {
     const room = GameRoom.create();
-    log('info', `Client ${player.id} created room ${room.id}`);
-    socket.emit('createRoomResponse', send(200, room.id));
+    fastify.log.info(`Client ${player.id} created room ${room.id}`);
+    socket.emit('createRoomResponse', room.id);
   });
 
   socket.on('joinRoom', (roomId) => {

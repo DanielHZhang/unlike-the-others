@@ -2,7 +2,7 @@ import Box2d from '@supersede/box2d';
 import {Socket} from 'socket.io';
 import {ServerChannel} from '@geckos.io/server';
 import {nanoid} from 'src/server/utils/crypto';
-import {BufferInputData, InputData} from 'src/shared/types';
+import type {BufferInputData, InputData} from 'src/shared/types';
 
 export class Player {
   public static readonly MAX_QUEUE_SIZE = 20;

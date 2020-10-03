@@ -4,7 +4,8 @@ import {FastifyInstance, FastifyPluginCallback} from 'fastify';
 import {FASTIFY_SEM_VER} from 'src/server/config/constants';
 import {socketConnection} from 'src/server/sockets/tcp';
 
-const DECORATOR_KEY: Partial<keyof FastifyInstance> = 'websocketServer';
+const DECORATOR_KEY: Partial<keyof FastifyInstance> = 'websocket';
+const HEARTBEAT_INTERVAL = 30; // Number of seconds between heartbeat messages
 
 const plugin: FastifyPluginCallback = (fastify, options, next) => {
   if (fastify.hasDecorator(DECORATOR_KEY)) {
@@ -13,12 +14,29 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
 
   const ws = new WebSocket.Server({server: fastify.server, path: '/sock'});
 
-  fastify.decorate('websocketServer', ws);
+  fastify.decorate(DECORATOR_KEY, {server: ws, clients: []});
   fastify.addHook('onClose', (_, done) => ws.close(done));
 
-  // TODO: ensure that SocketHandler instances are cleaned up when connection is closed
+  const interval = setInterval(() => {
+    let i = 0;
+    const {clients} = fastify.websocket;
+    while (i < clients.length) {
+      const socket = clients[i];
+      if (socket.isAlive) {
+        socket.ping();
+        i++;
+      } else {
+        // Client has not pong-ed since last interval
+        socket.dispose();
+        clients.splice(i, 1);
+      }
+    }
+  }, HEARTBEAT_INTERVAL * 1000);
+
   ws.on('connection', socketConnection(fastify));
   ws.on('close', () => {
+    clearInterval(interval);
+    ws.clients.forEach((client) => client.close());
     fastify.log.info('Closing websocket server.');
   });
 

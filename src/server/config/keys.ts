@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import {JWK, JWKS, JWT} from 'jose';
-import {JwtClaims} from 'src/shared/types';
 import {LOCAL_FOLDER_PATH} from 'src/server/config/constants';
+import type {JwtClaims} from 'src/shared/types';
 
 type JwtType = 'access' | 'refresh';
 

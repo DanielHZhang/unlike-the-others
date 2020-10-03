@@ -1,17 +1,19 @@
 import WebSocket from 'ws';
+import {AbstractSocket} from 'src/shared/socket';
 
-export class Socket {
-  /**
-   * Max message size of 1 MB.
-   * 1 UTF-16 character = 16 bits = 2 bytes
-   * 500k characters = 1 MB
-   */
-  private static readonly MAX_MESSAGE_SIZE = 5e5;
-  private listeners: Record<string, ((...args: any[]) => any)[]> = {};
-  private connection: WebSocket;
+export class Socket extends AbstractSocket<WebSocket> {
+  private isDisposed = false;
+  public isAlive = true;
 
   public constructor(socket: WebSocket) {
-    this.connection = socket;
+    super(socket);
+
+    // Handle client-server heartbeat
+    this.connection.on('pong', () => {
+      this.isAlive = true;
+    });
+
+    // Handle messages received from the client
     this.connection.on('message', (data) => {
       // Only process string data messages
       if (typeof data === 'string') {
@@ -41,24 +43,33 @@ export class Socket {
         return;
       }
       default: {
-        if (this.listeners[eventName]) {
-          this.listeners[eventName].push(callback);
-        } else {
-          this.listeners[eventName] = [callback];
-        }
+        super.on(eventName, callback);
       }
     }
   }
 
   public emit(eventName: string, data?: unknown, status = 200) {
+    if (this.isDisposed) {
+      throw new Error('Attempting to emit a message on a disposed socket.');
+    }
     const stringified = JSON.stringify([eventName, status, data]);
     this.connection.send(stringified);
   }
 
-  private dispatch(eventName: string, data: any) {
-    const handlers = this.listeners[eventName];
-    if (handlers) {
-      handlers.forEach((handler) => handler(data));
-    }
+  /**
+   * Dispose of this socket connection and associated resources.
+   * Uses `WebSocket.terminate()` to end the connection immediately.
+   */
+  public dispose() {
+    this.isDisposed = true;
+    this.isAlive = false;
+    this.connection.terminate();
+    this.listeners.clear();
+  }
+
+  /** Ping the client for a response to keep the heartbeat alive. */
+  public ping() {
+    this.isAlive = false;
+    this.connection.ping();
   }
 }

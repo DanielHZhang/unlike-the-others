@@ -1,6 +1,6 @@
 import * as box2d from '@supersede/box2d';
 import Phaser from 'phaser';
-import {GameControls} from 'src/shared/types';
+import type {GameControls} from 'src/shared/types';
 import {Player} from 'src/client/game/scenes/player';
 import {RaycastPolygon} from 'src/client/game/scenes/raycasting';
 

@@ -1,5 +1,5 @@
 import {BufferSchema, Model, uint8, uint32, float32} from '@geckos.io/typed-array-buffer-schema';
-import {BufferInputData, BufferPlayerData, BufferSnapshotData} from 'src/shared/types';
+import type {BufferInputData, BufferPlayerData, BufferSnapshotData} from 'src/shared/types';
 
 type TypedArray = typeof uint8 | [ReturnType<typeof BufferSchema['schema']>];
 
