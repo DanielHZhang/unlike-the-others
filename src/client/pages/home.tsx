@@ -1,7 +1,7 @@
 import Axios from 'axios';
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
-import {useRecoilState} from 'recoil';
+import {selector, useRecoilState, useRecoilValueLoadable} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
 import {atoms} from 'src/client/store';
 import {Button, Input, Modal, Stack} from 'src/client/components/base';
@@ -40,17 +40,30 @@ const ModalText = styled.div`
   font-weight: 500;
 `;
 
-// const
+const Title = styled.div`
+  text-align: center;
+  font-family: Simplifica;
+  color: white;
+  font-size: 84px;
+  letter-spacing: 0.2em;
+`;
 
 type Props = RouteComponentProps<any> & {};
 
 export const HomePage = (props: Props) => {
   const [username, setUsername] = useRecoilState(atoms.username);
   const [room, setRoom] = useRecoilState(atoms.room);
-  const [state, setState] = useState({joining: false, errorModalVisible: false, loading: false});
+  const [state, setState] = useState({
+    joining: false,
+    // joinModalVisible: false,
+    errorModalVisible: false,
+    loadingCreate: false,
+    loadingJoin: false,
+  });
 
   const onJoinClick = async () => {
     try {
+      setState({...state, loadingJoin: true});
       await Axios.put(`/api/room/${room.id}/join`);
       props.history.push('/game');
     } catch (error) {
@@ -61,7 +74,8 @@ export const HomePage = (props: Props) => {
 
   const onCreateClick = async () => {
     try {
-      const {data: roomId} = await Axios.post<string>('/api/room/create');
+      setState({...state, loadingCreate: true});
+      const {data: roomId} = await Axios.post('/api/room/create');
       await Axios.post(`/api/room/${roomId}/join`);
       setRoom({id: roomId});
       props.history.push('/game');
@@ -73,8 +87,9 @@ export const HomePage = (props: Props) => {
 
   return (
     <Layout>
-      <BackgroundParticles />
+      {/* <BackgroundParticles /> */}
       <TopBar />
+      <Title>UNLIKE the OTHERS</Title>
       <Container>
         <HeroWrapper>
           <BoundedStack flow='column' spacing='16px'>
@@ -85,7 +100,7 @@ export const HomePage = (props: Props) => {
               value={username}
               maxLength={32}
             />
-            <Button disabled={true} onClick={onCreateClick}>
+            <Button loading={state.loadingCreate} onClick={onCreateClick}>
               HOST NEW GAME
             </Button>
             {state.joining ? (
@@ -106,10 +121,16 @@ export const HomePage = (props: Props) => {
             <Button>HOW TO PLAY</Button>
           </BoundedStack>
         </HeroWrapper>
+        {/* <Modal
+          title='JOIN GAME'
+          visible={state.joinModalVisible}
+          onVisibleChange={(visible) => setState({...state, joinModalVisible: visible})}
+        >
+        </Modal> */}
         <Modal
           title='Whoops!'
           visible={state.errorModalVisible}
-          onVisibleChange={(visibility) => setState({...state, errorModalVisible: visibility})}
+          onVisibleChange={(visible) => setState({...state, errorModalVisible: visible})}
         >
           <ModalText>There is no active game with that code!</ModalText>
         </Modal>

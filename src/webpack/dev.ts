@@ -42,7 +42,7 @@ export const config: webpack.Configuration = {
           loader: 'url-loader',
           options: {
             fallback: 'file-loader',
-            limit: 50000,
+            limit: 100000,
             name: '[name].[ext]',
           },
         },

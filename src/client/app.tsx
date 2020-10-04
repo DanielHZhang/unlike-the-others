@@ -1,5 +1,5 @@
 import Axios from 'axios';
-import React, {FC, Suspense} from 'react';
+import React, {FC} from 'react';
 import {hot} from 'react-hot-loader/root';
 import {Switch, Route} from 'react-router-dom';
 import {routes} from 'src/client/routes';

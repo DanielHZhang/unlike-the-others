@@ -4,6 +4,11 @@ import {css} from '@emotion/react';
  * Normalize css rendering in all browsers (based on https://github.com/necolas/normalize.css/)
  */
 export const globalStyles = css`
+  @font-face {
+    font-family: Simplifica;
+    src: url('/assets/fonts/simplifica.ttf');
+  }
+
   #root {
     height: 100%;
     width: 100%;
