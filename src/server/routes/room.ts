@@ -15,7 +15,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
           throw 401;
         }
         const claims = verifyJwt('access', jwt);
-        const playerId = claims.guestId || claims.userId!;
+        const playerId = claims.guestId || claims.userId;
         const room = GameRoom.create(playerId);
 
         fastify.log.info(`Client ${playerId} created room ${room.id}`);
@@ -43,20 +43,26 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         }
 
         const room = GameRoom.getById(roomId);
-        if (!room || !room.hasCapacity()) {
-          throw new Error(`No room found with id: ${roomId}, or room has reached full capacity.`);
+        if (!room) {
+          throw new Error(`No room matches id: ${roomId}`);
         }
 
         const claims = verifyJwt('access', jwt);
-        const playerId = claims.guestId || claims.userId!;
-        const player = Player.getById(playerId);
+        const playerId = claims.guestId || claims.userId;
+        const playerIndex = room.players.findIndex((player) => player.id === playerId);
 
-        if (!player) {
-          throw 400;
+        if (playerIndex >= 0) {
+          // Player connected previously
+        } else {
+          // No possible way for player instance to exist
+          if (room.isFullCapacity()) {
+            throw new Error('Room has reached full capacity.');
+          }
+          const player = Player.create(playerId);
+          room.addPlayer(player);
+          fastify.log.info(`Client ${player.id} joined room ${room.id}`);
         }
 
-        room.addPlayer(player);
-        fastify.log.info(`Client ${player.id} joined room ${room.id}`);
         return {success: true};
       } catch (error) {
         console.error(error);

@@ -7,6 +7,19 @@ import {Socket} from 'src/server/services/sockets';
 import {AudioChannel} from 'src/server/config/constants';
 import {verifyJwt} from 'src/server/config/keys';
 
+const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
+  if (typeof value !== 'object') {
+    return false;
+  }
+  const keys = new Set(Object.keys(schema));
+  for (const key of keys) {
+    if (!(key in value) || typeof value[key] !== typeof schema[key]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 /**
  * Handles onConnection event for WebSockets.
  */
@@ -20,67 +33,71 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   const socket = new Socket(raw);
   fastify.websocket.clients.push(socket);
 
-  console.log('HEADERS:', msg.headers);
+  /** Handle JWT authentication */
+  socket.on('authenticate', (data) => {
+    if (!isPayloadValid(data, {jwt: '', roomId: ''})) {
+      throw new jose.errors.JWTMalformed();
+    }
 
-  let player: Player;
+    const claims = verifyJwt('access', data.jwt);
+    const playerId = claims.guestId || claims.userId;
+    const foundPlayer = Player.getById(playerId);
+
+    if (!foundPlayer || !foundPlayer.roomId) {
+      return socket.emit('authenticate-reply', 'No room exists', 404);
+    }
+
+    socket.player = foundPlayer;
+    fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
+
+    // socket.emit('authenticateResponse');
+
+    // PROBABLY NOT NEEDED:
+    // // If the client
+    // // Terminate connection of any other sockets with same player id
+    // const {clients} = fastify.websocket;
+    // for (let i = 0; i < clients.length; i++) {
+    //   const client = clients[i];
+    //   if (client.player.id === foundPlayer.id) {
+    //     client.dispose();
+    //     clients.splice(i, 1);
+    //     break;
+    //   }
+    // }
+  });
 
   /** Handle socket disconnect */
   socket.on('close', (code, reason) => {
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
-      throw new Error(`No room found with id: ${player.roomId}`);
+      throw new Error(`No room found with id: ${socket.player.roomId}`);
     }
 
-    room.removePlayer(player);
+    room.removePlayer(socket.player);
     if (room.isEmpty()) {
       room.endGame(); // TODO: account for endLobby
       GameRoom.delete(room.id);
     }
 
-    fastify.log.info(`Client ${player.id} left room ${room.id}`);
-    fastify.log.info(`Websocket ${player.id} closed, code: ${code}, reason: ${reason}`);
-  });
-
-  socket.on('authenticate', (jwt) => {
-    try {
-      if (!jwt || typeof jwt !== 'string') {
-        throw new jose.errors.JWTMalformed();
-      }
-
-      const claims = verifyJwt('access', jwt);
-      const playerId = claims.guestId || claims.userId!;
-      const foundPlayer = Player.getById(playerId) || Player.create();
-
-      // TODO: Handle player reconnecting after being removed from map by inactivity with socket.io
-      // attempt to dispose of entire socket instead of just the player object
-      const playerExists = Player.getById(claims.userId);
-      // Player doesn't exist in map, create it with the userId contained in the JWT
-      player = playerExists || Player.create(socket, claims.userId);
-      socket.emit('authenticateResponse');
-    } catch (error) {
-      // Client does not have a valid JWT
-      player = Player.create(socket);
-      const newJwt = JWT.sign({userId: player.id}, getJwk());
-      socket.emit('authenticateResponse', newJwt);
-    }
-    log('info', `TCP client connected: ${player.id}`);
+    fastify.log.info(`Client ${socket.player.id} left room ${room.id}`);
+    fastify.log.info(`Websocket ${socket.player.id} closed, code: ${code}, reason: ${reason}`);
   });
 
   socket.on('registerAudioId', (audioId) => {
     if (typeof audioId !== 'string') {
       throw new Error();
     }
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (room) {
-      player.audioId = audioId;
+      socket.player.audioId = audioId;
       const audioIds = room.getAudioIdsInChannel(AudioChannel.Lobby);
       socket.emit('connectAudioIds', audioIds);
     }
-    fastify.log.info(`Client ${player.id} registered with audioId ${audioId}`);
+    fastify.log.info(`Client ${socket.player.id} registered with audioId ${audioId}`);
   });
 
   socket.on('chatMessage', (message) => {
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -88,7 +105,7 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('startGame', () => {
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -96,7 +113,7 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('endGame', () => {
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -104,7 +121,7 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('startVoting', () => {
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -112,7 +129,7 @@ export const connectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('endVoting', () => {
-    const room = GameRoom.getById(player.roomId);
+    const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
       throw new Error();
     }

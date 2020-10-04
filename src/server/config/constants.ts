@@ -6,9 +6,6 @@ export const ASSETS_FOLDER_PATH = path.join(process.cwd(), 'assets');
 /** Path in the local file system to the folder containing local development files. */
 export const LOCAL_FOLDER_PATH = path.join(process.cwd(), '.local');
 
-/** Maximum number of players allowed in a single room. */
-export const MAX_ROOM_SIZE = 15;
-
 /** Number of seconds before running server shutdown on SIGTERM. */
 export const SHUTDOWN_WAIT_TIME = 10;
 

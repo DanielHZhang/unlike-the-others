@@ -2,7 +2,7 @@ import Box2d from '@supersede/box2d';
 import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {nanoid} from 'src/server/utils/crypto';
-import {AudioChannel, MAX_ROOM_SIZE} from 'src/server/config/constants';
+import {AudioChannel} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
@@ -44,8 +44,10 @@ function hrtimeMs() {
 }
 
 export class GameRoom {
+  /** Maximum number of players allowed in a single room. */
+  private static readonly MAX_ROOM_SIZE = 15;
   private static readonly instances = new Map<string, GameRoom>();
-  private readonly players: Player[] = [];
+  public readonly players: Player[] = [];
   private readonly engine: PhysicsEngine;
   private readonly createdAt: Date;
   private isGameStarted: boolean = false;
@@ -216,8 +218,8 @@ export class GameRoom {
     return this.players.length === 0;
   }
 
-  public hasCapacity() {
-    return this.players.length < MAX_ROOM_SIZE;
+  public isFullCapacity() {
+    return this.players.length === GameRoom.MAX_ROOM_SIZE;
   }
 
   public addPlayer(newPlayer: Player) {

@@ -1,3 +1,4 @@
+import Axios from 'axios';
 import React from 'react';
 import {Redirect} from 'react-router-dom';
 import {useRecoilState, useRecoilValue} from 'recoil';
@@ -7,9 +8,8 @@ import {Stack} from 'src/client/components/base/stack';
 import {GameWindow} from 'src/client/game';
 import {ClientSocket} from 'src/client/networking/tcp';
 import {atoms} from 'src/client/store';
-import {useDidMount} from 'src/client/utils/hooks';
+import {useAsyncEffect, useDidMount} from 'src/client/utils/hooks';
 import {Chatbox} from 'src/client/components/chatbox';
-import Axios from 'axios';
 
 export const GamePage = () => {
   const room = useRecoilValue(atoms.room);
@@ -17,16 +17,19 @@ export const GamePage = () => {
   //   return <Redirect to='/' />; // Prevent accessing page unless room has been assigned
   // }
 
-  useDidMount(() => {
+  useAsyncEffect(async () => {
+
     const socket = new ClientSocket();
-    // Axios.defaults.headers.common.authorization
-    // socket.emit('authenticate', room.id);
+    socket.emit('authenticate', {
+      roomId: room.id,
+      jwt: Axios.defaults.headers.common.authorization,
+    });
 
     // Leave room on page unmount
     return () => {
       socket.dispose();
     };
-  });
+  }, []);
 
   return <GameWindow />;
 

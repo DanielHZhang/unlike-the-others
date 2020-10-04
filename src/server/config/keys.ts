@@ -12,7 +12,7 @@ const keyStore = new JWKS.KeyStore([refreshKey, accessKey]);
 
 export function verifyJwt(type: JwtType, jwt: string) {
   const claims = JWT.verify(jwt, type === 'refresh' ? refreshKey : accessKey);
-  return claims as JwtClaims;
+  return claims as Required<JwtClaims>;
 }
 
 export function signJwt(

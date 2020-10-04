@@ -1,9 +1,20 @@
 import WebSocket from 'ws';
 import {AbstractSocket} from 'src/shared/abstract-socket';
+import {Player} from 'src/server/store';
 
 export class Socket extends AbstractSocket<WebSocket> {
+  private playerRef?: Player;
   private isDisposed = false;
   public isAlive = true;
+
+  public get player() {
+    return this.playerRef as Player;
+  }
+
+  public set player(newPlayer: Player) {
+    newPlayer.socket = this;
+    this.playerRef = newPlayer;
+  }
 
   public constructor(socket: WebSocket) {
     super(socket);
@@ -61,6 +72,7 @@ export class Socket extends AbstractSocket<WebSocket> {
    * Uses `WebSocket.terminate()` to end the connection immediately.
    */
   public dispose() {
+    this.playerRef = undefined;
     this.isDisposed = true;
     this.isAlive = false;
     this.connection.terminate();

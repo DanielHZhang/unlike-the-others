@@ -1,7 +1,7 @@
 import Axios from 'axios';
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
-import {selector, useRecoilState, useRecoilValueLoadable} from 'recoil';
+import {useRecoilState} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
 import {atoms} from 'src/client/store';
 import {Button, Input, Modal, Stack} from 'src/client/components/base';
@@ -76,7 +76,7 @@ export const HomePage = (props: Props) => {
     try {
       setState({...state, loadingCreate: true});
       const {data: roomId} = await Axios.post('/api/room/create');
-      await Axios.post(`/api/room/${roomId}/join`);
+      await Axios.post(`/api/room/${room.id}/join`);
       setRoom({id: roomId});
       props.history.push('/game');
     } catch (error) {
