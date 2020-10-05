@@ -34,7 +34,7 @@ export class Player {
   }
 
   /**
-   * Creates a new room instance with a random id using the provided TCP socket
+   * Creates a new room instance with the specified id.
    */
   public static create(id: string): Player {
     const player = new Player(id);
@@ -43,10 +43,18 @@ export class Player {
   }
 
   /**
-   * Get player from player map by their generated id
+   * Gets a player instance by its ID from the instances hashmap.
    */
   public static getById(id: string): Player | undefined {
     return Player.instances.get(id);
+  }
+
+  /**
+   * Deletes a player by its ID from the instances hashmap.
+   * @returns True if the delete operation completed successfully.
+   */
+  public static deleteById(id: string): boolean {
+    return Player.instances.delete(id);
   }
 
   public enqueueInput(input: BufferInputData) {

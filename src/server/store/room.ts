@@ -47,10 +47,9 @@ export class GameRoom {
   /** Maximum number of players allowed in a single room. */
   private static readonly MAX_ROOM_SIZE = 15;
   private static readonly instances = new Map<string, GameRoom>();
-  public readonly players: Player[] = [];
   private readonly engine: PhysicsEngine;
   private readonly createdAt: Date;
-  private isGameStarted: boolean = false;
+  private players: Player[] = [];
   private isVoting: boolean = false;
   private host?: Player;
   private settings: Settings = {
@@ -72,10 +71,11 @@ export class GameRoom {
     ballots: [],
   };
   public creatorId: string;
+  public isMatchStarted: boolean = false;
   public id: string;
-  tick = 0;
-  previous = 0;
-  timeout?: NodeJS.Timeout;
+  private tick = 0;
+  private previous = 0;
+  private timeout?: NodeJS.Timeout;
 
   /**
    * Private constructor to prevent instances from being created outside of static methods
@@ -110,7 +110,7 @@ export class GameRoom {
    * Only deletes rooms that no longer contain players. Skips if id is not found in the map.
    * @param id Id of the room instance
    */
-  public static delete(id: string) {
+  public static deleteById(id: string) {
     GameRoom.instances.delete(id);
   }
 
@@ -222,6 +222,11 @@ export class GameRoom {
     return this.players.length === GameRoom.MAX_ROOM_SIZE;
   }
 
+  public hasPlayerWithId(id: string) {
+    const playerIndex = this.players.findIndex((player) => player.id === id);
+    return playerIndex !== -1;
+  }
+
   public addPlayer(newPlayer: Player) {
     if (!this.host) {
       this.host = newPlayer;
@@ -233,7 +238,7 @@ export class GameRoom {
   }
 
   public removePlayer(player: Player) {
-    const index = this.players.findIndex((p) => p === player);
+    const index = this.players.findIndex((value) => value === player);
     if (index > -1) {
       this.players.splice(index, 1);
       if (this.host === player && this.players.length > 0) {
@@ -252,7 +257,7 @@ export class GameRoom {
 
   public revivePlayer(player: Player) {
     let channelType = AudioChannel.Silent;
-    if (this.isGameStarted && this.isVoting) {
+    if (this.isMatchStarted && this.isVoting) {
       channelType = AudioChannel.Voting;
     } else {
       channelType = AudioChannel.Lobby;
@@ -268,7 +273,7 @@ export class GameRoom {
         return [];
       }
       case AudioChannel.Lobby: {
-        if (this.isGameStarted) {
+        if (this.isMatchStarted) {
           // If in game, then add people who are dead
           return this.players.filter((p) => !p.alive).map((p) => p.audioId!);
         }
@@ -294,7 +299,7 @@ export class GameRoom {
   }
 
   public startGame() {
-    this.isGameStarted = true;
+    this.isMatchStarted = true;
     this.loop();
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds);
@@ -302,10 +307,15 @@ export class GameRoom {
   }
 
   public endGame() {
-    this.isGameStarted = false;
+    this.isMatchStarted = false;
     if (this.timeout !== undefined) {
       clearTimeout(this.timeout);
     }
+    // Remove all players who disconnected
+    this.players = this.players.filter((player) => player.active);
+
+    // TODO: Calculate ranking differential
+
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     this.emitToPlayers('connectAudioIds', audioIds);
     log('info', `End game for room ${this.id}`);

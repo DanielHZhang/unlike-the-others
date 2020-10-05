@@ -31,6 +31,16 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
   fastify.route({
     url: '/:id/join',
     method: 'POST',
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+          },
+        },
+      },
+    },
     handler: async (req, reply) => {
       try {
         const {id: roomId} = req.params as {id: string};
@@ -38,23 +48,23 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         if (!jwt) {
           throw 401;
         }
-        if (!roomId || typeof roomId !== 'string') {
-          throw 400;
-        }
 
         const room = GameRoom.getById(roomId);
         if (!room) {
-          throw new Error(`No room matches id: ${roomId}`);
+          throw new Error(`Unable to find room with id: ${roomId}`);
+        }
+        if (room.isMatchStarted) {
+          throw new Error('Match has already started.');
         }
 
         const claims = verifyJwt('access', jwt);
         const playerId = claims.guestId || claims.userId;
-        const playerIndex = room.players.findIndex((player) => player.id === playerId);
 
-        if (playerIndex >= 0) {
+        if (room.hasPlayerWithId(playerId)) {
           // Player connected previously
+          // TODO: might need to do some stuff here?
         } else {
-          // No possible way for player instance to exist
+          // Player has not connected previously
           if (room.isFullCapacity()) {
             throw new Error('Room has reached full capacity.');
           }

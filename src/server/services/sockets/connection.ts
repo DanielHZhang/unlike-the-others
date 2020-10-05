@@ -73,13 +73,19 @@ export const connectionHandler = (fastify: FastifyInstance) => (
       throw new Error(`No room found with id: ${socket.player.roomId}`);
     }
 
-    room.removePlayer(socket.player);
-    if (room.isEmpty()) {
-      room.endGame(); // TODO: account for endLobby
-      GameRoom.delete(room.id);
+    // Deactivate player if match has already started to allow for reconnects.
+    // If still in pre-game lobby, remove the player completely.
+    if (room.isMatchStarted) {
+      socket.player.active = false;
+    } else {
+      room.removePlayer(socket.player);
+      Player.deleteById(socket.player.id);
+      if (room.isEmpty()) {
+        room.endGame(); // TODO: account for endLobby
+        GameRoom.deleteById(room.id);
+      }
     }
 
-    fastify.log.info(`Client ${socket.player.id} left room ${room.id}`);
     fastify.log.info(`Websocket ${socket.player.id} closed, code: ${code}, reason: ${reason}`);
   });
 

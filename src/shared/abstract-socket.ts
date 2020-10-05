@@ -27,10 +27,10 @@ export abstract class AbstractSocket<T> {
 
   public abstract dispose(): void;
 
-  protected dispatch(eventName: string, data: any) {
+  protected dispatch(eventName: string, ...dataArgs: any[]) {
     const handlers = this.listeners.get(eventName);
     if (handlers) {
-      handlers.forEach((handler) => handler(data));
+      handlers.forEach((handler) => handler(...dataArgs));
     }
   }
 }

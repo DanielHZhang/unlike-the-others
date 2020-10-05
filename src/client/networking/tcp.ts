@@ -1,16 +1,12 @@
 import {AbstractSocket} from 'src/shared/abstract-socket';
-import {StorageKeys} from 'src/client/config/constants';
 import {ROOT_URL} from 'src/shared/constants';
+import {AnyFunction} from 'src/shared/types';
 
 export class ClientSocket extends AbstractSocket<WebSocket> {
-  // private static instance: Socket;
-
   public constructor() {
     super(new WebSocket(`ws://${ROOT_URL}/sock`));
     this.connection.onopen = () => {
       console.log('Websocket connection established.');
-      //   // Connect to UDP channel only after authentication has been completed
-      //   channel.onConnect(console.error);
     };
 
     this.connection.onclose = (event) => {
@@ -22,24 +18,26 @@ export class ClientSocket extends AbstractSocket<WebSocket> {
     };
 
     this.connection.onmessage = (event) => {
+      // Only process string messages
+      if (typeof event.data === 'string' && event.data.length < ClientSocket.MAX_MESSAGE_SIZE) {
+        const json = JSON.parse(event.data);
+        if (!Array.isArray(json) || typeof json[0] !== 'string' || typeof json[2] !== 'number') {
+          throw new Error('Improperly formatted socket message.');
+        }
+        // Event name, data, status
+        this.dispatch(json[0], json[1], json[2]);
+      }
       console.log('received message from server:', event);
     };
 
     window.addEventListener('beforeunload', () => {
-      this.connection.close();
+      this.dispose();
     });
   }
 
-  // public static getInstance() {
-  //   if (!Socket.instance) {
-  //     Socket.instance = new Socket();
-  //   }
-  //   return Socket.instance;
-  // }
-
-  // public on(eventName: string, callback: AnyFunction) {
-  //   super.dispatch();
-  // }
+  public on(eventName: string, callback: (data: unknown, status: number) => void) {
+    super.on(eventName, callback);
+  }
 
   public emit(eventName: string, payload: any) {
     const stringified = JSON.stringify([eventName, payload]);
@@ -50,5 +48,3 @@ export class ClientSocket extends AbstractSocket<WebSocket> {
     this.connection.close();
   }
 }
-
-// export const socket = Socket.getInstance();

@@ -27,10 +27,7 @@ export class Socket extends AbstractSocket<WebSocket> {
     // Handle messages received from the client
     this.connection.on('message', (data) => {
       // Only process string data messages
-      if (typeof data === 'string') {
-        if (data.length > Socket.MAX_MESSAGE_SIZE) {
-          throw new Error('Socket message was too long.');
-        }
+      if (typeof data === 'string' && data.length < Socket.MAX_MESSAGE_SIZE) {
         const json = JSON.parse(data);
         if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
           throw new Error('Improperly formatted socket message.');
@@ -63,7 +60,7 @@ export class Socket extends AbstractSocket<WebSocket> {
     if (this.isDisposed) {
       throw new Error('Attempting to emit a message on a disposed socket.');
     }
-    const stringified = JSON.stringify([eventName, status, data]);
+    const stringified = JSON.stringify([eventName, data, status]);
     this.connection.send(stringified);
   }
 
