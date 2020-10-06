@@ -9,7 +9,13 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
   const tokenizer = new CsrfTokenizer();
 
   fastify.addHook('preHandler', async (request, reply) => {
+    // Ignore methods which do not modify data on the server
+    if (ignoreMethods.includes(request.raw.method!)) {
+      return;
+    }
+
     let secret = request.cookies[CookieKeys.Csrf];
+
     if (!secret) {
       secret = await tokenizer.secret();
       request.cookies[CookieKeys.Csrf] = secret;
@@ -20,18 +26,11 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
       });
     }
 
-    const rawToken =
-      request.headers['csrf-token'] ||
-      request.headers['xsrf-token'] ||
-      request.headers['x-csrf-token'] ||
-      request.headers['x-xsrf-token'];
-    const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+    const token = request.headers['x-csrf-token'];
 
-    // Current request should be processed
-    if (
-      ignoreMethods.indexOf(request.raw.method!) < 0 &&
-      (!token || !tokenizer.verify(secret, token))
-    ) {
+    if (typeof token !== 'string' || !tokenizer.verify(secret, token)) {
+      // Bad token, do not proceed to route handler
+      reply.status(400);
       throw new Error('Invalid CSRF token provided.');
     }
   });

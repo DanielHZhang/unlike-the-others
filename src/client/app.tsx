@@ -11,7 +11,6 @@ const App: FC = (props) => {
       Axios.get('/api/auth/access'),
       Axios.get('/api/auth/csrf'),
     ]);
-    console.log('got access:', access);
     const {headers} = Axios.defaults;
     if (access.status === 'fulfilled') {
       const {data: accessToken} = access.value;
@@ -19,9 +18,8 @@ const App: FC = (props) => {
     }
     if (csrf.status === 'fulfilled') {
       const {data: csrfToken} = csrf.value;
-      headers.post['x-csrf-token'] = csrfToken;
-      headers.put['x-csrf-token'] = csrfToken;
-      headers.delete['x-csrf-token'] = csrfToken;
+      const headerKey = 'x-csrf-token';
+      headers.post[headerKey] = headers.put[headerKey] = headers.delete[headerKey] = csrfToken;
     }
   }, []);
 

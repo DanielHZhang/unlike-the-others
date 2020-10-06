@@ -2,7 +2,7 @@
   "env": {
     "NODE_ENV": "development"
   },
-  "exec": "node",
+  "exec": "node --inspect",
   "ext": "ts, tsx, js, jsx, json",
   "ignore": [
     ".git",

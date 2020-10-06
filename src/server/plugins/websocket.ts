@@ -12,10 +12,17 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
     throw new Error('Websocket plugin has already been registered.');
   }
 
-  const ws = new WebSocket.Server({server: fastify.server, path: '/sock'});
+  const wss = new WebSocket.Server({server: fastify.server, path: '/sock'});
 
-  fastify.decorate(DECORATOR_KEY, {server: ws, clients: []});
-  fastify.addHook('onClose', (_, done) => ws.close(done));
+  fastify.server.on('upgrade', (request, socket, head) => {
+    console.log('what are these arguments:', request, socket, head);
+    wss.handleUpgrade(request, socket, head, (socket) => {
+      wss.emit('connection', socket, request /* , ...args */);
+    });
+  });
+
+  fastify.decorate(DECORATOR_KEY, {server: wss, clients: []});
+  fastify.addHook('onClose', (_, done) => wss.close(done));
 
   const interval = setInterval(() => {
     let i = 0;
@@ -33,10 +40,10 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
     }
   }, HEARTBEAT_INTERVAL * 1000);
 
-  ws.on('connection', connectionHandler(fastify));
-  ws.on('close', () => {
+  wss.on('connection', connectionHandler(fastify));
+  wss.on('close', () => {
     clearInterval(interval);
-    ws.clients.forEach((client) => client.close());
+    wss.clients.forEach((client) => client.close());
     fastify.log.info('Closing websocket server.');
   });
 

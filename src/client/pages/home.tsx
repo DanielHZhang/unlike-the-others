@@ -55,7 +55,6 @@ export const HomePage = (props: Props) => {
   const [room, setRoom] = useRecoilState(atoms.room);
   const [state, setState] = useState({
     joining: false,
-    // joinModalVisible: false,
     errorModalVisible: false,
     loadingCreate: false,
     loadingJoin: false,
@@ -80,7 +79,8 @@ export const HomePage = (props: Props) => {
       setRoom({id: roomId});
       props.history.push('/game');
     } catch (error) {
-      console.error(error);
+      // console.log(JSON.stringify(error, null, 2));
+      console.log(error.response);
       setState({...state, errorModalVisible: true});
     }
   };

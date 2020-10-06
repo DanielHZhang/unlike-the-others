@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import {css} from '@emotion/react';
-import {shouldForwardProp} from 'src/client/utils/emotion';
+import {styledOptions} from 'src/client/components/props';
 
 type Props = {
   flow?: 'row' | 'column';
@@ -15,7 +15,10 @@ type Props = {
   order?: number;
 };
 
-export const Flex = styled('div', {shouldForwardProp})<Props>(
+export const Flex = styled(
+  'div',
+  styledOptions
+)<Props>(
   ({flow = 'row', grow, shrink, crossAxis, mainAxis, basis, wrap, order}) => css`
     align-items: ${crossAxis};
     display: flex;

@@ -1,11 +1,15 @@
 import styled from '@emotion/styled';
 import {css} from '@emotion/react';
+import {styledOptions} from 'src/client/components/props';
 
 type ButtonProps = {
   loading?: boolean;
 };
 
-export const Button = styled('button')<ButtonProps>(
+export const Button = styled(
+  'button',
+  styledOptions
+)<ButtonProps>(
   ({theme: {button}, loading}) => css`
     align-items: center;
     background-color: ${button.primaryColor};
