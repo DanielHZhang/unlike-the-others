@@ -7,6 +7,7 @@ import {signJwt, verifyJwt} from 'src/server/config/keys';
 import {hashPassword, verifyPassword} from 'src/server/utils/scrypt';
 import {IS_PRODUCTION_ENV} from 'src/shared/constants';
 import {CookieKeys} from 'src/server/config/constants';
+import {JwtClaims} from 'src/shared/types';
 
 export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
   fastify.route({
@@ -53,7 +54,7 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
         fastify.log.info(`Created new user: ${newUser.id}`);
 
         const refreshToken = signJwt('refresh', {userId: newUser.id});
-        reply.setCookie(CookieKeys.RefreshToken, refreshToken, {
+        reply.setCookie(CookieKeys.Refresh, refreshToken, {
           httpOnly: true,
           secure: IS_PRODUCTION_ENV,
         });
@@ -117,7 +118,7 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
         }
 
         const refreshToken = signJwt('refresh', {userId: foundUser.id});
-        reply.setCookie(CookieKeys.RefreshToken, refreshToken, {
+        reply.setCookie(CookieKeys.Refresh, refreshToken, {
           httpOnly: true,
           secure: IS_PRODUCTION_ENV,
         });
@@ -147,25 +148,27 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
     method: 'GET',
     handler: async (req, reply) => {
       try {
-        const refreshToken = req.cookies[CookieKeys.RefreshToken];
-        if (!refreshToken) {
-          throw 401;
-        }
-
-        const claims = verifyJwt('refresh', refreshToken);
-
-        if (claims.guestId) {
-          const guestId = await nanoid();
-          const accessToken = signJwt('access', {guestId});
-          return accessToken;
-        } else {
-          const user = await prisma.user.findOne({where: {id: claims.userId}});
-          if (!user) {
-            throw 404;
+        let refreshToken = req.cookies[CookieKeys.Refresh];
+        let payload: Partial<JwtClaims>;
+        if (refreshToken) {
+          const claims = verifyJwt('refresh', refreshToken);
+          if (claims.userId) {
+            const user = await prisma.user.findOne({where: {id: claims.userId}});
+            if (!user) {
+              throw 404; // Guard against user deletion
+            }
           }
-          const accessToken = signJwt('access', {userId: user.id});
-          return accessToken;
+          payload = claims;
+        } else {
+          payload = {guestId: await nanoid()};
+          refreshToken = signJwt('refresh', payload);
+          reply.setCookie(CookieKeys.Refresh, refreshToken, {
+            httpOnly: true,
+            secure: IS_PRODUCTION_ENV,
+          });
         }
+        const accessToken = signJwt('access', payload);
+        return accessToken;
       } catch (error) {
         if (typeof error === 'number') {
           reply.status(error);

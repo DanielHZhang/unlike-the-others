@@ -35,35 +35,26 @@ export const connectionHandler = (fastify: FastifyInstance) => (
 
   /** Handle JWT authentication */
   socket.on('authenticate', (data) => {
-    if (!isPayloadValid(data, {jwt: '', roomId: ''})) {
-      throw new jose.errors.JWTMalformed();
+    console.log('received data:', data);
+    try {
+      if (!isPayloadValid(data, {jwt: '', roomId: ''})) {
+        throw 'Bad JWT.';
+      }
+
+      const claims = verifyJwt('access', data.jwt);
+      const playerId = claims.guestId || claims.userId;
+      const foundPlayer = Player.getById(playerId);
+
+      if (!foundPlayer || !foundPlayer.roomId) {
+        throw 'No room exists';
+      }
+
+      socket.player = foundPlayer;
+      fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
+      socket.emit('authenticate-reply', true);
+    } catch (error) {
+      socket.emit('authenticate-reply', 'No room exists', 404);
     }
-
-    const claims = verifyJwt('access', data.jwt);
-    const playerId = claims.guestId || claims.userId;
-    const foundPlayer = Player.getById(playerId);
-
-    if (!foundPlayer || !foundPlayer.roomId) {
-      return socket.emit('authenticate-reply', 'No room exists', 404);
-    }
-
-    socket.player = foundPlayer;
-    fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
-
-    // socket.emit('authenticateResponse');
-
-    // PROBABLY NOT NEEDED:
-    // // If the client
-    // // Terminate connection of any other sockets with same player id
-    // const {clients} = fastify.websocket;
-    // for (let i = 0; i < clients.length; i++) {
-    //   const client = clients[i];
-    //   if (client.player.id === foundPlayer.id) {
-    //     client.dispose();
-    //     clients.splice(i, 1);
-    //     break;
-    //   }
-    // }
   });
 
   /** Handle socket disconnect */

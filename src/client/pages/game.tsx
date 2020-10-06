@@ -11,6 +11,7 @@ import {atoms} from 'src/client/store';
 import {useAsyncEffect, useDidMount} from 'src/client/utils/hooks';
 import {Chatbox} from 'src/client/components/chatbox';
 import {channel} from 'src/client/networking/udp';
+import {FingerprintSpinner} from 'src/client/components/spinner';
 
 type Props = RouteComponentProps<any> & {};
 
@@ -18,8 +19,9 @@ export const GamePage = (props: Props) => {
   const [state, setState] = useState({loading: true, errorModalVisible: false});
   const room = useRecoilValue(atoms.room);
 
-  useDidMount(() => {
+  useAsyncEffect(async () => {
     const socket = new ClientSocket();
+    await socket.isReady();
     socket.emit('authenticate', {
       roomId: room.id,
       jwt: Axios.defaults.headers.common.authorization,
@@ -44,10 +46,15 @@ export const GamePage = (props: Props) => {
     return () => {
       socket.dispose();
     };
-  });
+  }, []);
 
-  if (state.loading) {
-    return <div>Loading...</div>;
+  if (true /* state.loading */) {
+    return (
+      <div>
+        <FingerprintSpinner color='#000' />
+        Loading...
+      </div>
+    );
   }
   if (state.errorModalVisible) {
     return <div>error modal here</div>;

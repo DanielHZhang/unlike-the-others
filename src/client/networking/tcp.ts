@@ -3,11 +3,17 @@ import {ROOT_URL} from 'src/shared/constants';
 import {AnyFunction} from 'src/shared/types';
 
 export class ClientSocket extends AbstractSocket<WebSocket> {
+  private ready: Promise<boolean>;
+
   public constructor() {
     super(new WebSocket(`ws://${ROOT_URL}/sock`));
-    this.connection.onopen = () => {
-      console.log('Websocket connection established.');
-    };
+
+    this.ready = new Promise((resolve, reject) => {
+      this.connection.onopen = () => {
+        console.log('Websocket connection established.');
+        resolve(true);
+      };
+    });
 
     this.connection.onclose = (event) => {
       console.log('on message event:', event);
@@ -33,6 +39,10 @@ export class ClientSocket extends AbstractSocket<WebSocket> {
     window.addEventListener('beforeunload', () => {
       this.dispose();
     });
+  }
+
+  public isReady() {
+    return this.ready;
   }
 
   public on(eventName: string, callback: (data: unknown, status: number) => void) {

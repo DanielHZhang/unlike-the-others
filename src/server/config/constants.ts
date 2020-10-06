@@ -21,6 +21,6 @@ export enum AudioChannel {
 
 /** Defines the keys used for cookies. */
 export enum CookieKeys {
-  RefreshToken = 'access',
+  Refresh = 'refresh',
   Csrf = '_csrf',
 }
