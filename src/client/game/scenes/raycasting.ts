@@ -51,7 +51,7 @@ export class RaycastPolygon {
     ]);
     const polygon = [];
     const sorted = this.sortPoints(position, bounded);
-    const map: number[] = new Array(bounded.length);
+    const map: number[] = Array.from({length: bounded.length});
     for (let i = 0; i < map.length; ++i) {
       map[i] = -1;
     }
@@ -566,7 +566,7 @@ export class RaycastPolygon {
   }
 
   sortPoints(position: number[], segments: number[][][]) {
-    const points: number[][] = new Array(segments.length * 2);
+    const points: number[][] = Array.from({length: segments.length * 2});
     for (let i = 0; i < segments.length; ++i) {
       for (let j = 0; j < 2; ++j) {
         const a = this.angle(segments[i][j], position);

@@ -1,5 +1,5 @@
 export function findSmallestMissingInt(array: number[]) {
-  const temp: boolean[] = new Array(array.length).fill(false);
+  const temp = Array.from<boolean>({length: array.length}).fill(false);
   for (let i = 0; i < array.length; i++) {
     if (array[i] > 0 && array[i] <= array.length) {
       temp[array[i]] = true;
