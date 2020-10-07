@@ -9,6 +9,7 @@ export function createFastifyPlugin<T extends FastifyPluginOptions>(
 ) {
   const decoratorKey = Symbol.for(name);
   const plugin: FastifyPluginAsync<T> = async (fastify, options) => {
+    // console.log('passed:', fastify, options);
     if (fastify.hasDecorator(decoratorKey)) {
       throw new Error(`Fastify plugin "${name}" has already been registered.`);
     }

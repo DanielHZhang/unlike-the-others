@@ -13,7 +13,7 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
   if (typeof options.heartbeatInterval !== 'number') {
     throw new Error('Missing heartbeat interval.');
   }
-  if (typeof options.path !== 'number') {
+  if (typeof options.path !== 'string') {
     throw new Error('Missing path.');
   }
 

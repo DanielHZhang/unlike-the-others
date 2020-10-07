@@ -2,7 +2,7 @@ import {createFastifyPlugin} from 'src/server/plugins';
 import {verifyJwt} from 'src/server/config/keys';
 
 export const jwtAuthPlugin = createFastifyPlugin('jwt-auth', (fastify) => {
-  fastify.addHook('preHandler', (request, reply) => {
+  fastify.addHook('preHandler', (request, reply, next) => {
     const config = reply.context.config as Record<string, any>;
 
     // Only check for JWTs on protected routes
@@ -20,6 +20,7 @@ export const jwtAuthPlugin = createFastifyPlugin('jwt-auth', (fastify) => {
         throw new Error('Bad access token.');
       }
     }
+
+    next();
   });
-  // next();
 });

@@ -1,6 +1,5 @@
 import Box2d from '@supersede/box2d';
 import {nanoid} from 'nanoid';
-import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
 import {AudioChannel} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
@@ -252,7 +251,7 @@ export class GameRoom {
   public killPlayer(player: Player) {
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     player.kill(audioIds);
-    log('info', `Kill player ${this.id}`);
+    // log('info', `Kill player ${this.id}`);
   }
 
   public revivePlayer(player: Player) {
@@ -264,7 +263,7 @@ export class GameRoom {
     }
     const audioIds = this.getAudioIdsInChannel(channelType);
     player.revive(audioIds);
-    log('info', `Revive player ${this.id}`);
+    // log('info', `Revive player ${this.id}`);
   }
 
   public getAudioIdsInChannel(channel: AudioChannel): string[] {
@@ -303,7 +302,7 @@ export class GameRoom {
     this.loop();
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds);
-    log('info', `Start game for room ${this.id}`);
+    // log('info', `Start game for room ${this.id}`);
   }
 
   public endGame() {
@@ -318,20 +317,20 @@ export class GameRoom {
 
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Lobby);
     this.emitToPlayers('connectAudioIds', audioIds);
-    log('info', `End game for room ${this.id}`);
+    // log('info', `End game for room ${this.id}`);
   }
 
   public startVoting() {
     this.isVoting = true;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Voting);
     this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
-    log('info', `Start voting for room ${this.id}`);
+    // log('info', `Start voting for room ${this.id}`);
   }
 
   public endVoting() {
     this.isVoting = false;
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
     this.emitToPlayers('connectAudioIds', audioIds, (p) => p.alive);
-    log('info', `End voting for room ${this.id}`);
+    // log('info', `End voting for room ${this.id}`);
   }
 }
