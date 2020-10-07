@@ -7,7 +7,7 @@ export function createFastifyPlugin<T extends FastifyPluginOptions>(
   callback: (...args: Parameters<FastifyPluginAsync<T>>) => void,
   pluginOptions?: Partial<PluginMetadata>
 ) {
-  const decoratorKey = Symbol(name);
+  const decoratorKey = Symbol.for(name);
   const plugin: FastifyPluginAsync<T> = async (fastify, options) => {
     if (fastify.hasDecorator(decoratorKey)) {
       throw new Error(`Fastify plugin "${name}" has already been registered.`);
