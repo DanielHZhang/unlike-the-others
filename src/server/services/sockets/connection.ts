@@ -1,4 +1,3 @@
-import jose from 'jose';
 import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
@@ -23,7 +22,7 @@ const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): v
 /**
  * Handles onConnection event for WebSockets.
  */
-export const connectionHandler = (fastify: FastifyInstance) => (
+export const tcpConnectionHandler = (fastify: FastifyInstance) => (
   raw: WebSocket,
   msg: IncomingMessage
 ) => {

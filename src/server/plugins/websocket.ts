@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import {createFastifyPlugin} from 'src/server/plugins';
-import {connectionHandler} from 'src/server/services/sockets';
+import {tcpConnectionHandler} from 'src/server/services/sockets';
 
 type Options = {
   /** Number of seconds between ping-pong messages. */
@@ -45,7 +45,7 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
     }
   }, options.heartbeatInterval * 1000);
 
-  wss.on('connection', connectionHandler(fastify));
+  wss.on('connection', tcpConnectionHandler(fastify));
   wss.on('close', () => {
     clearInterval(interval);
     wss.clients.forEach((client) => client.close());
