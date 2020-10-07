@@ -1,7 +1,7 @@
 import Box2d from '@supersede/box2d';
+import {nanoid} from 'nanoid';
 import {log} from 'src/server/utils/logs';
 import {Player} from 'src/server/store/player';
-import {nanoid} from 'src/server/utils/crypto';
 import {AudioChannel} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
 import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';

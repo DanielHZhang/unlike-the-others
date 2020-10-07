@@ -1,12 +1,5 @@
-import fp from 'fastify-plugin';
-import {FastifyPluginCallback} from 'fastify';
-import {FASTIFY_SEM_VER} from 'src/server/config/constants';
+import {createFastifyPlugin} from 'src/server/plugins';
 
-const plugin: FastifyPluginCallback = (fastify, options, next) => {
-  next();
-};
-
-export const webrtc = fp(plugin, {
-  fastify: FASTIFY_SEM_VER,
-  name: 'fastify-geckos-webrtc',
+export const webrtcPlugin = createFastifyPlugin('geckos-webrtc', (fastify) => {
+  // next();
 });

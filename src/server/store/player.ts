@@ -1,6 +1,5 @@
 import Box2d from '@supersede/box2d';
 import {ServerChannel} from '@geckos.io/server';
-import {nanoid} from 'src/server/utils/crypto';
 import {Socket} from 'src/server/services/sockets';
 import type {BufferInputData, InputData} from 'src/shared/types';
 

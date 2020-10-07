@@ -1,10 +1,10 @@
 import pino from 'pino';
 import fastify from 'fastify';
-import serveStatic from 'fastify-static';
-import cookie from 'fastify-cookie';
-import {csrf, webrtc, websocket} from 'src/server/plugins';
+import serveStaticPlugin from 'fastify-static';
+import cookiePlugin from 'fastify-cookie';
 import {apiRoutes} from 'src/server/routes';
 import {prisma} from 'src/server/prisma';
+import {csrfPlugin, jwtAuthPlugin, webrtcPlugin, websocketPlugin} from 'src/server/plugins';
 import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
@@ -39,21 +39,22 @@ export async function main() {
     }
 
     // Serve static files
-    app.register(serveStatic, {
+    app.register(serveStaticPlugin, {
       root: BUILD_FOLDER_PATH,
       prefix: '/static',
     });
-    app.register(serveStatic, {
+    app.register(serveStaticPlugin, {
       root: ASSETS_FOLDER_PATH,
       prefix: '/assets',
       decorateReply: false,
     });
 
-    // Add route and socket handlers
-    app.register(cookie);
-    app.register(csrf);
-    app.register(websocket);
-    app.register(webrtc);
+    // Register plugins
+    app.register(cookiePlugin);
+    app.register(csrfPlugin);
+    app.register(websocketPlugin, {path: '/sock', heartbeatInterval: 30});
+    app.register(webrtcPlugin);
+    app.register(jwtAuthPlugin);
     app.register(apiRoutes, {prefix: '/api'});
     app.get('*', (_, reply) => {
       reply.sendFile('index.html', BUILD_FOLDER_PATH);

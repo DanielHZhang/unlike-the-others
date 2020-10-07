@@ -10,11 +10,12 @@ declare module 'peerjs' {
 }
 
 declare module 'fastify' {
-  interface FastifyRequest {
+  export interface FastifyRequest {
+    claims: Required<JwtClaims>;
     generateCsrfToken: () => string;
   }
 
-  interface FastifyInstance {
+  export interface FastifyInstance {
     websocket: {
       server: Server;
       clients: Socket[];
@@ -35,6 +36,12 @@ export type JwtClaims = {
   guestId?: string;
   userId?: string;
   iat: number;
+};
+
+export type FastifyReplyError = {
+  error: string;
+  message: string;
+  statusCode: string;
 };
 
 export type SocketResponse<T = string> = {

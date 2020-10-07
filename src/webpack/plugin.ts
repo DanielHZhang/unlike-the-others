@@ -5,12 +5,17 @@ import WebpackDevMiddleware from 'webpack-dev-middleware';
 import WebpackHotMiddleware from 'webpack-hot-middleware';
 import {ROOT_URL} from 'src/shared/constants';
 import {FASTIFY_SEM_VER} from 'src/server/config/constants';
+import {createFastifyPlugin} from 'src/server/plugins';
 
-const DECORATOR_KEY = 'webpackHmrMiddleware';
+const decoratorKey = 'webpackHmr';
+
+export const samePlugin = createFastifyPlugin('webpackHmr', async (fastify, options) => {
+
+});
 
 export const webpackHmrPlugin = fp(
   async (fastify) => {
-    if (fastify.hasDecorator(DECORATOR_KEY)) {
+    if (fastify.hasDecorator(decoratorKey)) {
       throw new Error('Webpack HMR plugin has already been registered.');
     }
     fastify.log.info('Building client...');
@@ -34,7 +39,7 @@ export const webpackHmrPlugin = fp(
 
     // Shut down dev middleware on close
     fastify.addHook('onClose', (_, next) => devMiddleware.close(next));
-    fastify.decorate(DECORATOR_KEY, Symbol.for(DECORATOR_KEY));
+    fastify.decorate(decoratorKey, Symbol.for(decoratorKey));
   },
   {
     fastify: FASTIFY_SEM_VER,

@@ -1,4 +1,4 @@
-import Axios from 'axios';
+import Axios, {AxiosError} from 'axios';
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
@@ -7,6 +7,11 @@ import {atoms} from 'src/client/store';
 import {Button, Input, Modal, Stack} from 'src/client/components/base';
 import {BackgroundParticles} from 'src/client/components/particles';
 import {StorageKeys} from 'src/client/config/constants';
+import type {FastifyReplyError} from 'src/shared/types';
+
+function isAxiosError(error: any): error is Required<AxiosError<FastifyReplyError>> {
+  return error.isAxiosError && error.response && error.response.data;
+}
 
 const Layout = styled.div`
   background: black;
@@ -56,6 +61,7 @@ export const HomePage = (props: Props) => {
   const [state, setState] = useState({
     joining: false,
     errorModalVisible: false,
+    errorModalText: '',
     loadingCreate: false,
     loadingJoin: false,
   });
@@ -67,21 +73,27 @@ export const HomePage = (props: Props) => {
       props.history.push('/game');
     } catch (error) {
       console.error(error);
-      setState({...state, errorModalVisible: true});
+      if (isAxiosError(error)) {
+        setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
+      } else {
+        console.error(error);
+      }
     }
   };
 
   const onCreateClick = async () => {
     try {
       setState({...state, loadingCreate: true});
-      const {data: roomId} = await Axios.post('/api/room/create');
-      await Axios.post(`/api/room/${room.id}/join`);
+      const {data: roomId} = await Axios.post<string>('/api/room/create');
+      await Axios.post(`/api/room/${roomId}/join`);
       setRoom({id: roomId});
       props.history.push('/game');
     } catch (error) {
-      // console.log(JSON.stringify(error, null, 2));
-      console.log(error.response);
-      setState({...state, errorModalVisible: true});
+      if (isAxiosError(error)) {
+        setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
+      } else {
+        console.error(error);
+      }
     }
   };
 
@@ -132,7 +144,7 @@ export const HomePage = (props: Props) => {
           visible={state.errorModalVisible}
           onVisibleChange={(visible) => setState({...state, errorModalVisible: visible})}
         >
-          <ModalText>There is no active game with that code!</ModalText>
+          <ModalText>{state.errorModalText}</ModalText>
         </Modal>
       </Container>
     </Layout>

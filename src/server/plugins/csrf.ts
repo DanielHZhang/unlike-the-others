@@ -1,50 +1,50 @@
-import fp from 'fastify-plugin';
-import {FastifyPluginCallback, FastifyRequest} from 'fastify';
+import {FastifyRequest} from 'fastify';
 import {CsrfTokenizer} from 'src/server/utils/csrf';
+import {createFastifyPlugin} from 'src/server/plugins';
 import {IS_PRODUCTION_ENV} from 'src/shared/constants';
-import {CookieKeys, FASTIFY_SEM_VER} from 'src/server/config/constants';
+import {CookieKeys} from 'src/server/config/constants';
 
-const plugin: FastifyPluginCallback = (fastify, options, next) => {
-  const ignoreMethods = ['GET', 'HEAD', 'OPTIONS'];
-  const tokenizer = new CsrfTokenizer();
+export const csrfPlugin = createFastifyPlugin(
+  'csrf',
+  (fastify) => {
+    const ignoreMethods = ['GET', 'HEAD', 'OPTIONS'];
+    const tokenizer = new CsrfTokenizer();
 
-  fastify.addHook('preHandler', async (request, reply) => {
-    // Ignore methods which do not modify data on the server
-    if (ignoreMethods.includes(request.raw.method!)) {
-      return;
-    }
+    fastify.addHook('preHandler', async (request, reply) => {
+      // Ignore methods which do not modify data on the server
+      if (ignoreMethods.includes(request.raw.method!)) {
+        return;
+      }
 
-    let secret = request.cookies[CookieKeys.Csrf];
+      let secret = request.cookies[CookieKeys.Csrf];
 
-    if (!secret) {
-      secret = await tokenizer.secret();
-      request.cookies[CookieKeys.Csrf] = secret;
-      reply.setCookie(CookieKeys.Csrf, secret, {
-        path: '/',
-        sameSite: 'strict',
-        secure: IS_PRODUCTION_ENV,
-      });
-    }
+      if (!secret) {
+        secret = await tokenizer.secret();
+        request.cookies[CookieKeys.Csrf] = secret;
+        reply.setCookie(CookieKeys.Csrf, secret, {
+          path: '/',
+          sameSite: 'strict',
+          secure: IS_PRODUCTION_ENV,
+        });
+      }
 
-    const token = request.headers['x-csrf-token'];
+      const token = request.headers['x-csrf-token'];
 
-    if (typeof token !== 'string' || !tokenizer.verify(secret, token)) {
-      // Bad token, do not proceed to route handler
-      reply.status(400);
-      throw new Error('Invalid CSRF token provided.');
-    }
-  });
+      if (typeof token !== 'string' || !tokenizer.verify(secret, token)) {
+        // Bad token, do not proceed to route handler
+        reply.status(400);
+        throw new Error('Invalid CSRF token provided.');
+      }
+    });
 
-  fastify.decorateRequest('generateCsrfToken', function (this: FastifyRequest) {
-    const secret = this.cookies[CookieKeys.Csrf];
-    return tokenizer.create(secret);
-  });
+    fastify.decorateRequest('generateCsrfToken', function (this: FastifyRequest) {
+      const secret = this.cookies[CookieKeys.Csrf];
+      return tokenizer.create(secret);
+    });
 
-  next();
-};
-
-export const csrf = fp(plugin, {
-  fastify: FASTIFY_SEM_VER,
-  name: 'fastify-csrf',
-  dependencies: ['fastify-cookie'],
-});
+    // next();
+  },
+  {
+    dependencies: ['fastify-cookie'],
+  }
+);

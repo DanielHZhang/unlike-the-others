@@ -1,18 +1,23 @@
 import WebSocket from 'ws';
-import fp from 'fastify-plugin';
-import {FastifyInstance, FastifyPluginCallback} from 'fastify';
-import {FASTIFY_SEM_VER} from 'src/server/config/constants';
+import {createFastifyPlugin} from 'src/server/plugins';
 import {connectionHandler} from 'src/server/services/sockets';
 
-const DECORATOR_KEY: Partial<keyof FastifyInstance> = 'websocket';
-const HEARTBEAT_INTERVAL = 30; // Number of seconds between heartbeat messages
+type Options = {
+  /** Number of seconds between ping-pong messages. */
+  heartbeatInterval: number;
+  /** URL path where the websocket server will be served.  */
+  path: string;
+};
 
-const plugin: FastifyPluginCallback = (fastify, options, next) => {
-  if (fastify.hasDecorator(DECORATOR_KEY)) {
-    throw new Error('Websocket plugin has already been registered.');
+export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastify, options) => {
+  if (typeof options.heartbeatInterval !== 'number') {
+    throw new Error('Missing heartbeat interval.');
+  }
+  if (typeof options.path !== 'number') {
+    throw new Error('Missing path.');
   }
 
-  const wss = new WebSocket.Server({server: fastify.server, path: '/sock'});
+  const wss = new WebSocket.Server({server: fastify.server, path: options.path});
 
   fastify.server.on('upgrade', (request, socket, head) => {
     console.log('what are these arguments:', request, socket, head);
@@ -21,7 +26,7 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
     });
   });
 
-  fastify.decorate(DECORATOR_KEY, {server: wss, clients: []});
+  fastify.decorate('websocket', {server: wss, clients: []});
   fastify.addHook('onClose', (_, done) => wss.close(done));
 
   const interval = setInterval(() => {
@@ -38,7 +43,7 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
         clients.splice(i, 1);
       }
     }
-  }, HEARTBEAT_INTERVAL * 1000);
+  }, options.heartbeatInterval * 1000);
 
   wss.on('connection', connectionHandler(fastify));
   wss.on('close', () => {
@@ -47,10 +52,5 @@ const plugin: FastifyPluginCallback = (fastify, options, next) => {
     fastify.log.info('Closing websocket server.');
   });
 
-  next();
-};
-
-export const websocket = fp(plugin, {
-  fastify: FASTIFY_SEM_VER,
-  name: 'fastify-websocket',
+  // next();
 });
