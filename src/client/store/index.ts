@@ -3,13 +3,9 @@ import {StorageKeys} from 'src/client/config/constants';
 import {GameControls} from 'src/shared/types';
 
 export const atoms = {
-  userId: atom({
-    key: 'userId',
-    default: localStorage.getItem(StorageKeys.Id) || '',
-  }),
   username: atom({
     key: 'username',
-    default: localStorage.getItem(StorageKeys.Name) || '',
+    default: localStorage.getItem(StorageKeys.Username) || '',
   }),
   room: atom({
     key: 'room',

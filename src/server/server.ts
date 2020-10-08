@@ -63,11 +63,7 @@ export async function main(argv: string[]) {
       reply.sendFile('index.html', BUILD_FOLDER_PATH);
     });
 
-    app.listen(PORT, (error, address) => {
-      if (error) {
-        throw error;
-      }
-    });
+    app.listen(PORT);
 
     if (IS_PRODUCTION_ENV) {
       process.on('SIGTERM', () => {

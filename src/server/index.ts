@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -15,6 +16,7 @@ import path from 'path';
 
   // Extend dayjs functionality
   dayjs.extend(relativeTime);
+  dayjs.extend(duration);
 
   // Run anything that is required before the server is started here
   const {main} = await import('src/server/server');
