@@ -47,6 +47,7 @@
   ],
   "include": [
     "scripts/**/*",
-    "src/**/*"
+    "src/**/*",
+    "index.js"
   ]
 }

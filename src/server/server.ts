@@ -9,7 +9,7 @@ import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constant
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
 
-export async function main() {
+export async function main(argv: string[]) {
   const app = fastify({
     disableRequestLogging: true,
     logger: pino({
@@ -22,6 +22,9 @@ export async function main() {
   });
 
   try {
+    await prisma.$connect();
+    app.log.info(`Connected to database at ${process.env.DB_ENDPOINT}`);
+
     // Configure hot reloading for dev environments
     if (!IS_PRODUCTION_ENV) {
       // Require dev imports asyncronously to avoid bloating production bundle
@@ -82,5 +85,3 @@ export async function main() {
     process.exit(1);
   }
 }
-
-main();

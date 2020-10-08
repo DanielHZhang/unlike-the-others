@@ -54,7 +54,7 @@ export const config: webpack.Configuration = {
     plugins: [new TsconfigPathsPlugin({configFile: path.join(process.cwd(), 'tsconfig.json')})],
   },
   plugins: [
-    new ProgressWebpackPlugin(),
+    new ProgressWebpackPlugin({logTotalDuration: false}),
     new webpack.DllReferencePlugin({context: process.cwd(), manifest: require(VENDOR_JSON_PATH)}),
     new webpack.EnvironmentPlugin(['NODE_ENV']),
     new webpack.HotModuleReplacementPlugin(),

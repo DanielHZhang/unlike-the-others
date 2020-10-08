@@ -11,9 +11,9 @@
   "license": "MIT",
   "private": "true",
   "scripts": {
-    "build": "ts-node -T src/webpack/deploy.ts",
+    "build": "ts-node -T scripts/deploy.ts",
     "build:dll": "ts-node -T scripts/build-dll.ts",
-    "start": "nodemon src/server/index.js"
+    "start": "nodemon index.js"
   },
   "dependencies": {
     "@emotion/cache": "^11.0.0-next.13",
@@ -26,6 +26,7 @@
     "@prisma/client": "^2.7.1",
     "@supersede/box2d": "^2.3.3",
     "axios": "^0.20.0",
+    "dayjs": "^1.9.1",
     "dotenv": "^8.2.0",
     "fastify": "^3.4.1",
     "fastify-cookie": "^4.1.0",
@@ -56,7 +57,7 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/preset-typescript": "^7.10.4",
     "@prisma/cli": "^2.7.1",
-    "@supersede/progress-webpack-plugin": "^1.0.3",
+    "@supersede/progress-webpack-plugin": "^1.1.0",
     "@types/mini-css-extract-plugin": "^0.9.1",
     "@types/nanoid": "^2.1.0",
     "@types/node": "^14.6.2",
