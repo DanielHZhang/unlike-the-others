@@ -1,6 +1,10 @@
+import url from 'url';
 import WebSocket from 'ws';
+import type {Socket} from 'net';
+import type {IncomingMessage} from 'http';
 import {createFastifyPlugin} from 'src/server/plugins';
 import {tcpConnectionHandler} from 'src/server/services/sockets';
+import {verifyJwt} from 'src/server/config/keys';
 
 type Options = {
   /** Number of seconds between ping-pong messages. */
@@ -17,13 +21,28 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
     throw new Error('Missing path.');
   }
 
-  const wss = new WebSocket.Server({server: fastify.server, path: options.path});
+  const wss = new WebSocket.Server({
+    path: options.path,
+    noServer: true,
+  });
 
-  fastify.server.on('upgrade', (request, socket, head) => {
-    console.log('what are these arguments:', request, socket, head);
-    wss.handleUpgrade(request, socket, head, (socket) => {
-      wss.emit('connection', socket, request /* , ...args */);
-    });
+  fastify.server.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
+    try {
+      if (!request.url) {
+        throw 400;
+      }
+      const {query} = url.parse(request.url, true);
+      if (typeof query.token !== 'string') {
+        throw 400;
+      }
+
+      const claims = verifyJwt('access', query.token);
+      wss.handleUpgrade(request, socket, head, (socket) => {
+        wss.emit('connection', socket, request, claims);
+      });
+    } catch (error) {
+      socket.destroy();
+    }
   });
 
   fastify.decorate('websocket', {server: wss, clients: []});
@@ -51,6 +70,4 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
     wss.clients.forEach((client) => client.close());
     fastify.log.info('Closing websocket server.');
   });
-
-  // next();
 });

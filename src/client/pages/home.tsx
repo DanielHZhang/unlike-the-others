@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
 import {RouteComponentProps} from 'react-router-dom';
 import {atoms} from 'src/client/store';
-import {Button, Flex, Input, Modal, Stack} from 'src/client/components/base';
+import {Button, Divider, Flex, Input, Modal, Stack} from 'src/client/components/base';
 import {BackgroundParticles} from 'src/client/components/particles';
 import {StorageKeys} from 'src/client/config/constants';
 import type {FastifyReplyError} from 'src/shared/types';
@@ -143,7 +143,7 @@ export const HomePage = (props: Props) => {
     }
   };
 
-  if (true /* state.createUsername */) {
+  if (!state.hasUsername) {
     return (
       <Layout>
         <TopBar />
@@ -160,16 +160,23 @@ export const HomePage = (props: Props) => {
               />
               {username && (
                 <InputButtonWrapper>
-                  <Button onClick={() => {
-                    localStorage.setItem(StorageKeys.Username, username);
-                    setState({...state, hasUsername: true});
-                  }}>
+                  <Button
+                    onClick={() => {
+                      localStorage.setItem(StorageKeys.Username, username);
+                      setState({...state, hasUsername: true});
+                    }}
+                  >
                     <ArrowRight />
                   </Button>
                 </InputButtonWrapper>
               )}
             </InputWrapper>
           </HeroWrapper>
+          <Flex flow='column' crossAxis='center'>
+            <Divider>OR</Divider>
+            <div>Sign Up</div>
+            <div>Login</div>
+          </Flex>
         </Container>
       </Layout>
     );

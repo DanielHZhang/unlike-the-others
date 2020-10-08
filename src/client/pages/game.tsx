@@ -22,25 +22,25 @@ export const GamePage = (props: Props) => {
   useAsyncEffect(async () => {
     const socket = new ClientSocket();
     await socket.isReady();
-    socket.emit('authenticate', {
-      roomId: room.id,
-      jwt: Axios.defaults.headers.common.authorization,
-    });
-    socket.on('authenticate-reply', (data, status) => {
-      if (status === 200) {
-        // Connect to UDP channel only after successful TCP socket authentication
-        channel.onConnect((error) => {
-          if (error) {
-            console.error(error);
-          } else {
-            setState({...state, loading: false});
-          }
-        });
-      } else {
-        // Authentication failed, redirect back to homepage
-        props.history.push('/');
-      }
-    });
+    // socket.emit('authenticate', {
+    //   roomId: room.id,
+    //   jwt: Axios.defaults.headers.common.authorization,
+    // });
+    // socket.on('authenticate-reply', (data, status) => {
+    //   if (status === 200) {
+    //     // Connect to UDP channel only after successful TCP socket authentication
+    //     channel.onConnect((error) => {
+    //       if (error) {
+    //         console.error(error);
+    //       } else {
+    //         setState({...state, loading: false});
+    //       }
+    //     });
+    //   } else {
+    //     // Authentication failed, redirect back to homepage
+    //     props.history.push('/');
+    //   }
+    // });
 
     // Dispose of the socket on page unmount
     return () => {

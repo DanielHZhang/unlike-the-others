@@ -41,8 +41,6 @@ export const csrfPlugin = createFastifyPlugin(
       const secret = this.cookies[CookieKeys.Csrf];
       return tokenizer.create(secret);
     });
-
-    // next();
   },
   {
     dependencies: ['fastify-cookie'],

@@ -55,7 +55,7 @@ export async function main(argv: string[]) {
     // Register plugins
     app.register(cookiePlugin);
     app.register(csrfPlugin);
-    app.register(websocketPlugin, {path: '/sock', heartbeatInterval: 30});
+    app.register(websocketPlugin, {path: '/ws', heartbeatInterval: 30});
     app.register(webrtcPlugin);
     app.register(jwtAuthPlugin);
     app.register(apiRoutes, {prefix: '/api'});

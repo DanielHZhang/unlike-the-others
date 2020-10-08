@@ -1,3 +1,4 @@
+import Axios from 'axios';
 import {AbstractSocket} from 'src/shared/abstract-socket';
 import {ROOT_URL} from 'src/shared/constants';
 import {AnyFunction} from 'src/shared/types';
@@ -6,7 +7,8 @@ export class ClientSocket extends AbstractSocket<WebSocket> {
   private ready: Promise<boolean>;
 
   public constructor() {
-    super(new WebSocket(`ws://${ROOT_URL}/sock`));
+    const token = Axios.defaults.headers.common.authorization;
+    super(new WebSocket(`ws://${ROOT_URL}/ws?token=${token}`));
 
     this.ready = new Promise((resolve, reject) => {
       this.connection.onopen = () => {

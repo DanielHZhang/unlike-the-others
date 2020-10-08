@@ -5,6 +5,7 @@ import {GameRoom, Player} from 'src/server/store';
 import {Socket} from 'src/server/services/sockets';
 import {AudioChannel} from 'src/server/config/constants';
 import {verifyJwt} from 'src/server/config/keys';
+import {JwtClaims} from 'src/shared/types';
 
 const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
   if (typeof value !== 'object') {
@@ -24,37 +25,39 @@ const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): v
  */
 export const tcpConnectionHandler = (fastify: FastifyInstance) => (
   raw: WebSocket,
-  msg: IncomingMessage
+  msg: IncomingMessage,
+  claims: Required<JwtClaims>
 ) => {
   if (msg.aborted || msg.destroyed) {
     return;
   }
+
+  const playerId = claims.guestId || claims.userId;
+  const foundPlayer = Player.getById(playerId);
+
+  if (!foundPlayer || !foundPlayer.roomId || !GameRoom.getById(foundPlayer.roomId)) {
+    // No player exists (/room/:id/join not called) or no room exists
+    return raw.terminate();
+  }
+
   const socket = new Socket(raw);
+  socket.player = foundPlayer;
+
   fastify.websocket.clients.push(socket);
+  fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
 
-  /** Handle JWT authentication */
-  socket.on('authenticate', (data) => {
-    console.log('received data:', data);
-    try {
-      if (!isPayloadValid(data, {jwt: '', roomId: ''})) {
-        throw 'Bad JWT.';
-      }
-
-      const claims = verifyJwt('access', data.jwt);
-      const playerId = claims.guestId || claims.userId;
-      const foundPlayer = Player.getById(playerId);
-
-      if (!foundPlayer || !foundPlayer.roomId) {
-        throw 'No room exists';
-      }
-
-      socket.player = foundPlayer;
-      fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
-      socket.emit('authenticate-reply', true);
-    } catch (error) {
-      socket.emit('authenticate-reply', 'No room exists', 404);
-    }
-  });
+  // /** Handle JWT authentication */
+  // socket.on('authenticate', (data) => {
+  //   try {
+  //     if (!isPayloadValid(data, {jwt: '', roomId: ''})) {
+  //       throw 'Bad JWT.';
+  //     }
+  //     const claims = verifyJwt('access', data.jwt);
+  //     socket.emit('authenticate-reply', true);
+  //   } catch (error) {
+  //     socket.emit('authenticate-reply', 'No room exists', 404);
+  //   }
+  // });
 
   /** Handle socket disconnect */
   socket.on('close', (code, reason) => {

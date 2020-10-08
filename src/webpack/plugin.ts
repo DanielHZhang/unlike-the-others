@@ -23,16 +23,12 @@ export const webpackHmrPlugin = createFastifyPlugin('webpackHmr', async (fastify
   // Set up webpack-hot-middleware
   const hotMiddleware = WebpackHotMiddleware(compiler, {
     log: (original: string) => {
-      const isBuilding = original.includes('building');
-      if (isBuilding) {
-        // Original message is "webpack building..."
-        process.stdout.write('Webpack building hot update ...\r');
-      } else {
-        // Original message is "webpack built {hash} in {time}ms"
+      // Original message is "webpack built {hash} in {time}ms"
+      if (original.includes('built')) {
         const message = original.split(' ');
         const hash = message[2];
         const milliseconds = parseInt(message[4].slice(0, -2), 10);
-        const seconds = date.duration(milliseconds).asSeconds();
+        const seconds = date.duration(milliseconds).asSeconds().toFixed(3);
         fastify.log.info(`Webpack built ${hash} in ${seconds} seconds.`);
       }
     },
