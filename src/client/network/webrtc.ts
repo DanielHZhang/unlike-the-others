@@ -3,14 +3,14 @@ import {StorageKeys} from 'src/client/config/constants';
 import {ActionInput, GECKOS_LABEL, PORT} from 'src/shared/constants';
 
 export const channel = geckos({
-  authorization: localStorage.getItem(StorageKeys.Jwt) || '',
+  // authorization: localStorage.getItem(StorageKeys.Jwt) || '',
   label: GECKOS_LABEL,
   port: PORT,
 });
 
-window.addEventListener('beforeunload', () => {
-  channel.close(); // Close the channel on page navigation or reload
-});
+// window.addEventListener('beforeunload', () => {
+//   channel.close(); // Close the channel on page navigation or reload
+// });
 
 class BufferEncoder {
   public buffer = new ArrayBuffer(7);

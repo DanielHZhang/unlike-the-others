@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import {channel} from 'src/client/networking/udp';
+import {channel} from 'src/client/network/webrtc';
 
 const myPosition = {x: 0, y: 0};
 const gameState = {

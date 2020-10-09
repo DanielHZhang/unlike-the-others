@@ -1,6 +1,6 @@
 import type Peer from 'peerjs';
 import type {Server} from 'ws';
-import type {Socket} from 'src/server/services/sockets';
+import type {ServerSocket} from 'src/server/services/sockets';
 
 declare module 'peerjs' {
   export namespace peerjs {
@@ -18,7 +18,7 @@ declare module 'fastify' {
   export interface FastifyInstance {
     websocket: {
       server: Server;
-      clients: Socket[];
+      clients: ServerSocket[];
     };
   }
 }

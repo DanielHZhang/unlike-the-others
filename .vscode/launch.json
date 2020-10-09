@@ -2,15 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Program",
-      "program": "${workspaceFolder}/test.js",
-      "request": "launch",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "type": "pwa-node"
-    },
-    {
       "name": "Start Server",
       "console": "integratedTerminal",
       "env": {
@@ -18,7 +9,7 @@
       },
       "autoAttachChildProcesses": false,
       "outputCapture": "std",
-      "program": "${workspaceFolder}/src/server/index.js",
+      "program": "${workspaceFolder}/index.js",
       "request": "launch",
       "restart": true,
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/nodemon",

@@ -1,11 +1,15 @@
 import Axios from 'axios';
-import React, {FC} from 'react';
+import React from 'react';
 import {hot} from 'react-hot-loader/root';
 import {Switch, Route} from 'react-router-dom';
+import {useSetRecoilState} from 'recoil';
 import {routes} from 'src/client/routes';
+import {atoms} from 'src/client/store';
 import {useAsyncEffect} from 'src/client/utils/hooks';
 
-const App: FC = (props) => {
+const App = () => {
+  const setAccessToken = useSetRecoilState(atoms.accessToken);
+
   useAsyncEffect(async () => {
     const [access, csrf] = await Promise.allSettled([
       Axios.get('/api/auth/access'),
@@ -15,6 +19,7 @@ const App: FC = (props) => {
     if (access.status === 'fulfilled') {
       const {data: accessToken} = access.value;
       headers.common.authorization = accessToken;
+      setAccessToken(accessToken);
     }
     if (csrf.status === 'fulfilled') {
       const {data: csrfToken} = csrf.value;

@@ -3,6 +3,10 @@ import {StorageKeys} from 'src/client/config/constants';
 import {GameControls} from 'src/shared/types';
 
 export const atoms = {
+  accessToken: atom({
+    key: 'accessToken',
+    default: '',
+  }),
   username: atom({
     key: 'username',
     default: localStorage.getItem(StorageKeys.Username) || '',

@@ -1,4 +1,4 @@
-import Axios, {AxiosError} from 'axios';
+import Axios from 'axios';
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
@@ -7,20 +7,9 @@ import {atoms} from 'src/client/store';
 import {Button, Divider, Flex, Input, Modal, Stack} from 'src/client/components/base';
 import {BackgroundParticles} from 'src/client/components/particles';
 import {StorageKeys} from 'src/client/config/constants';
-import type {FastifyReplyError} from 'src/shared/types';
-import {Icon} from 'src/client/components/icons';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
-
-function isAxiosError(error: any): error is Required<AxiosError<FastifyReplyError>> {
-  return error.isAxiosError && error.response && error.response.data;
-}
-
-const Layout = styled.div`
-  background: black;
-  height: 100%;
-  position: relative;
-  z-index: 0; /* Allow tsparticles to appear with z-index -1 */
-`;
+import {isAxiosError} from 'src/client/utils/axios';
+import {Layout} from 'src/client/components/layout';
 
 const Container = styled.div`
   background-color: transparent;

@@ -1,6 +1,6 @@
 import React, {Component, createRef, RefObject} from 'react';
 import Peer, {peerjs} from 'peerjs';
-import {socket} from 'src/client/networking/tcp';
+import {socket} from 'src/client/network/socket';
 
 type AudioStream = {
   reactRef: RefObject<HTMLAudioElement>;

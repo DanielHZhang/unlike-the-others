@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
-import {Socket} from 'src/server/services/sockets';
+import {ServerSocket} from 'src/server/services/sockets';
 import {AudioChannel} from 'src/server/config/constants';
 import {verifyJwt} from 'src/server/config/keys';
 import {JwtClaims} from 'src/shared/types';
@@ -31,16 +31,14 @@ export const tcpConnectionHandler = (fastify: FastifyInstance) => (
   if (msg.aborted || msg.destroyed) {
     return;
   }
-
-  const playerId = claims.guestId || claims.userId;
-  const foundPlayer = Player.getById(playerId);
+  const foundPlayer = Player.getById(claims.guestId || claims.userId);
 
   if (!foundPlayer || !foundPlayer.roomId || !GameRoom.getById(foundPlayer.roomId)) {
     // No player exists (/room/:id/join not called) or no room exists
-    return raw.terminate();
+    return raw.close();
   }
 
-  const socket = new Socket(raw);
+  const socket = new ServerSocket(raw);
   socket.player = foundPlayer;
 
   fastify.websocket.clients.push(socket);

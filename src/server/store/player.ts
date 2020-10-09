@@ -1,6 +1,6 @@
 import Box2d from '@supersede/box2d';
 import {ServerChannel} from '@geckos.io/server';
-import {Socket} from 'src/server/services/sockets';
+import {ServerSocket} from 'src/server/services/sockets';
 import type {BufferInputData, InputData} from 'src/shared/types';
 
 export class Player {
@@ -15,7 +15,7 @@ export class Player {
   public uiid?: number; // Unsigned integer id
   public audioId?: string;
   public roomId?: string;
-  public socket?: Socket;
+  public socket?: ServerSocket;
   public channel?: ServerChannel;
   public active = false;
   public body?: Box2d.b2Body;

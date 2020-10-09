@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
 import {Input} from 'src/client/components/base';
-import {socket} from 'src/client/networking/tcp';
-import {useDidMount} from 'src/client/utils/hooks';
+import {useDidMount} from 'src/client/hooks';
 import {ChatBubble} from 'src/client/components/chatbox/bubble';
 
 const Wrapper = styled.div`

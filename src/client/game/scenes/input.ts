@@ -1,5 +1,5 @@
 import Box2d from '@supersede/box2d';
-import {channel} from 'src/client/networking/udp';
+import {channel} from 'src/client/network/webrtc';
 import {inputModel} from 'src/shared/buffer-schema';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData, BufferSnapshotData} from 'src/shared/types';

@@ -1,23 +1,22 @@
 import WebSocket from 'ws';
-import {AbstractSocket} from 'src/shared/abstract-socket';
 import {Player} from 'src/server/store';
+import type {AnyFunction} from 'src/shared/types';
 
-export class Socket extends AbstractSocket<WebSocket> {
+export class ServerSocket {
+  /**
+   * Max message size of 1 MB.
+   * 1 UTF-16 character = 16 bits = 2 bytes
+   * 500k characters = 1 MB
+   */
+  private static readonly MAX_MESSAGE_SIZE = 5e5;
+  private connection: WebSocket;
+  private listeners = new Map<string, AnyFunction[]>();
   private playerRef?: Player;
   private isDisposed = false;
   public isAlive = true;
 
-  public get player() {
-    return this.playerRef as Player;
-  }
-
-  public set player(newPlayer: Player) {
-    newPlayer.socket = this;
-    this.playerRef = newPlayer;
-  }
-
   public constructor(socket: WebSocket) {
-    super(socket);
+    this.connection = socket;
 
     // Handle client-server heartbeat
     this.connection.on('pong', () => {
@@ -27,7 +26,7 @@ export class Socket extends AbstractSocket<WebSocket> {
     // Handle messages received from the client
     this.connection.on('message', (data) => {
       // Only process string data messages
-      if (typeof data === 'string' && data.length < Socket.MAX_MESSAGE_SIZE) {
+      if (typeof data === 'string' && data.length < ServerSocket.MAX_MESSAGE_SIZE) {
         const json = JSON.parse(data);
         if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
           throw new Error('Improperly formatted socket message.');
@@ -35,6 +34,15 @@ export class Socket extends AbstractSocket<WebSocket> {
         this.dispatch(json[0], json[1]);
       }
     });
+  }
+
+  public get player() {
+    return this.playerRef as Player;
+  }
+
+  public set player(newPlayer: Player) {
+    newPlayer.socket = this;
+    this.playerRef = newPlayer;
   }
 
   public on(eventName: 'close', callback: (code: number, reason: string) => void): void;
@@ -51,7 +59,12 @@ export class Socket extends AbstractSocket<WebSocket> {
         return;
       }
       default: {
-        super.on(eventName, callback);
+        const handlers = this.listeners.get(eventName);
+        if (handlers) {
+          handlers.push(callback);
+        } else {
+          this.listeners.set(eventName, [callback]);
+        }
       }
     }
   }
@@ -80,6 +93,13 @@ export class Socket extends AbstractSocket<WebSocket> {
   public ping() {
     this.isAlive = false;
     this.connection.ping();
+  }
+
+  private dispatch(eventName: string, ...dataArgs: any[]) {
+    const handlers = this.listeners.get(eventName);
+    if (handlers) {
+      handlers.forEach((handler) => handler(...dataArgs));
+    }
   }
 }
 

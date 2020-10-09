@@ -1,59 +1,53 @@
 import Axios from 'axios';
-import React, {useState} from 'react';
-import {Redirect, RouteComponentProps} from 'react-router-dom';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import React, {useEffect, useState} from 'react';
+import {RouteComponentProps} from 'react-router-dom';
+import {useRecoilValue} from 'recoil';
 import {AudioCall} from 'src/client/components/audio-call';
-import {Button} from 'src/client/components/base/button';
-import {Stack} from 'src/client/components/base/stack';
 import {GameWindow} from 'src/client/game';
-import {ClientSocket} from 'src/client/networking/tcp';
+import {socket} from 'src/client/network/socket';
 import {atoms} from 'src/client/store';
-import {useAsyncEffect, useDidMount} from 'src/client/utils/hooks';
 import {Chatbox} from 'src/client/components/chatbox';
-import {channel} from 'src/client/networking/udp';
+import {channel} from 'src/client/network/webrtc';
 import {FingerprintSpinner} from 'src/client/components/spinner';
+import {useDidMount} from 'src/client/hooks';
+import {Layout} from 'src/client/components/layout';
 
 type Props = RouteComponentProps<any> & {};
 
 export const GamePage = (props: Props) => {
+  const accessToken = useRecoilValue(atoms.accessToken);
   const [state, setState] = useState({loading: true, errorModalVisible: false});
-  const room = useRecoilValue(atoms.room);
 
-  useAsyncEffect(async () => {
-    const socket = new ClientSocket();
-    await socket.isReady();
-    // socket.emit('authenticate', {
-    //   roomId: room.id,
-    //   jwt: Axios.defaults.headers.common.authorization,
-    // });
-    // socket.on('authenticate-reply', (data, status) => {
-    //   if (status === 200) {
-    //     // Connect to UDP channel only after successful TCP socket authentication
-    //     channel.onConnect((error) => {
-    //       if (error) {
-    //         console.error(error);
-    //       } else {
-    //         setState({...state, loading: false});
-    //       }
-    //     });
-    //   } else {
-    //     // Authentication failed, redirect back to homepage
-    //     props.history.push('/');
-    //   }
-    // });
+  useEffect(() => {
+    if (!accessToken || socket.isConnected()) {
+      return;
+    }
+    socket.onConnect(accessToken, (error) => {
+      if (error) {
+        // Authentication failed, redirect back to homepage
+        return props.history.push('/');
+      }
+      // Connect to UDP channel only after successful TCP socket authentication
+      channel.onConnect((error) => {
+        if (error) {
+          console.error(error);
+        } else {
+          setState({...state, loading: false});
+        }
+      });
+    });
 
-    // Dispose of the socket on page unmount
     return () => {
-      socket.dispose();
+      socket.dispose(); // Dispose of the socket on page unmount
     };
-  }, []);
+  }, [accessToken]);
 
   if (true /* state.loading */) {
     return (
-      <div>
-        <FingerprintSpinner color='#000' />
+      <Layout>
+        <FingerprintSpinner color='#fff' />
         Loading...
-      </div>
+      </Layout>
     );
   }
   if (state.errorModalVisible) {
