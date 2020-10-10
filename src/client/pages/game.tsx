@@ -18,35 +18,37 @@ export const GamePage = (props: Props) => {
   const accessToken = useRecoilValue(atoms.accessToken);
   const [state, setState] = useState({loading: true, errorModalVisible: false});
 
-  useEffect(() => {
-    if (!accessToken || socket.isConnected()) {
-      return;
-    }
-    socket.onConnect(accessToken, (error) => {
-      if (error) {
-        // Authentication failed, redirect back to homepage
-        return props.history.push('/');
-      }
-      // Connect to UDP channel only after successful TCP socket authentication
-      channel.onConnect((error) => {
-        if (error) {
-          console.error(error);
-        } else {
-          setState({...state, loading: false});
-        }
-      });
-    });
+  // useEffect(() => {
+  //   if (!accessToken || socket.isConnected()) {
+  //     return;
+  //   }
+  //   socket.onConnect(accessToken, (error) => {
+  //     if (error) {
+  //       // Authentication failed, redirect back to homepage
+  //       return props.history.push('/');
+  //     }
+  //     // Connect to UDP channel only after successful TCP socket authentication
+  //     channel.onConnect((error) => {
+  //       if (error) {
+  //         console.error(error);
+  //       } else {
+  //         setState({...state, loading: false});
+  //       }
+  //     });
+  //   });
 
-    return () => {
-      socket.dispose(); // Dispose of the socket on page unmount
-    };
-  }, [accessToken]);
+  //   return () => {
+  //     socket.dispose(); // Dispose of the socket on page unmount
+  //   };
+  // }, [accessToken]);
 
   if (true /* state.loading */) {
     return (
       <Layout>
-        <FingerprintSpinner color='#fff' />
-        Loading...
+        <div> // this div shoudl center everything
+          <FingerprintSpinner color='#fff' />
+          <div>Loading...</div>
+        </div>
       </Layout>
     );
   }

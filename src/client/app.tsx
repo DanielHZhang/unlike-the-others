@@ -3,9 +3,9 @@ import React from 'react';
 import {hot} from 'react-hot-loader/root';
 import {Switch, Route} from 'react-router-dom';
 import {useSetRecoilState} from 'recoil';
+import {useAsyncEffect} from 'src/client/hooks';
 import {routes} from 'src/client/routes';
 import {atoms} from 'src/client/store';
-import {useAsyncEffect} from 'src/client/utils/hooks';
 
 const App = () => {
   const setAccessToken = useSetRecoilState(atoms.accessToken);

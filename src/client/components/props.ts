@@ -1,7 +1,7 @@
 import isPropValid from '@emotion/is-prop-valid';
 
 const whitelist = ['name'];
-const blacklist = ['flow', 'width', 'spacing', 'loading'];
+const blacklist = ['flow', 'width', 'spacing', 'loading', 'color', 'size'];
 
 export const styledOptions = {
   shouldForwardProp: (prop: string) =>

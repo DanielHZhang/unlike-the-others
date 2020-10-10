@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
+import {Flex} from 'src/client/components/base';
 
-export const Layout = styled.div`
+export const Layout = styled(Flex)`
   background: black;
   color: white;
   height: 100%;

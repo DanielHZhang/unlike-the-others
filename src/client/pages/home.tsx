@@ -11,10 +11,9 @@ import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
 import {isAxiosError} from 'src/client/utils/axios';
 import {Layout} from 'src/client/components/layout';
 
-const Container = styled.div`
+const Container = styled(Flex)`
   background-color: transparent;
   color: #fff;
-  /* height: 100%; */
   margin: 24px;
 `;
 
@@ -37,7 +36,7 @@ const ModalText = styled.div`
 `;
 
 const Title = styled.div`
-  margin: 16px 0;
+  margin: 32px 0;
   text-align: center;
   font-family: Simplifica;
   color: white;
@@ -134,10 +133,10 @@ export const HomePage = (props: Props) => {
 
   if (!state.hasUsername) {
     return (
-      <Layout>
+      <Layout flow='column'>
         <TopBar />
         <Title>UNLIKE the OTHERS</Title>
-        <Container>
+        <Container flow='column' grow={1} mainAxis='center'>
           <HeroWrapper mainAxis='center'>
             <InputWrapper>
               <CustomInput
@@ -162,7 +161,7 @@ export const HomePage = (props: Props) => {
             </InputWrapper>
           </HeroWrapper>
           <Flex flow='column' crossAxis='center'>
-            <Divider>OR</Divider>
+            {/* <Divider>OR</Divider> */}
             <div>Sign Up</div>
             <div>Login</div>
           </Flex>

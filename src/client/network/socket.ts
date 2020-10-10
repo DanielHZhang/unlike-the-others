@@ -15,10 +15,12 @@ export const socket = new (class ClientSocket {
 
     this.connection.onclose = (event) => {
       console.log('Websocket connection closed.', event);
+      this.dispose();
     };
 
     this.connection.onerror = (event) => {
       console.error('Websocket error occured:', event);
+      this.dispose();
     };
 
     this.connection.onmessage = (event) => {
@@ -61,7 +63,9 @@ export const socket = new (class ClientSocket {
 
   public dispose() {
     if (this.connection) {
-      this.connection.close();
+      if (this.isConnected()) {
+        this.connection.close();
+      }
       this.connection = undefined;
       this.listeners.clear();
     }
