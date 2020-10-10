@@ -2,7 +2,7 @@ import Axios from 'axios';
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
 import {useRecoilState} from 'recoil';
-import {RouteComponentProps} from 'react-router-dom';
+import {Link, RouteComponentProps} from 'react-router-dom';
 import {atoms} from 'src/client/store';
 import {Button, Divider, Flex, Input, Modal, Stack} from 'src/client/components/base';
 import {BackgroundParticles} from 'src/client/components/particles';
@@ -10,6 +10,9 @@ import {StorageKeys} from 'src/client/config/constants';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
 import {isAxiosError} from 'src/client/utils/axios';
 import {Layout} from 'src/client/components/layout';
+import {LinkDivider} from 'src/client/components/icons/link-divider';
+import {HomepageLink} from 'src/client/components/link';
+import {ArrowRight} from 'src/client/components/icons';
 
 const Container = styled(Flex)`
   background-color: transparent;
@@ -19,10 +22,6 @@ const Container = styled(Flex)`
 
 const TopBar = styled.div`
   height: 64px;
-`;
-
-const HeroWrapper = styled(Flex)`
-  padding: 48px;
 `;
 
 const BoundedStack = styled(Stack)`
@@ -36,7 +35,7 @@ const ModalText = styled.div`
 `;
 
 const Title = styled.div`
-  margin: 32px 0;
+  margin: 3rem 0;
   text-align: center;
   font-family: Simplifica;
   color: white;
@@ -61,31 +60,6 @@ const CustomInput = styled(Input)`
   height: 50px;
   padding: 1px 50px 1px 11px;
 `;
-
-const ContinueButton = styled(Button)`
-  /* height: 30px;
-  width: 30px;
-  padding: none;
-  right: 5px;
-  top: 5px;
-  z-index: 1; */
-`;
-
-const ArrowRight = ({size = 24, color = '#000000'}) => (
-  <svg
-    xmlns='http://www.w3.org/2000/svg'
-    width={size}
-    height={size}
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke={color}
-    strokeWidth='2'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-  >
-    <path d='M5 12h13M12 5l7 7-7 7' />
-  </svg>
-);
 
 type Props = RouteComponentProps<any> & {};
 
@@ -136,36 +110,37 @@ export const HomePage = (props: Props) => {
       <Layout flow='column'>
         <TopBar />
         <Title>UNLIKE the OTHERS</Title>
-        <Container flow='column' grow={1} mainAxis='center'>
-          <HeroWrapper mainAxis='center'>
-            <InputWrapper>
-              <CustomInput
-                placeholder='What is your name?'
-                onChange={(event) => setUsername(event.target.value)}
-                value={username}
-                maxLength={MAX_USERNAME_LENGTH}
-                width='100%'
-              />
-              {username && (
-                <InputButtonWrapper>
-                  <Button
-                    onClick={() => {
-                      localStorage.setItem(StorageKeys.Username, username);
-                      setState({...state, hasUsername: true});
-                    }}
-                  >
-                    <ArrowRight />
-                  </Button>
-                </InputButtonWrapper>
-              )}
-            </InputWrapper>
-          </HeroWrapper>
-          <Flex flow='column' crossAxis='center'>
-            {/* <Divider>OR</Divider> */}
-            <div>Sign Up</div>
-            <div>Login</div>
-          </Flex>
-        </Container>
+        <Flex mainAxis='center' style={{margin: '10rem 0'}}>
+          <InputWrapper>
+            <CustomInput
+              placeholder='What is your name?'
+              onChange={(event) => setUsername(event.target.value)}
+              // value={username}
+              maxLength={MAX_USERNAME_LENGTH}
+              width='100%'
+            />
+            {username && (
+              <InputButtonWrapper>
+                <Button
+                  onClick={() => {
+                    localStorage.setItem(StorageKeys.Username, username);
+                    setState({...state, hasUsername: true});
+                  }}
+                >
+                  <ArrowRight />
+                </Button>
+              </InputButtonWrapper>
+            )}
+          </InputWrapper>
+        </Flex>
+        {/* <Container flow='column' grow={1} mainAxis='center'> */}
+
+        <Flex flow='column' crossAxis='center' style={{marginBottom: '2rem'}}>
+          <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
+          <LinkDivider />
+          <HomepageLink to='/login'>Login</HomepageLink>
+        </Flex>
+        {/* </Container> */}
       </Layout>
     );
   }
