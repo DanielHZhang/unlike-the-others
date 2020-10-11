@@ -48,13 +48,14 @@ placeholders. Placeholders with the same ids are connected.
     ],
     "description": "Imports react into file"
   },
-  "Jsx pragma": {
+  "Emotion JSX pragma": {
     "scope": "javascriptreact,typescriptreact",
     "prefix": "jsxprag",
     "body": [
-      "/** @jsx jsx */"
+      "/** @jsx jsx */",
+      "import {jsx} from '@emotion/react';"
     ],
-    "description": "Adds jsx pragma comment"
+    "description": "Adds emotion import and jsx pragma comment"
   },
   "Component did mount": {
     "scope": "javascriptreact,typescriptreact",

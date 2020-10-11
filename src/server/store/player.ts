@@ -6,10 +6,11 @@ import type {BufferInputData, InputData} from 'src/shared/types';
 export class Player {
   public static readonly MAX_QUEUE_SIZE = 20;
   private static readonly instances = new Map<string, Player>();
-  private position = {x: 0, y: 0};
+  private inputQueue: BufferInputData[] = [];
   // private jobs: Job[];
   private spy = false;
   private meetingsRemaining = 0;
+  public name = '';
   public alive = true;
   public id: string;
   public uiid?: number; // Unsigned integer id
@@ -19,7 +20,6 @@ export class Player {
   public channel?: ServerChannel;
   public active = false;
   public body?: Box2d.b2Body;
-  private inputQueue: BufferInputData[] = [];
   public lastProcessedInput = 0;
 
   /**

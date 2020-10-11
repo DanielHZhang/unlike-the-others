@@ -1,24 +1,25 @@
 import styled from '@emotion/styled';
 import {css} from '@emotion/react';
+import {styledOptions} from 'src/client/components/props';
 
 type InputProps = {
-  width?: string;
-  height?: string;
   hasError?: boolean;
 };
 
-export const Input = styled('input')<InputProps>(
-  ({theme, hasError, height = '40px', width}) => css`
+export const Input = styled(
+  'input',
+  styledOptions
+)<InputProps>(
+  ({theme, hasError}) => css`
     background-color: #010101;
     border: 2px solid ${theme.borderColor};
     border-radius: 4px;
     color: #fff;
     /* box-shadow: ${hasError && `0 0 0 1.5px ${theme.errorColor}`}; */
-    height: ${height};
+    height: 40px;
     outline: none;
     padding: 1px 11px;
     transition: all 0.2s ease-out;
-    width: ${width};
 
     &::placeholder {
       color: rgb(134, 154, 184);
@@ -38,3 +39,32 @@ export const Input = styled('input')<InputProps>(
     }
   `
 );
+
+// export const Input = styled(
+//   'input',
+//   styledOptions
+// )<InputProps>(({theme, hasError}) => ({
+//   backgroundColor: '#010101',
+//   border: `2px solid ${theme.borderColor}`,
+//   borderRadius: '4px',
+//   color: 'white',
+//   height: '40px',
+//   outline: 'none',
+//   padding: '1px 11px',
+//   transition: 'all 0.2s ease-out',
+//   '&::placeholder': {
+//     color: 'rgb(134, 154, 184)',
+//   },
+//   '&:disabled': {
+//     cursor: 'not-allowed',
+//   },
+//   '&:disabled,&:hover': {
+//     backgroundColor: '#121212',
+//     /* border: 2px solid rgb(233, 236, 240); */
+//   },
+//   '&:focus': {
+//     backgroundColor: 'inherit',
+//     border: 'none',
+//     boxShadow: `0 0 0 1.5px ${hasError ? theme.errorColor : '#a7b9f6'}`,
+//   },
+// }));

@@ -10,12 +10,11 @@ import {Chatbox} from 'src/client/components/chatbox';
 import {channel} from 'src/client/network/webrtc';
 import {FingerprintSpinner} from 'src/client/components/spinner';
 import {useDidMount} from 'src/client/hooks';
-import {Layout} from 'src/client/components/layout';
 
 type Props = RouteComponentProps<any> & {};
 
 export const GamePage = (props: Props) => {
-  const accessToken = useRecoilValue(atoms.accessToken);
+  const {accessToken} = useRecoilValue(atoms.user);
   const [state, setState] = useState({loading: true, errorModalVisible: false});
 
   // useEffect(() => {

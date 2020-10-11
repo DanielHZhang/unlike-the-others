@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import {css} from '@emotion/react';
 import {styledOptions} from 'src/client/components/props';
 
 type Props = {
@@ -18,16 +17,14 @@ type Props = {
 export const Flex = styled(
   'div',
   styledOptions
-)<Props>(
-  ({flow = 'row', grow, shrink, crossAxis, mainAxis, basis, wrap, order}) => css`
-    align-items: ${crossAxis};
-    display: flex;
-    flex-basis: ${basis};
-    flex-flow: ${flow};
-    flex-grow: ${grow};
-    flex-shrink: ${shrink};
-    flex-wrap: ${wrap};
-    justify-content: ${mainAxis};
-    order: ${order};
-  `
-);
+)<Props>(({flow = 'row', grow, shrink, crossAxis, mainAxis, basis, wrap, order}) => ({
+  alignItems: crossAxis,
+  display: 'flex',
+  flexBasis: basis,
+  flexFlow: flow,
+  flexGrow: grow,
+  flexShrink: shrink,
+  flexWrap: wrap,
+  justifyContent: mainAxis,
+  order,
+}));

@@ -1,15 +1,15 @@
 import {atom} from 'recoil';
-import {StorageKeys} from 'src/client/config/constants';
 import {GameControls} from 'src/shared/types';
 
 export const atoms = {
-  accessToken: atom({
-    key: 'accessToken',
-    default: '',
-  }),
-  username: atom({
-    key: 'username',
-    default: localStorage.getItem(StorageKeys.Username) || '',
+  user: atom({
+    key: 'user',
+    default: {
+      accessToken: '',
+      isAuthed: false,
+      isGuest: true,
+      username: '',
+    },
   }),
   room: atom({
     key: 'room',

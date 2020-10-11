@@ -39,7 +39,7 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
         });
       }
       const accessToken = signJwt('access', payload);
-      return accessToken;
+      return {accessToken, isGuest: !!payload.guestId};
     },
   });
 

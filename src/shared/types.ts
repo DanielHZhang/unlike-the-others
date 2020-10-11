@@ -1,6 +1,7 @@
 import type Peer from 'peerjs';
 import type {Server} from 'ws';
 import type {ServerSocket} from 'src/server/services/sockets';
+import type {Interpolation} from '@emotion/react';
 
 declare module 'peerjs' {
   export namespace peerjs {
