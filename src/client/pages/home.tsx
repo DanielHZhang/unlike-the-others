@@ -2,19 +2,19 @@
 import Axios from 'axios';
 import styled from '@emotion/styled';
 import {jsx} from '@emotion/react';
-import {useState} from 'react';
+import {FC, useState} from 'react';
 import {useRecoilState} from 'recoil';
-import {Link, RouteComponentProps} from 'react-router-dom';
-import {motion, AnimatePresence} from 'framer-motion';
+import {Link, Route, RouteComponentProps} from 'react-router-dom';
+import {motion, AnimatePresence, Variants, usePresence, useIsPresent} from 'framer-motion';
 import {atoms} from 'src/client/store';
-import {Button, Divider, Flex, Input, Modal, Stack} from 'src/client/components/base';
-import {StorageKeys} from 'src/client/config/constants';
+import {baseInputStyles, Button, Flex, Input, Modal, Stack} from 'src/client/components/base';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
 import {isAxiosError} from 'src/client/utils/axios';
 import {HomeLayout} from 'src/client/components/layout';
 import {LinkDivider} from 'src/client/components/icons/link-divider';
 import {HomepageLink} from 'src/client/components/link';
 import {ArrowRight} from 'src/client/components/icons';
+import {useDidMount} from 'src/client/hooks';
 
 const Container = styled(Flex)`
   background-color: transparent;
@@ -32,9 +32,53 @@ const ModalText = styled.div`
   font-weight: 500;
 `;
 
-type Props = RouteComponentProps<any> & {};
+const UsernameInput = styled(motion.input)`
+  ${baseInputStyles}
+  border-radius: 8px;
+  height: 50px;
+  padding: 1px 50px 1px 11px;
+  width: 100%;
+`;
 
-export const HomePage = (props: Props) => {
+const containerVariants: Variants = {
+  // hidden: {
+  //   opacity: 0,
+  //   y: 20,
+  // },
+  visible: {
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+      duration: 0.8,
+    },
+  },
+  exit: {
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+      duration: 0.8,
+    },
+  },
+};
+
+const childVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+  },
+  exit: {
+    opacity: 0,
+    y: -40,
+  },
+};
+
+type Props = /*  RouteComponentProps<any> & */ {};
+
+export const HomePage: FC<Props> = (props) => {
   const [user, setUser] = useRecoilState(atoms.user);
   const [room, setRoom] = useRecoilState(atoms.room);
   const [state, setState] = useState({
@@ -75,22 +119,39 @@ export const HomePage = (props: Props) => {
     }
   };
 
+  useDidMount(() => {
+    console.log('mounting homepage');
+    return () => {
+      console.log('unmounting homepage');
+    };
+  });
+
+  // const same = usePresence();
+  // const what = useIsPresent();
+
+  // console.log('use presence home:', same, what);
+
   if (!user.isAuthed) {
     return (
-      <HomeLayout>
+      // <AnimatePresence
+      //   /* exitBeforeEnter={true} */ onExitComplete={() => console.log('exit completed')}
+      // >
+      // <Route path='/' exact={true}>
+      <motion.div
+        key='container'
+        initial='hidden'
+        animate='visible'
+        exit='exit'
+        variants={containerVariants}
+      >
         <Flex mainAxis='center' style={{margin: '10rem 0'}}>
           <Flex css={{position: 'relative', width: '300px'}}>
-            <Input
+            <UsernameInput
+              key='input'
+              variants={childVariants}
               placeholder='What is your name?'
               onChange={(event) => setUser({...user, username: event.target.value})}
-              // value={username}
               maxLength={MAX_USERNAME_LENGTH}
-              css={{
-                borderRadius: '8px',
-                height: '50px',
-                padding: '1px 50px 1px 11px',
-                width: '100%',
-              }}
             />
             <AnimatePresence>
               {user.username && (
@@ -114,11 +175,20 @@ export const HomePage = (props: Props) => {
           </Flex>
         </Flex>
         <Flex flow='column' crossAxis='center' style={{marginBottom: '2rem'}}>
-          <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
-          <LinkDivider />
-          <HomepageLink to='/login'>Login</HomepageLink>
+          <motion.div key='/sign-up' variants={childVariants}>
+            <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
+          </motion.div>
+          <motion.div key='divider' variants={childVariants}>
+            <LinkDivider />
+          </motion.div>
+          <motion.div key='/login' variants={childVariants}>
+            <HomepageLink to='/login'>Login</HomepageLink>
+          </motion.div>
         </Flex>
-      </HomeLayout>
+      </motion.div>
+
+      // </Route>
+      // </AnimatePresence>
     );
   }
 

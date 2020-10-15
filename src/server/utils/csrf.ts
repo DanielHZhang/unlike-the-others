@@ -88,3 +88,17 @@ export class CsrfTokenizer {
       .replace(CsrfTokenizer.EQUAL_REGEX, '');
   }
 }
+
+const tokenLength = 24;
+const secretKey = 'much secure';
+const createToken = () => {
+  const randomBytes = crypto.pseudoRandomBytes(tokenLength);
+  return randomBytes.toString('base64');
+};
+
+const created = 'such protect';
+const createTokenChecksum = () => {
+  const key = crypto.pseudoRandomBytes(32);
+  const what = crypto.createHmac('sha256', key).update(created).digest();
+  const checksum = what.toString('base64');
+};

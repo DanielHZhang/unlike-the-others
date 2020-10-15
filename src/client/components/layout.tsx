@@ -3,8 +3,16 @@ import {css, jsx} from '@emotion/react';
 import {FC} from 'react';
 import {Flex} from 'src/client/components/base';
 import {BackgroundParticles} from 'src/client/components/particles';
+import {useDidMount} from 'src/client/hooks';
 
 export const HomeLayout: FC = ({children}) => {
+  useDidMount(() => {
+    console.log('home layout mounting');
+    return () => {
+      console.log('home layout unmounting');
+    };
+  });
+
   return (
     <Flex
       flow='column'

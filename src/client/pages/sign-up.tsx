@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {FC} from 'react';
 import {Button, Flex, Input, Stack} from 'src/client/components/base';
 import {LinkDivider} from 'src/client/components/icons/link-divider';
 import {HomeLayout} from 'src/client/components/layout';
@@ -6,7 +6,7 @@ import {HomepageLink} from 'src/client/components/link';
 
 // TODO: your username can only contain alphanumeric characters and spaces
 
-export const SignUpPage = () => {
+export const SignUpPage: FC = () => {
   return (
     <HomeLayout>
       <Stack flow='column' crossAxis='center' spacing='1rem' style={{margin: '6rem 0'}}>

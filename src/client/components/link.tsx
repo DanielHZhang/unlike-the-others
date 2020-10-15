@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import {Link} from 'react-router-dom';
+import {Link} from 'wouter';
 
 export const HomepageLink = styled(Link)`
   display: block;

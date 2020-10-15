@@ -1,5 +1,5 @@
 import Axios from 'axios';
-import React, {useEffect, useState} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import {RouteComponentProps} from 'react-router-dom';
 import {useRecoilValue} from 'recoil';
 import {AudioCall} from 'src/client/components/audio-call';
@@ -11,9 +11,9 @@ import {channel} from 'src/client/network/webrtc';
 import {FingerprintSpinner} from 'src/client/components/spinner';
 import {useDidMount} from 'src/client/hooks';
 
-type Props = RouteComponentProps<any> & {};
+type Props = /* RouteComponentProps<any> & */ {};
 
-export const GamePage = (props: Props) => {
+export const GamePage: FC<Props> = (props) => {
   const {accessToken} = useRecoilValue(atoms.user);
   const [state, setState] = useState({loading: true, errorModalVisible: false});
 
@@ -44,7 +44,9 @@ export const GamePage = (props: Props) => {
   if (true /* state.loading */) {
     return (
       <Layout>
-        <div> // this div shoudl center everything
+        <div>
+          {' '}
+          // this div shoudl center everything
           <FingerprintSpinner color='#fff' />
           <div>Loading...</div>
         </div>
