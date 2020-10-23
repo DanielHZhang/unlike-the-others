@@ -1,10 +1,11 @@
 import pino from 'pino';
 import fastify from 'fastify';
-import serveStaticPlugin from 'fastify-static';
 import cookiePlugin from 'fastify-cookie';
+import serveStaticPlugin from 'fastify-static';
+import csrfPlugin from 'fastify-xsurf';
 import {apiRoutes} from 'src/server/routes';
 import {prisma} from 'src/server/prisma';
-import {csrfPlugin, jwtAuthPlugin, webrtcPlugin, websocketPlugin} from 'src/server/plugins';
+import {jwtAuthPlugin, webrtcPlugin, websocketPlugin} from 'src/server/plugins';
 import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
@@ -54,7 +55,7 @@ export async function main(argv: string[]) {
 
     // Register plugins
     app.register(cookiePlugin);
-    app.register(csrfPlugin);
+    app.register(csrfPlugin, {secret: process.env.CSRF_TOKEN!});
     app.register(websocketPlugin, {path: '/ws', heartbeatInterval: 30});
     app.register(webrtcPlugin);
     app.register(jwtAuthPlugin);
@@ -62,7 +63,6 @@ export async function main(argv: string[]) {
     app.get('*', (_, reply) => {
       reply.sendFile('index.html', BUILD_FOLDER_PATH);
     });
-
     app.listen(PORT);
 
     if (IS_PRODUCTION_ENV) {

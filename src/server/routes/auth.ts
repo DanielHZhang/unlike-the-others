@@ -1,10 +1,10 @@
 import {nanoid} from 'nanoid/async';
-import {FastifyPluginCallback} from 'fastify';
+import type {FastifyPluginCallback} from 'fastify';
 import {prisma} from 'src/server/prisma';
 import {signJwt, verifyJwt} from 'src/server/config/keys';
 import {IS_PRODUCTION_ENV} from 'src/shared/constants';
 import {CookieKeys} from 'src/server/config/constants';
-import {JwtClaims} from 'src/shared/types';
+import type {JwtClaims} from 'src/shared/types';
 
 export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
   fastify.route({
@@ -41,10 +41,6 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
       const accessToken = signJwt('access', payload);
       return {accessToken, isGuest: !!payload.guestId};
     },
-  });
-
-  fastify.get('/csrf', async (req, reply) => {
-    return req.generateCsrfToken();
   });
 
   next();
