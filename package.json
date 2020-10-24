@@ -15,7 +15,7 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
-    "@emotion/cache": "11.0.0-next.19",
+    "@emotion/cache": "11.0.0-rc.0",
     "@emotion/is-prop-valid": "^0.8.8",
     "@emotion/react": "11.0.0-next.19",
     "@emotion/styled": "11.0.0-next.19",
