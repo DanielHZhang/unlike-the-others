@@ -17,7 +17,7 @@
   "dependencies": {
     "@emotion/cache": "11.0.0-next.19",
     "@emotion/is-prop-valid": "^0.8.8",
-    "@emotion/react": "11.0.0-next.19",
+    "@emotion/react": "11.0.0-rc.0",
     "@emotion/styled": "11.0.0-next.19",
     "@geckos.io/client": "^1.7.0",
     "@geckos.io/server": "^1.7.0",
