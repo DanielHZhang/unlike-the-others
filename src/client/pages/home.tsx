@@ -4,9 +4,9 @@ import styled from '@emotion/styled';
 import {jsx} from '@emotion/react';
 import {FC, useState} from 'react';
 import {useRecoilState} from 'recoil';
-import {motion, AnimatePresence, Variants} from 'framer-motion';
+import {motion, AnimatePresence} from 'framer-motion';
 import {atoms} from 'src/client/store';
-import {baseInputStyles, Button, Flex, Input, Modal, Stack} from 'src/client/components/base';
+import {Button, Flex, Input, Modal, MotionInput, Stack} from 'src/client/components/base';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
 import {isAxiosError} from 'src/client/utils/axios';
 import {HomeLayout} from 'src/client/components/layout';
@@ -14,6 +14,8 @@ import {LinkDivider} from 'src/client/components/icons/link-divider';
 import {HomepageLink} from 'src/client/components/link';
 import {ArrowRight} from 'src/client/components/icons';
 import {useDidMount} from 'src/client/hooks';
+import {useLocation} from 'wouter';
+import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 
 const Container = styled(Flex)`
   background-color: transparent;
@@ -31,53 +33,17 @@ const ModalText = styled.div`
   font-weight: 500;
 `;
 
-const UsernameInput = styled(motion.input)`
-  ${baseInputStyles}
+const UsernameInput = styled(MotionInput)`
   border-radius: 8px;
   height: 50px;
   padding: 1px 50px 1px 11px;
   width: 100%;
 `;
 
-const containerVariants: Variants = {
-  // hidden: {
-  //   opacity: 0,
-  //   y: 20,
-  // },
-  visible: {
-    transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.3,
-      duration: 0.8,
-    },
-  },
-  exit: {
-    transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.3,
-      duration: 0.8,
-    },
-  },
-};
-
-const childVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-  },
-  exit: {
-    opacity: 0,
-    y: -40,
-  },
-};
-
-type Props = /*  RouteComponentProps<any> & */ {};
+type Props = {};
 
 export const HomePage: FC<Props> = (props) => {
+  const [, setLocation] = useLocation();
   const [user, setUser] = useRecoilState(atoms.user);
   const [room, setRoom] = useRecoilState(atoms.room);
   const [state, setState] = useState({
@@ -92,7 +58,7 @@ export const HomePage: FC<Props> = (props) => {
     try {
       setState({...state, loadingJoin: true});
       await Axios.put(`/api/room/${room.id}/join`);
-      props.history.push('/game');
+      setLocation('/game');
     } catch (error) {
       if (isAxiosError(error)) {
         setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
@@ -108,7 +74,7 @@ export const HomePage: FC<Props> = (props) => {
       const {data: roomId} = await Axios.post<string>('/api/room/create');
       await Axios.post(`/api/room/${roomId}/join`);
       setRoom({id: roomId});
-      props.history.push('/game');
+      setLocation('/game');
     } catch (error) {
       if (isAxiosError(error)) {
         setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
@@ -125,25 +91,10 @@ export const HomePage: FC<Props> = (props) => {
     };
   });
 
-  // const same = usePresence();
-  // const what = useIsPresent();
-
-  // console.log('use presence home:', same, what);
-
   if (!user.isAuthed) {
     return (
-      // <AnimatePresence
-      //   /* exitBeforeEnter={true} */ onExitComplete={() => console.log('exit completed')}
-      // >
-      // <Route path='/' exact={true}>
-      <motion.div
-        key='container'
-        initial='hidden'
-        animate='visible'
-        exit='exit'
-        variants={containerVariants}
-      >
-        <Flex mainAxis='center' style={{margin: '10rem 0'}}>
+      <RouteTransition>
+        <Flex mainAxis='center' css={{margin: '10rem 0'}}>
           <Flex css={{position: 'relative', width: '300px'}}>
             <UsernameInput
               key='input'
@@ -184,10 +135,7 @@ export const HomePage: FC<Props> = (props) => {
             <HomepageLink to='/login'>Login</HomepageLink>
           </motion.div>
         </Flex>
-      </motion.div>
-
-      // </Route>
-      // </AnimatePresence>
+      </RouteTransition>
     );
   }
 
