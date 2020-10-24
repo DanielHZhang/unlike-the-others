@@ -15,10 +15,10 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
-    "@emotion/cache": "11.0.0-next.19",
+    "@emotion/cache": "^11.0.0-rc.0",
     "@emotion/is-prop-valid": "^0.8.8",
-    "@emotion/react": "11.0.0-next.19",
-    "@emotion/styled": "11.0.0-next.19",
+    "@emotion/react": "^11.0.0-rc.0",
+    "@emotion/styled": "^11.0.0-rc.0",
     "@geckos.io/client": "^1.7.0",
     "@geckos.io/server": "^1.7.0",
     "@geckos.io/typed-array-buffer-schema": "^1.0.2",
@@ -58,7 +58,7 @@
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-react": "^7.10.4",
     "@babel/preset-typescript": "^7.10.4",
-    "@emotion/babel-plugin": "11.0.0-next.10",
+    "@emotion/babel-plugin": "^11.0.0-rc.0",
     "@prisma/cli": "^2.7.1",
     "@supersede/eslint-config": "^1.1.0",
     "@supersede/prettier-config": "^1.0.1",

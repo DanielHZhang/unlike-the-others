@@ -49,9 +49,11 @@ export const Input = styled(
   `
 );
 
-export const MotionInput = styled(motion.input)`
-  ${baseInputStyles}
-`;
+export const MotionInput = styled(motion.input)(
+  () => css`
+    ${baseInputStyles}
+  `
+);
 
 // export const Input = styled(
 //   'input',
