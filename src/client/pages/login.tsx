@@ -42,8 +42,8 @@ const childVariants: Variants = {
   },
 };
 
-export const LoginPage: FC = ({match}) => {
-  const [] = useState({username: '', email: '', password: ''});
+export const LoginPage: FC = () => {
+  // const [] = useState({username: '', email: '', password: ''});
 
   useDidMount(() => {
     console.log('mounting login page');

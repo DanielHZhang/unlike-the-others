@@ -10,7 +10,7 @@ import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constant
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';
 
-export async function main(argv: string[]) {
+export async function main(argv: string[]): Promise<void> {
   const app = fastify({
     disableRequestLogging: true,
     logger: pino({
@@ -55,7 +55,7 @@ export async function main(argv: string[]) {
 
     // Register plugins
     app.register(cookiePlugin);
-    app.register(csrfPlugin, {secret: process.env.CSRF_TOKEN!});
+    app.register(csrfPlugin, {secret: process.env.CSRF_SECRET!});
     app.register(websocketPlugin, {path: '/ws', heartbeatInterval: 30});
     app.register(webrtcPlugin);
     app.register(jwtAuthPlugin);
