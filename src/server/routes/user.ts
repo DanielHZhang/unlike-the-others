@@ -3,7 +3,13 @@ import {prisma} from 'src/server/prisma';
 import {signJwt} from 'src/server/config/keys';
 import {hashPassword, verifyPassword} from 'src/server/utils/scrypt';
 import {CookieKeys} from 'src/server/config/constants';
-import {IS_PRODUCTION_ENV, MAX_USERNAME_LENGTH} from 'src/shared/constants';
+import {
+  IS_PRODUCTION_ENV,
+  MAX_EMAIL_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MAX_USERNAME_LENGTH,
+  MIN_PASSWORD_LENGTH,
+} from 'src/shared/constants';
 
 export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
   fastify.route({
@@ -16,11 +22,12 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         properties: {
           email: {
             type: 'string',
-            maxLength: 50,
+            maxLength: MAX_EMAIL_LENGTH,
           },
           password: {
             type: 'string',
-            maxLength: 50,
+            minLength: MIN_PASSWORD_LENGTH,
+            maxLength: MAX_PASSWORD_LENGTH,
           },
           username: {
             type: 'string',

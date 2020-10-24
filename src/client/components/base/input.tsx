@@ -9,7 +9,7 @@ export const baseInputStyles = css`
   border: 2px solid ${theme.borderColor};
   border-radius: 4px;
   color: #fff;
-  height: 40px;
+  height: 48px;
   outline: none;
   padding: 1px 11px;
   transition: all 0.2s ease-out;
@@ -49,11 +49,9 @@ export const Input = styled(
   `
 );
 
-export const MotionInput = styled(motion.input)(
-  () => css`
-    ${baseInputStyles}
-  `
-);
+export const MotionInput = styled(motion.input)`
+  ${baseInputStyles}
+`;
 
 // export const Input = styled(
 //   'input',

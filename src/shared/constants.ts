@@ -31,6 +31,15 @@ export const MAX_STEPS = 5;
 /** Maximum number of characters for player usernames. */
 export const MAX_USERNAME_LENGTH = 20;
 
+/** Maximum number of characters for account emails. */
+export const MAX_EMAIL_LENGTH = 50;
+
+/** Maximum number of characters for account passwords. */
+export const MAX_PASSWORD_LENGTH = 50;
+
+/** Minimum number of characters for account passwords. */
+export const MIN_PASSWORD_LENGTH = 8;
+
 export enum Movement {
   Up = 1,
   Down,

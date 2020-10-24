@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import {createPortal} from 'react-dom';
 import {Button} from 'src/client/components/base/button';
 import {Flex} from 'src/client/components/base/flex';
-import {Icon} from 'src/client/components/icons';
+import {Icon} from 'src/client/components/base/icon';
 
 const Mask = styled(Flex)`
   position: fixed;

@@ -4,17 +4,16 @@ import styled from '@emotion/styled';
 import {jsx} from '@emotion/react';
 import {FC, useState} from 'react';
 import {useRecoilState} from 'recoil';
+import {useLocation} from 'wouter';
 import {motion, AnimatePresence} from 'framer-motion';
 import {atoms} from 'src/client/store';
 import {Button, Flex, Input, Modal, MotionInput, Stack} from 'src/client/components/base';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
 import {isAxiosError} from 'src/client/utils/axios';
 import {HomeLayout} from 'src/client/components/layout';
-import {LinkDivider} from 'src/client/components/icons/link-divider';
 import {HomepageLink} from 'src/client/components/link';
-import {ArrowRight} from 'src/client/components/icons';
+import {Icon} from 'src/client/components/base/icon';
 import {useDidMount} from 'src/client/hooks';
-import {useLocation} from 'wouter';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 
 const Container = styled(Flex)`
@@ -35,7 +34,6 @@ const ModalText = styled.div`
 
 const UsernameInput = styled(MotionInput)`
   border-radius: 8px;
-  height: 50px;
   padding: 1px 50px 1px 11px;
   width: 100%;
 `;
@@ -117,7 +115,7 @@ export const HomePage: FC<Props> = (props) => {
                       setUser({...user, isAuthed: true});
                     }}
                   >
-                    <ArrowRight />
+                    <Icon.ArrowRight />
                   </Button>
                 </motion.div>
               )}
@@ -129,7 +127,7 @@ export const HomePage: FC<Props> = (props) => {
             <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
           </motion.div>
           <motion.div key='divider' variants={childVariants}>
-            <LinkDivider />
+            <Icon.Scale />
           </motion.div>
           <motion.div key='/login' variants={childVariants}>
             <HomepageLink to='/login'>Login</HomepageLink>

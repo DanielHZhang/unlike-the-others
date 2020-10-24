@@ -2,6 +2,7 @@ import {motion, useIsPresent, usePresence, Variants} from 'framer-motion';
 import React, {FC, useState} from 'react';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {Button, Flex, Input, MotionButton, MotionInput, Stack} from 'src/client/components/base';
+import {Icon} from 'src/client/components/base/icon';
 import {LinkDivider} from 'src/client/components/icons/link-divider';
 import {HomeLayout} from 'src/client/components/layout';
 import {HomepageLink} from 'src/client/components/link';
@@ -51,7 +52,7 @@ export const LoginPage: FC = () => {
           <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
         </motion.div>
         <motion.div key='divider' variants={childVariants}>
-          <LinkDivider />
+          <Icon.Scale />
         </motion.div>
         <motion.div key='/' variants={childVariants}>
           <HomepageLink to='/'>Home</HomepageLink>

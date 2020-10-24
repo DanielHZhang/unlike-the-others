@@ -60,7 +60,7 @@
     "@babel/preset-typescript": "^7.10.4",
     "@emotion/babel-plugin": "^11.0.0-rc.0",
     "@prisma/cli": "^2.7.1",
-    "@supersede/eslint-config": "^1.1.0",
+    "@supersede/eslint-config": "^1.1.1",
     "@supersede/prettier-config": "^1.0.1",
     "@supersede/progress-webpack-plugin": "^1.1.0",
     "@types/mini-css-extract-plugin": "^0.9.1",
