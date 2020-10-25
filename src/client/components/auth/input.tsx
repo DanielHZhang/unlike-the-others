@@ -26,7 +26,7 @@ type FormInputProps = Props & {
 const AuthFormInput = (props: FormInputProps): JSX.Element => {
   const {register, errors, formState} = useFormContext();
   const {icon: Icon, name, children, showError} = props;
-  console.log(formState.touched, formState.dirtyFields);
+
   return (
     <motion.div
       key={`anim-${name}`}

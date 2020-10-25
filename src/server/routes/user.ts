@@ -41,12 +41,12 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
       },
     },
     handler: async (req, reply) => {
-      const {username, email, password} = req.body as {
+      type RequestBody = {
         username: string;
         email: string;
         password: string;
       };
-
+      const {username, email, password} = req.body as RequestBody;
       const hash = await hashPassword(password);
       const newUser = await prisma.user.create({
         data: {
