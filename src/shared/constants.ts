@@ -34,6 +34,9 @@ export const MAX_USERNAME_LENGTH = 20;
 /** Maximum number of characters for player usernames. */
 export const MIN_USERNAME_LENGTH = 4;
 
+/** Regex to test for a string that only contains alphanumeric (including accented) characters. */
+export const USERNAME_VALIDATION_REGEX = new RegExp('^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+$', 'i');
+
 /** Maximum number of characters for account emails. */
 export const MAX_EMAIL_LENGTH = 50;
 

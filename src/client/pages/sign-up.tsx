@@ -44,7 +44,12 @@ export const SignUpPage = (): JSX.Element => {
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
               <Flex mainAxis='flex-end'>
-                <MotionButton key='anim-signup-submit' type='submit' variants={childVariants}>
+                <MotionButton
+                  key='anim-signup-submit'
+                  type='submit'
+                  variants={childVariants}
+                  disabled={methods.formState.isSubmitting}
+                >
                   <span css={{margin: '0 6px'}}>Continue</span>
                   <Icon.ArrowRight color='#fff' />
                 </MotionButton>

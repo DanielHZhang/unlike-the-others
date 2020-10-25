@@ -10,6 +10,7 @@ import {
   MAX_USERNAME_LENGTH,
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
+  USERNAME_VALIDATION_REGEX,
 } from 'src/shared/constants';
 
 type Props = {
@@ -25,6 +26,7 @@ type FormInputProps = Props & {
 const AuthFormInput = (props: FormInputProps): JSX.Element => {
   const {register, errors, formState} = useFormContext();
   const {icon: Icon, name, children, showError} = props;
+  console.log(formState.touched, formState.dirtyFields);
   return (
     <motion.div
       key={`anim-${name}`}
@@ -39,7 +41,7 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
         <Icon color='#72767d' />
       </Flex>
       {children(name, register)}
-      {showError && errors[name] && formState.touched[name] && (
+      {showError && errors[name] && formState.dirtyFields[name] && (
         <FieldError>{errors[name].message}</FieldError>
       )}
     </motion.div>
@@ -60,6 +62,10 @@ export const UsernameInput = (props: Props): JSX.Element => {
             maxLength: {
               value: MAX_USERNAME_LENGTH,
               message: 'Username must be less than 20 characters',
+            },
+            pattern: {
+              value: USERNAME_VALIDATION_REGEX,
+              message: 'Only alphanumeric characters are allowed',
             },
           })}
           name={name}

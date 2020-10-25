@@ -10,6 +10,7 @@ import {
   MAX_USERNAME_LENGTH,
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
+  USERNAME_VALIDATION_REGEX,
 } from 'src/shared/constants';
 
 export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
@@ -34,6 +35,7 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
             type: 'string',
             minLength: MIN_USERNAME_LENGTH,
             maxLength: MAX_USERNAME_LENGTH,
+            pattern: USERNAME_VALIDATION_REGEX.source,
           },
         },
       },
