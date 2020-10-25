@@ -8,6 +8,8 @@ export namespace Icon {
     color?: string;
   };
 
+  export type Element = (props: Props) => JSX.Element;
+
   export const ArrowRight = ({size = 24, color = '#000'}: Props): JSX.Element => (
     <svg
       width={size}
