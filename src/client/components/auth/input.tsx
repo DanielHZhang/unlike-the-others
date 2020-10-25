@@ -21,7 +21,7 @@ export const PasswordInput = (props: Props): JSX.Element => {
   const {register, errors, formState} = useFormContext();
   const name = 'password';
   return (
-    <motion.div key={`anim-${name}`} variants={childVariants}>
+    <motion.div key={`anim-${name}`} variants={childVariants} css={{display: 'flex'}}>
       <Flex
         crossAxis='center'
         mainAxis='center'
@@ -44,7 +44,7 @@ export const PasswordInput = (props: Props): JSX.Element => {
         name={name}
         type='password'
         placeholder='Password'
-        css={{width: 300, paddingLeft: 44}}
+        css={{flexGrow: 1, paddingLeft: 44}}
       />
       {props.showError && errors[name] && formState.touched[name] && (
         <FieldError>{errors[name].message}</FieldError>
@@ -57,7 +57,7 @@ export const EmailInput = (props: Props): JSX.Element => {
   const {register, errors, formState} = useFormContext();
   const name = 'email';
   return (
-    <motion.div key={`anim-${name}`} variants={childVariants} css={{position: 'relative'}}>
+    <motion.div key={`anim-${name}`} variants={childVariants} css={{display: 'flex'}}>
       <Flex
         crossAxis='center'
         mainAxis='center'
@@ -76,7 +76,7 @@ export const EmailInput = (props: Props): JSX.Element => {
         name={name}
         type='email'
         placeholder='Email'
-        css={{width: 300, paddingLeft: 44}}
+        css={{flexGrow: 1, paddingLeft: 44}}
       />
       {props.showError && errors[name] && formState.touched[name] && (
         <FieldError>{errors[name].message}</FieldError>
@@ -89,7 +89,7 @@ export const UsernameInput = (props: Props): JSX.Element => {
   const methods = useFormContext();
   const name = 'username';
   return (
-    <motion.div key={`anim-${name}`} variants={childVariants}>
+    <motion.div key={`anim-${name}`} variants={childVariants} css={{display: 'flex'}}>
       <Flex
         crossAxis='center'
         mainAxis='center'
@@ -111,7 +111,7 @@ export const UsernameInput = (props: Props): JSX.Element => {
         })}
         name={name}
         placeholder='Username'
-        css={{width: 300, paddingLeft: 44}}
+        css={{flexGrow: 1, paddingLeft: 44}}
       />
       {props.showError && methods.errors[name] && methods.formState.touched[name] && (
         <FieldError>{methods.errors[name].message}</FieldError>

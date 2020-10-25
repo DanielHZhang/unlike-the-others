@@ -1,4 +1,4 @@
-import React, {FC} from 'react';
+import React from 'react';
 
 /* eslint-disable max-len */
 
@@ -8,7 +8,7 @@ export namespace Icon {
     color?: string;
   };
 
-  export const ArrowRight: FC<Props> = ({size = 24, color = '#000'}) => (
+  export const ArrowRight = ({size = 24, color = '#000'}: Props): JSX.Element => (
     <svg
       width={size}
       height={size}
@@ -23,7 +23,7 @@ export namespace Icon {
     </svg>
   );
 
-  export const Scale: FC<Props> = ({size = 20, color = '#3B3D3D'}) => (
+  export const Scale = ({size = 20, color = '#3B3D3D'}: Props): JSX.Element => (
     <svg width={size} height={size} viewBox='0 0 24 24' style={{margin: '8px 0 4px 0'}}>
       <path
         fill={color}
@@ -32,7 +32,7 @@ export namespace Icon {
     </svg>
   );
 
-  export const AtSign: FC<Props> = ({size = 24, color = '#000'}) => (
+  export const AtSign = ({size = 24, color = '#000'}: Props): JSX.Element => (
     <svg width={size} height={size} viewBox='0 0 24 24'>
       <path
         fill={color}

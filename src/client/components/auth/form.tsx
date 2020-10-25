@@ -8,7 +8,7 @@ type Props = {
   onInvalidSubmit?: SubmitErrorHandler<Record<string, any>>;
 };
 
-export const Form = (props: Props): JSX.Element => {
+const Form = (props: Props): JSX.Element => {
   return (
     <FormProvider {...props.methods}>
       <form onSubmit={props.methods.handleSubmit(props.onValidSubmit, props.onInvalidSubmit)}>

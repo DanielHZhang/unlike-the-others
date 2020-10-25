@@ -1,41 +1,38 @@
 /** @jsx jsx */
-import {FC} from 'react';
 import {jsx} from '@emotion/react';
 import {motion, useIsPresent} from 'framer-motion';
 import {FormProvider, useForm} from 'react-hook-form';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
-import {Flex, Icon, Input, MotionButton, MotionInput, Stack} from 'src/client/components/base';
+import {Flex, Icon, MotionButton, Stack} from 'src/client/components/base';
 import {HomepageLink} from 'src/client/components/link';
-import {MAX_PASSWORD_LENGTH} from 'src/shared/constants';
 import {EmailInput, PasswordInput, UsernameInput} from 'src/client/components/auth/input';
-import {Form} from 'src/client/components/auth/form';
-import {FieldError} from 'src/client/components/auth/error';
 
 // TODO: your username can only contain alphanumeric characters and spaces
 
-export const SignUpPage: FC = () => {
+export const SignUpPage = (): JSX.Element => {
   const isPresent = useIsPresent();
   const methods = useForm({
     defaultValues: {username: '', email: '', password: ''},
   });
-
-  const onSubmit = (data: any) => null;
+  const onValidSubmit = (data: any) => null;
 
   return (
     <RouteTransition>
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Stack flow='column' crossAxis='center' spacing='1rem' css={{margin: '4rem 0'}}>
-            <UsernameInput showError={isPresent} />
-            <EmailInput showError={isPresent} />
-            <PasswordInput showError={isPresent} />
-            <Flex flow='row' mainAxis='flex-end' css={{width: 300}}>
-              <MotionButton key='button' type='submit' variants={childVariants}>
-                <span css={{margin: '0 10px'}}>Continue</span>
-                <Icon.ArrowRight color='#fff' />
-              </MotionButton>
-            </Flex>
-          </Stack>
+        <form onSubmit={methods.handleSubmit(onValidSubmit)}>
+          <Flex mainAxis='center' css={{margin: '4rem 0'}}>
+            <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
+              <UsernameInput showError={isPresent} />
+              <EmailInput showError={isPresent} />
+              <PasswordInput showError={isPresent} />
+              <Flex mainAxis='flex-end'>
+                <MotionButton key='anim-signup-submit' type='submit' variants={childVariants}>
+                  <span css={{margin: '0 6px'}}>Continue</span>
+                  <Icon.ArrowRight color='#fff' />
+                </MotionButton>
+              </Flex>
+            </Stack>
+          </Flex>
         </form>
       </FormProvider>
 

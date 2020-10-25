@@ -144,7 +144,7 @@ export const HomePage: FC<Props> = (props) => {
             HOST NEW GAME
           </Button>
           {state.joining ? (
-            <Stack flow='row'>
+            <Stack>
               <Input
                 placeholder='Enter code'
                 onChange={(event) => setRoom({id: event.target.value})}

@@ -1,4 +1,4 @@
-import React, {FC} from 'react';
+import React, {ReactNode} from 'react';
 import {motion, Variants} from 'framer-motion';
 
 const containerVariants: Variants = {
@@ -33,7 +33,9 @@ export const childVariants: Variants = {
   },
 };
 
-export const RouteTransition: FC = (props) => {
+type Props = {children: ReactNode};
+
+export const RouteTransition = (props: Props): JSX.Element => {
   return (
     <motion.div
       key='container'

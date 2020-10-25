@@ -8,7 +8,7 @@ type Props = {
 
 export const FieldError = (props: Props): JSX.Element => {
   return (
-    <div css={{marginTop: 8, textAlign: 'right', fontSize: '0.9em', color: 'red'}}>
+    <div css={{marginTop: 8, textAlign: 'right', fontSize: '0.9em', color: '#ff4d4f'}}>
       {props.children}
     </div>
   );
