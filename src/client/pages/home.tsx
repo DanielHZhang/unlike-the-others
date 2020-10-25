@@ -1,5 +1,4 @@
 /** @jsx jsx */
-import Axios from 'axios';
 import styled from '@emotion/styled';
 import {jsx} from '@emotion/react';
 import {FC, useState} from 'react';
@@ -9,11 +8,11 @@ import {motion, AnimatePresence} from 'framer-motion';
 import {atoms} from 'src/client/store';
 import {Button, Flex, Icon, Input, Modal, MotionInput, Stack} from 'src/client/components/base';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
-import {isAxiosError} from 'src/client/utils/axios';
 import {HomeLayout} from 'src/client/components/layout';
 import {HomepageLink} from 'src/client/components/link';
 import {useDidMount} from 'src/client/hooks';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
+import {axios, isAxiosError} from 'src/client/network';
 
 const Container = styled(Flex)`
   background-color: transparent;
@@ -54,7 +53,7 @@ export const HomePage: FC<Props> = (props) => {
   const onJoinClick = async () => {
     try {
       setState({...state, loadingJoin: true});
-      await Axios.put(`/api/room/${room.id}/join`);
+      await axios.put(`/api/room/${room.id}/join`);
       setLocation('/game');
     } catch (error) {
       if (isAxiosError(error)) {
@@ -68,8 +67,8 @@ export const HomePage: FC<Props> = (props) => {
   const onCreateClick = async () => {
     try {
       setState({...state, loadingCreate: true});
-      const {data: roomId} = await Axios.post<string>('/api/room/create');
-      await Axios.post(`/api/room/${roomId}/join`);
+      const {data: roomId} = await axios.post<string>('/api/room/create');
+      await axios.post(`/api/room/${roomId}/join`);
       setRoom({id: roomId});
       setLocation('/game');
     } catch (error) {

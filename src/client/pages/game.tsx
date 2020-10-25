@@ -1,6 +1,4 @@
-import Axios from 'axios';
 import React, {FC, useEffect, useState} from 'react';
-import {RouteComponentProps} from 'react-router-dom';
 import {useRecoilValue} from 'recoil';
 import {AudioCall} from 'src/client/components/audio-call';
 import {GameWindow} from 'src/client/game';

@@ -7,9 +7,14 @@ import {childVariants, RouteTransition} from 'src/client/components/animation/ro
 import {EmailInput, PasswordInput} from 'src/client/components/auth/input';
 import {HomepageLink} from 'src/client/components/link';
 
+type FormState = {
+  email: string;
+  password: string;
+};
+
 export const LoginPage = (): JSX.Element => {
   const isPresent = useIsPresent();
-  const methods = useForm({
+  const methods = useForm<FormState>({
     defaultValues: {email: '', password: ''},
   });
   const onValidSubmit = () => null;
