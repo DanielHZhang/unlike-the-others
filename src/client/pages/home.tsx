@@ -7,12 +7,11 @@ import {useRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
 import {motion, AnimatePresence} from 'framer-motion';
 import {atoms} from 'src/client/store';
-import {Button, Flex, Input, Modal, MotionInput, Stack} from 'src/client/components/base';
+import {Button, Flex, Icon, Input, Modal, MotionInput, Stack} from 'src/client/components/base';
 import {MAX_USERNAME_LENGTH} from 'src/shared/constants';
 import {isAxiosError} from 'src/client/utils/axios';
 import {HomeLayout} from 'src/client/components/layout';
 import {HomepageLink} from 'src/client/components/link';
-import {Icon} from 'src/client/components/base/icon';
 import {useDidMount} from 'src/client/hooks';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 

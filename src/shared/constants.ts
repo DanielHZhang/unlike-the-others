@@ -31,6 +31,9 @@ export const MAX_STEPS = 5;
 /** Maximum number of characters for player usernames. */
 export const MAX_USERNAME_LENGTH = 20;
 
+/** Maximum number of characters for player usernames. */
+export const MIN_USERNAME_LENGTH = 4;
+
 /** Maximum number of characters for account emails. */
 export const MAX_EMAIL_LENGTH = 50;
 

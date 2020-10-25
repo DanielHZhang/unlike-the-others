@@ -1,10 +1,7 @@
 import {motion, useIsPresent, usePresence, Variants} from 'framer-motion';
 import React, {FC, useState} from 'react';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
-import {Button, Flex, Input, MotionButton, MotionInput, Stack} from 'src/client/components/base';
-import {Icon} from 'src/client/components/base/icon';
-import {LinkDivider} from 'src/client/components/icons/link-divider';
-import {HomeLayout} from 'src/client/components/layout';
+import {Flex, Icon, MotionButton, MotionInput, Stack} from 'src/client/components/base';
 import {HomepageLink} from 'src/client/components/link';
 import {useDidMount} from 'src/client/hooks';
 
