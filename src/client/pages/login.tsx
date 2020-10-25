@@ -1,11 +1,13 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {motion, useIsPresent} from 'framer-motion';
-import {FormProvider, useForm} from 'react-hook-form';
+import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {Flex, Icon, MotionButton, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {EmailInput, PasswordInput} from 'src/client/components/auth/input';
 import {HomepageLink} from 'src/client/components/link';
+import {axios, isAxiosError} from 'src/client/network';
+import {useLocation} from 'wouter';
 
 type FormState = {
   email: string;
@@ -13,16 +15,28 @@ type FormState = {
 };
 
 export const LoginPage = (): JSX.Element => {
+  const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
   const methods = useForm<FormState>({
     defaultValues: {email: '', password: ''},
   });
-  const onValidSubmit = () => null;
+  const onSubmit: SubmitHandler<FormState> = async (data) => {
+    try {
+      const response = await axios.post('/api/user/login', data);
+      setLocation('/'); // Push back to homepage
+    } catch (error) {
+      if (isAxiosError(error)) {
+        // set form errors
+      } else {
+        console.error(error);
+      }
+    }
+  };
 
   return (
     <RouteTransition>
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onValidSubmit)}>
+        <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Flex mainAxis='center' css={{margin: '6rem 0'}}>
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
               <EmailInput showError={isPresent} />

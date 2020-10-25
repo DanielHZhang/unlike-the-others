@@ -2,9 +2,8 @@ import {FastifyPluginCallback} from 'fastify';
 import {prisma} from 'src/server/prisma';
 import {signJwt} from 'src/server/config/keys';
 import {hashPassword, verifyPassword} from 'src/server/utils/scrypt';
-import {CookieKeys} from 'src/server/config/constants';
+import {CookieKeys, REFRESH_COOKIE_OPTIONS} from 'src/server/config/constants';
 import {
-  IS_PRODUCTION_ENV,
   MAX_EMAIL_LENGTH,
   MAX_PASSWORD_LENGTH,
   MAX_USERNAME_LENGTH,
@@ -58,11 +57,12 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
 
       fastify.log.info(`Created new user: ${newUser.id}`);
 
-      const refreshToken = signJwt('refresh', {userId: newUser.id});
-      reply.setCookie(CookieKeys.Refresh, refreshToken, {
-        httpOnly: true,
-        secure: IS_PRODUCTION_ENV,
+      const refreshToken = signJwt('refresh', {
+        id: newUser.id,
+        isGuest: false,
+        username: newUser.username,
       });
+      reply.setCookie(CookieKeys.Refresh, refreshToken, REFRESH_COOKIE_OPTIONS);
 
       return {success: true};
     },
@@ -99,11 +99,12 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         throw 401;
       }
 
-      const refreshToken = signJwt('refresh', {userId: foundUser.id});
-      reply.setCookie(CookieKeys.Refresh, refreshToken, {
-        httpOnly: true,
-        secure: IS_PRODUCTION_ENV,
+      const refreshToken = signJwt('refresh', {
+        id: foundUser.id,
+        isGuest: false,
+        username: foundUser.username,
       });
+      reply.setCookie(CookieKeys.Refresh, refreshToken, REFRESH_COOKIE_OPTIONS);
 
       return {success: true};
     },

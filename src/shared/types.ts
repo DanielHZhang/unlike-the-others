@@ -32,9 +32,10 @@ export type GameControls = {
 };
 
 export type JwtClaims = {
-  guestId?: string;
-  userId?: string;
-  iat: number;
+  id: string;
+  isGuest: boolean;
+  username: string;
+  iat?: number;
 };
 
 export type FastifyReplyError = {

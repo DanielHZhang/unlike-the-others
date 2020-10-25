@@ -16,11 +16,15 @@ const App = () => {
       accessToken: string;
       isGuest: boolean;
     };
-    // Set JWT access token header
-    const accessRes = await axios.get('/api/auth/access');
-    const {accessToken, isGuest}: AccessResponseData = accessRes.data;
-    axios.defaults.headers.authorization = accessToken;
-    setUser((state) => ({...state, accessToken, isGuest}));
+    try {
+      // Set JWT access token header
+      const accessRes = await axios.get('/api/auth/access');
+      const {accessToken, id, isGuest, username}: AccessResponseData = accessRes.data;
+      axios.defaults.headers.authorization = accessToken;
+      setUser((state) => ({accessToken, id, isGuest, username, isAuthed: true}));
+    } catch (error) {
+      //
+    }
   }, []);
 
   return (

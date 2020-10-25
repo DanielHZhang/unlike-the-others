@@ -31,7 +31,7 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
     <motion.div
       key={`anim-${name}`}
       variants={childVariants}
-      css={{display: 'flex', flexFlow: 'column'}}
+      css={{display: 'flex', flexFlow: 'column', flexGrow: 1}}
     >
       <Flex
         crossAxis='center'
@@ -71,7 +71,7 @@ export const UsernameInput = (props: Props): JSX.Element => {
           name={name}
           placeholder='Username'
           autoComplete='off'
-          css={{flexGrow: 1, paddingLeft: 44}}
+          css={{/* flexGrow: 1, */ paddingLeft: 44}}
         />
       )}
     </AuthFormInput>
@@ -93,7 +93,7 @@ export const EmailInput = (props: Props): JSX.Element => {
           name={name}
           type='email'
           placeholder='Email'
-          css={{flexGrow: 1, paddingLeft: 44}}
+          css={{/* flexGrow: 1, */ paddingLeft: 44}}
         />
       )}
     </AuthFormInput>
@@ -119,7 +119,7 @@ export const PasswordInput = (props: Props): JSX.Element => {
           name={name}
           type='password'
           placeholder='Password'
-          css={{flexGrow: 1, paddingLeft: 44}}
+          css={{/* flexGrow: 1, */ paddingLeft: 44}}
         />
       )}
     </AuthFormInput>

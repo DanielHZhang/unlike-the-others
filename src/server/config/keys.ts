@@ -10,15 +10,12 @@ const refreshKey = JWK.asKey(fs.readFileSync(path.join(LOCAL_FOLDER_PATH, 'refre
 const accessKey = JWK.asKey(fs.readFileSync(path.join(LOCAL_FOLDER_PATH, 'access.pem')));
 const keyStore = new JWKS.KeyStore([refreshKey, accessKey]);
 
-export function verifyJwt(type: JwtType, jwt: string) {
+export function verifyJwt(type: JwtType, jwt: string): Required<JwtClaims> {
   const claims = JWT.verify(jwt, type === 'refresh' ? refreshKey : accessKey);
   return claims as Required<JwtClaims>;
 }
 
-export function signJwt(
-  type: JwtType,
-  data: Pick<JwtClaims, 'userId'> | Pick<JwtClaims, 'guestId'>
-) {
+export function signJwt(type: JwtType, data: JwtClaims): string {
   const newJwt = JWT.sign(data, type === 'refresh' ? refreshKey : accessKey);
   return newJwt;
 }
