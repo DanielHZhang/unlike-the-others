@@ -11,7 +11,7 @@ const baseButtonStyles = css`
   color: #fff;
   display: flex;
   font-weight: 500;
-  height: 40px;
+  height: 46px;
   justify-content: center;
   outline: none;
   padding: 1px 8px;

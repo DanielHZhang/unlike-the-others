@@ -1,12 +1,12 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-type Props = {
+type RhombusProps = {
   size: number;
   animationDuration: number;
 };
 
-const LoadingRhombus = styled.div<Props>`
+const Rhombus = styled.div<RhombusProps>`
   width: ${(props) => props.size * 4}px;
   height: ${(props) => props.size}px;
   position: relative;
@@ -47,21 +47,25 @@ const LoadingRhombus = styled.div<Props>`
   }
 `;
 
-export const RhombusSpinner = (): JSX.Element => {
-  const size = 15;
-  const color = '#fff';
-  const animationDuration = 2500;
+type Props = {
+  size?: number;
+  num?: number;
+  color?: string;
+};
+
+export const RhombusSpinner = ({size = 15, num = 3, color = '#fff'}: Props): JSX.Element => {
+  const animationDuration = 2000;
 
   return (
-    <LoadingRhombus
+    <Rhombus
       size={size}
       color={color}
       animationDuration={animationDuration}
       className='looping-rhombuses-spinner'
     >
-      {Array.from({length: 3}).map((_, index) => (
+      {Array.from({length: num}).map((_, index) => (
         <div key={index} className='rhombus' />
       ))}
-    </LoadingRhombus>
+    </Rhombus>
   );
 };

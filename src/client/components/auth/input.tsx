@@ -51,6 +51,14 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
   );
 };
 
+export const validationMessages = {
+  username: {
+    minLength: `Username must be at least ${MIN_USERNAME_LENGTH} characters`,
+    maxLength: `Username must be less than ${MAX_USERNAME_LENGTH} characters`,
+    pattern: 'Only alphanumeric characters are allowed',
+  },
+};
+
 export const UsernameInput = (props: Props): JSX.Element => {
   return (
     <AuthFormInput name='username' icon={Icon.User} showError={props.showError}>
@@ -60,15 +68,15 @@ export const UsernameInput = (props: Props): JSX.Element => {
             required: 'This field is required',
             minLength: {
               value: MIN_USERNAME_LENGTH,
-              message: 'Username must be at least 4 characters',
+              message: validationMessages.username.minLength,
             },
             maxLength: {
               value: MAX_USERNAME_LENGTH,
-              message: 'Username must be less than 20 characters',
+              message: validationMessages.username.maxLength,
             },
             pattern: {
               value: USERNAME_VALIDATION_REGEX,
-              message: 'Only alphanumeric characters are allowed',
+              message: validationMessages.username.pattern,
             },
           })}
           name={name}
@@ -90,7 +98,7 @@ export const EmailInput = (props: Props): JSX.Element => {
             required: 'This field is required',
             maxLength: {
               value: MAX_EMAIL_LENGTH,
-              message: 'Email must be less than 50 characters',
+              message: `Email must be less than ${MAX_EMAIL_LENGTH} characters`,
             },
           })}
           name={name}
@@ -112,11 +120,11 @@ export const PasswordInput = (props: Props): JSX.Element => {
             required: 'This field is required',
             maxLength: {
               value: MAX_PASSWORD_LENGTH,
-              message: 'Password must be less than 50 characters',
+              message: `Password must be less than ${MAX_PASSWORD_LENGTH} characters`,
             },
             minLength: {
               value: MIN_PASSWORD_LENGTH,
-              message: 'Password must be at least 8 characters',
+              message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
             },
           })}
           name={name}

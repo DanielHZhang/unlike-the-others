@@ -10,6 +10,7 @@ import {axios, isAxiosError} from 'src/client/network';
 import {Button, Flex, Icon, Input, Modal, Stack} from 'src/client/components/base';
 import {UsernameInput} from 'src/client/components/auth/input';
 import {RouteTransition} from 'src/client/components/animation/route-transition';
+import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessResponse} from 'src/shared/types';
 
@@ -35,8 +36,11 @@ const UnauthHomePage = (): JSX.Element => {
       });
     } catch (error) {
       if (isAxiosError(error)) {
-        // Set errors on forms here
-        console.log(error);
+        // Messsage should only ever be set if user messes with form properties
+        methods.setError('username', {
+          message: error.response.data.message,
+          shouldFocus: true,
+        });
       }
     }
   };
@@ -65,8 +69,16 @@ const UnauthHomePage = (): JSX.Element => {
                       alignItems: 'center',
                     }}
                   >
-                    <Button type='submit' css={{width: 36, height: 36}}>
-                      <Icon.ArrowRight />
+                    <Button
+                      type='submit'
+                      css={{width: 36, height: 36, padding: 0}}
+                      loading={methods.formState.isSubmitting}
+                    >
+                      {methods.formState.isSubmitting ? (
+                        <RhombusSpinner size={8} />
+                      ) : (
+                        <Icon.ArrowRight color='#fff' />
+                      )}
                     </Button>
                   </motion.div>
                 )}
@@ -122,7 +134,7 @@ const AuthHomePage = (): JSX.Element => {
   };
 
   return (
-    <Flex css={{backgroundColor: 'transparent', color: '#fff', margin: 24}}>
+    <Flex mainAxis='center' css={{backgroundColor: 'transparent'}}>
       <Stack flow='column' spacing='16px' css={{flex: '1 1 0%', maxWidth: 300}}>
         <Button loading={state.loadingCreate} onClick={onCreateClick}>
           HOST NEW GAME

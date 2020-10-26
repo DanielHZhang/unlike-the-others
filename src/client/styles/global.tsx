@@ -1,4 +1,5 @@
 import {css} from '@emotion/react';
+import {scrollbarStyles} from 'src/client/styles/scrollbar';
 
 /**
  * Normalize css rendering in all browsers (based on https://github.com/necolas/normalize.css/)
@@ -9,20 +10,19 @@ export const globalStyles = css`
     src: url('/assets/fonts/simplifica.ttf');
   }
 
+  ::selection {
+    background: rgba(33, 173, 153, 0.2);
+  }
+
+  body {
+    ${scrollbarStyles}
+    margin: 0;
+    height: 100%;
+  }
+
   #root {
     height: 100%;
     width: 100%;
-  }
-
-  i,
-  a {
-    text-decoration: none;
-  }
-
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
   }
 
   html {
@@ -36,9 +36,15 @@ export const globalStyles = css`
     -webkit-font-smoothing: subpixel-antialiased;
   }
 
-  body {
-    margin: 0;
-    height: 100%;
+  i,
+  a {
+    text-decoration: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
 
   main {
