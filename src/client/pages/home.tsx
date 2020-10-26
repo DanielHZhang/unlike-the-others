@@ -7,12 +7,13 @@ import {motion, AnimatePresence, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {atoms} from 'src/client/store';
 import {axios, isAxiosError} from 'src/client/network';
-import {Button, Flex, Icon, Input, Modal, Stack} from 'src/client/components/base';
+import {Button, Flex, Icon, Input, InputWithIcon, Modal, Stack} from 'src/client/components/base';
 import {UsernameInput} from 'src/client/components/auth/input';
 import {RouteTransition} from 'src/client/components/animation/route-transition';
 import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessResponse} from 'src/shared/types';
+import {InputButtonWrapper} from 'src/client/components/home/input';
 
 type FormState = {username: string};
 
@@ -51,38 +52,12 @@ const UnauthHomePage = (): JSX.Element => {
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Flex css={{position: 'relative', width: '300px'}}>
-              <UsernameInput showError={isPresent} />
-              <AnimatePresence>
-                {isPresent && methods.getValues('username') && (
-                  <motion.div
-                    key='test'
-                    initial={{x: '20px', opacity: 0}}
-                    animate={{x: '0px', opacity: 1}}
-                    exit={{opacity: 0}}
-                    css={{
-                      position: 'absolute',
-                      right: 0,
-                      height: 48,
-                      width: 48,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Button
-                      type='submit'
-                      css={{width: 36, height: 36, padding: 0}}
-                      loading={methods.formState.isSubmitting}
-                    >
-                      {methods.formState.isSubmitting ? (
-                        <RhombusSpinner size={8} />
-                      ) : (
-                        <Icon.ArrowRight color='#fff' />
-                      )}
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <InputButtonWrapper
+                loading={methods.formState.isSubmitting}
+                showButton={isPresent && Boolean(methods.getValues('username'))}
+              >
+                <UsernameInput showError={isPresent} />
+              </InputButtonWrapper>
             </Flex>
           </form>
         </FormProvider>
@@ -134,22 +109,27 @@ const AuthHomePage = (): JSX.Element => {
   };
 
   return (
-    <Flex mainAxis='center' css={{backgroundColor: 'transparent'}}>
-      <Stack flow='column' spacing='16px' css={{flex: '1 1 0%', maxWidth: 300}}>
+    <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
+      <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
         <Button loading={state.loadingCreate} onClick={onCreateClick}>
           HOST NEW GAME
         </Button>
         {state.joining ? (
-          <Stack>
-            <Input
-              placeholder='Enter code'
-              onChange={(event) => setRoom({id: event.target.value})}
+          <InputButtonWrapper>
+            <InputWithIcon
+              icon={Icon.AtSign}
               type='password'
-              maxLength={32}
-              style={{flexGrow: 1}}
+              maxLength={40}
+              placeholder='Enter code'
             />
-            <Button onClick={onJoinClick}>JOIN</Button>
-          </Stack>
+            {/* <Input
+              placeholder='Enter code'
+              // onChange={(event) => setRoom({id: event.target.value})}
+              type='password'
+              maxLength={40}
+              style={{flexGrow: 1}}
+            /> */}
+          </InputButtonWrapper>
         ) : (
           <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
         )}
@@ -176,5 +156,6 @@ const AuthHomePage = (): JSX.Element => {
 export const HomePage = (): JSX.Element => {
   const user = useRecoilValue(atoms.user);
   // const [user, setUser] = useRecoilState(atoms.user);
+  return <UnauthHomePage />;
   return user.isAuthed ? <AuthHomePage /> : <UnauthHomePage />;
 };
