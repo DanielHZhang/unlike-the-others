@@ -1,6 +1,6 @@
 import Axios, {AxiosError} from 'axios';
 import {ROOT_URL} from 'src/shared/constants';
-import type {FastifyReplyError} from 'src/shared/types';
+import type {FastifyReplyError, JwtClaims} from 'src/shared/types';
 
 export const axios = Axios.create();
 
@@ -18,6 +18,21 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-export function isAxiosError(error: any): error is Required<AxiosError<FastifyReplyError>> {
+type AxiosResponseError = Required<AxiosError<FastifyReplyError>>;
+
+export function isAxiosError(error: any): error is AxiosResponseError {
   return error.isAxiosError && error.response && error.response.data;
+}
+
+type AccessResponse = {accessToken: string; claims: JwtClaims};
+
+export async function postAccessToken(): Promise<AccessResponse | AxiosResponseError> {
+  try {
+    const response = await axios.post('/api/auth/access');
+    // Set JWT access token as header on future requests
+    axios.defaults.headers.authorization = response.data.accessToken;
+    return response.data;
+  } catch (error) {
+    return error;
+  }
 }

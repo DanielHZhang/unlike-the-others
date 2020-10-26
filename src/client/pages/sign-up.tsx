@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {useLocation} from 'wouter';
-import {motion, useIsPresent} from 'framer-motion';
+import {AnimateSharedLayout, motion, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {axios, isAxiosError} from 'src/client/network';
 import {HomepageLink} from 'src/client/components/link';
@@ -19,7 +19,7 @@ export const SignUpPage = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
   const methods = useForm<FormState>({
-    reValidateMode: 'onSubmit',
+    // reValidateMode: 'onSubmit',
     defaultValues: {username: '', email: '', password: ''},
   });
   const onSubmit: SubmitHandler<FormState> = async (data) => {
@@ -42,6 +42,7 @@ export const SignUpPage = (): JSX.Element => {
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Flex mainAxis='center' css={{margin: '4rem 0'}}>
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
+              {/* <AnimateSharedLayout> */}
               <UsernameInput showError={isPresent} />
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
@@ -56,6 +57,7 @@ export const SignUpPage = (): JSX.Element => {
                   <Icon.ArrowRight color='#fff' />
                 </MotionButton>
               </Flex>
+              {/* </AnimateSharedLayout> */}
             </Stack>
           </Flex>
         </form>

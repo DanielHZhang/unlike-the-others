@@ -13,7 +13,7 @@ import type {JwtClaims} from 'src/shared/types';
 export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
   fastify.route({
     url: '/access',
-    method: 'GET',
+    method: 'POST',
     handler: async (req, reply) => {
       const refreshToken = req.cookies[CookieKeys.Refresh];
 

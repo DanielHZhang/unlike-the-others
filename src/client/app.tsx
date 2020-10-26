@@ -6,24 +6,16 @@ import {useAsyncEffect} from 'src/client/hooks';
 import {GamePage} from 'src/client/pages/game';
 import {MainPage} from 'src/client/pages/main';
 import {atoms} from 'src/client/store';
-import {axios} from 'src/client/network';
+import {isAxiosError, postAccessToken} from 'src/client/network';
 
 const App = () => {
   const setUser = useSetRecoilState(atoms.user);
 
   useAsyncEffect(async () => {
-    type AccessResponseData = {
-      accessToken: string;
-      isGuest: boolean;
-    };
-    try {
-      // Set JWT access token header
-      const accessRes = await axios.get('/api/auth/access');
-      const {accessToken, id, isGuest, username}: AccessResponseData = accessRes.data;
-      axios.defaults.headers.authorization = accessToken;
-      setUser((state) => ({accessToken, id, isGuest, username, isAuthed: true}));
-    } catch (error) {
-      //
+    const response = await postAccessToken();
+    if (!isAxiosError(response)) {
+      const {accessToken, claims} = response;
+      setUser({accessToken, ...claims, isAuthed: true});
     }
   }, []);
 

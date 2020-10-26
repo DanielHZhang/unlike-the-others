@@ -1,11 +1,12 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {motion} from 'framer-motion';
+import {AnimatePresence, motion} from 'framer-motion';
 import {useFormContext, UseFormMethods} from 'react-hook-form';
 import {Input, Icon, Flex} from 'src/client/components/base';
 import {childVariants} from 'src/client/components/animation/route-transition';
 import {FieldError} from 'src/client/components/auth/error';
 import {
+  MAX_EMAIL_LENGTH,
   MAX_PASSWORD_LENGTH,
   MAX_USERNAME_LENGTH,
   MIN_PASSWORD_LENGTH,
@@ -23,12 +24,36 @@ type FormInputProps = Props & {
   children: (name: string, register: UseFormMethods['register']) => any;
 };
 
+{
+  /* <motion.div
+id='motion div here'
+key='container2'
+initial='hidden'
+animate='visible'
+variants={{
+  hidden: {},
+  visible: {},
+  exit: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0,
+      duration: 0.3,
+    },
+  },
+}}
+exit='exit'
+> */
+}
+
 const AuthFormInput = (props: FormInputProps): JSX.Element => {
   const {register, errors, formState} = useFormContext();
   const {icon: Icon, name, children, showError} = props;
 
+  console.log('rerendering this', errors[name]);
+
   return (
     <motion.div
+      // layout={true}
       key={`anim-${name}`}
       variants={childVariants}
       css={{display: 'flex', flexFlow: 'column', flexGrow: 1}}
@@ -41,9 +66,23 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
         <Icon color='#72767d' />
       </Flex>
       {children(name, register)}
-      {showError && errors[name] && formState.dirtyFields[name] && (
-        <FieldError>{errors[name].message}</FieldError>
-      )}
+      <AnimatePresence exitBeforeEnter={true} onExitComplete={() => console.log('exited')}>
+        {showError && errors[name] && formState.dirtyFields[name] && (
+          // <motion.div
+          //   key={`error-${name}`}
+          //   initial={{opacity: 0}}
+          //   animate={{opacity: 1}}
+          //   exit={{opacity: 0}}
+          //   // variants={{hidden: {opacity: 0}, visible: {opacity: 1}, exit: {opacity: 0}}}
+          // >
+          //   wowerino
+          // </motion.div>
+          <FieldError key={name}>{errors[name].message}</FieldError>
+        )}
+      </AnimatePresence>
+      {/* {showError && errors[name] && formState.dirtyFields[name] && (
+<FieldError key='same'>{errors[name].message}</FieldError>
+      )} */}
     </motion.div>
   );
 };
@@ -71,7 +110,7 @@ export const UsernameInput = (props: Props): JSX.Element => {
           name={name}
           placeholder='Username'
           autoComplete='off'
-          css={{/* flexGrow: 1, */ paddingLeft: 44}}
+          css={{paddingLeft: 44, maxHeight: 48}}
         />
       )}
     </AuthFormInput>
@@ -86,14 +125,14 @@ export const EmailInput = (props: Props): JSX.Element => {
           ref={register({
             required: 'This field is required',
             maxLength: {
-              value: MAX_PASSWORD_LENGTH,
+              value: MAX_EMAIL_LENGTH,
               message: 'Email must be less than 50 characters',
             },
           })}
           name={name}
           type='email'
           placeholder='Email'
-          css={{/* flexGrow: 1, */ paddingLeft: 44}}
+          css={{paddingLeft: 44}}
         />
       )}
     </AuthFormInput>

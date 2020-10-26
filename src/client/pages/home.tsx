@@ -14,7 +14,7 @@ import {childVariants, RouteTransition} from 'src/client/components/animation/ro
 
 type FormState = {username: string};
 
-const NoAuthHomePage = (): JSX.Element => {
+const UnauthHomePage = (): JSX.Element => {
   const methods = useForm<FormState>({
     mode: 'onChange',
     reValidateMode: 'onSubmit',
@@ -36,14 +36,23 @@ const NoAuthHomePage = (): JSX.Element => {
             <Flex css={{position: 'relative', width: '300px'}}>
               <UsernameInput showError={isPresent} />
               <AnimatePresence>
-                {methods.getValues('username') && (
+                {isPresent && methods.getValues('username') && (
                   <motion.div
+                    key='test'
                     initial={{x: '20px', opacity: 0}}
                     animate={{x: '0px', opacity: 1}}
                     exit={{opacity: 0}}
-                    css={{position: 'absolute', right: '5px', top: '5px'}}
+                    css={{
+                      position: 'absolute',
+                      right: 0,
+                      height: 48,
+                      width: 48,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
                   >
-                    <Button type='submit'>
+                    <Button type='submit' css={{width: 36, height: 36}}>
                       <Icon.ArrowRight />
                     </Button>
                   </motion.div>
@@ -152,5 +161,5 @@ const AuthHomePage = (): JSX.Element => {
 export const HomePage = (): JSX.Element => {
   const user = useRecoilValue(atoms.user);
   // const [user, setUser] = useRecoilState(atoms.user);
-  return user.isAuthed ? <AuthHomePage /> : <NoAuthHomePage />;
+  return user.isAuthed ? <AuthHomePage /> : <UnauthHomePage />;
 };
