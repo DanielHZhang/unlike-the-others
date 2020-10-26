@@ -24,36 +24,12 @@ type FormInputProps = Props & {
   children: (name: string, register: UseFormMethods['register']) => any;
 };
 
-{
-  /* <motion.div
-id='motion div here'
-key='container2'
-initial='hidden'
-animate='visible'
-variants={{
-  hidden: {},
-  visible: {},
-  exit: {
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0,
-      duration: 0.3,
-    },
-  },
-}}
-exit='exit'
-> */
-}
-
 const AuthFormInput = (props: FormInputProps): JSX.Element => {
   const {register, errors, formState} = useFormContext();
   const {icon: Icon, name, children, showError} = props;
 
-  console.log('rerendering this', errors[name]);
-
   return (
     <motion.div
-      // layout={true}
       key={`anim-${name}`}
       variants={childVariants}
       css={{display: 'flex', flexFlow: 'column', flexGrow: 1}}
@@ -66,23 +42,11 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
         <Icon color='#72767d' />
       </Flex>
       {children(name, register)}
-      <AnimatePresence exitBeforeEnter={true} onExitComplete={() => console.log('exited')}>
+      <AnimatePresence exitBeforeEnter={true}>
         {showError && errors[name] && formState.dirtyFields[name] && (
-          // <motion.div
-          //   key={`error-${name}`}
-          //   initial={{opacity: 0}}
-          //   animate={{opacity: 1}}
-          //   exit={{opacity: 0}}
-          //   // variants={{hidden: {opacity: 0}, visible: {opacity: 1}, exit: {opacity: 0}}}
-          // >
-          //   wowerino
-          // </motion.div>
-          <FieldError key={name}>{errors[name].message}</FieldError>
+          <FieldError key={`anim-error-${name}`}>{errors[name].message}</FieldError>
         )}
       </AnimatePresence>
-      {/* {showError && errors[name] && formState.dirtyFields[name] && (
-<FieldError key='same'>{errors[name].message}</FieldError>
-      )} */}
     </motion.div>
   );
 };
@@ -110,7 +74,7 @@ export const UsernameInput = (props: Props): JSX.Element => {
           name={name}
           placeholder='Username'
           autoComplete='off'
-          css={{paddingLeft: 44, maxHeight: 48}}
+          css={{paddingLeft: 44}}
         />
       )}
     </AuthFormInput>
@@ -158,7 +122,7 @@ export const PasswordInput = (props: Props): JSX.Element => {
           name={name}
           type='password'
           placeholder='Password'
-          css={{/* flexGrow: 1, */ paddingLeft: 44}}
+          css={{paddingLeft: 44}}
         />
       )}
     </AuthFormInput>

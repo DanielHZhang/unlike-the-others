@@ -8,6 +8,7 @@ import {EmailInput, PasswordInput} from 'src/client/components/auth/input';
 import {HomepageLink} from 'src/client/components/link';
 import {axios, isAxiosError} from 'src/client/network';
 import {useLocation} from 'wouter';
+import {AuthNav} from 'src/client/components/auth/nav';
 
 type FormState = {
   email: string;
@@ -51,20 +52,7 @@ export const LoginPage = (): JSX.Element => {
           </Flex>
         </form>
       </FormProvider>
-
-      {/* Section below can be converted to component and reused in home/sign-up */}
-      <Flex flow='column' crossAxis='center' style={{marginBottom: '2rem'}}>
-        <motion.div key='/sign-up' variants={childVariants}>
-          <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
-        </motion.div>
-        <motion.div key='divider' variants={childVariants}>
-          <Icon.Scale />
-        </motion.div>
-        <motion.div key='/' variants={childVariants}>
-          <HomepageLink to='/'>Home</HomepageLink>
-        </motion.div>
-      </Flex>
-      {/* end section */}
+      <AuthNav upper={{text: 'Sign Up', url: '/sign-up'}} lower={{text: 'Home', url: '/'}} />
     </RouteTransition>
   );
 };

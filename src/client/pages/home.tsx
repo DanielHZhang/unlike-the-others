@@ -11,6 +11,7 @@ import {Button, Flex, Icon, Input, Modal, Stack} from 'src/client/components/bas
 import {UsernameInput} from 'src/client/components/auth/input';
 import {HomepageLink} from 'src/client/components/link';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
+import {AuthNav} from 'src/client/components/auth/nav';
 
 type FormState = {username: string};
 
@@ -25,8 +26,6 @@ const UnauthHomePage = (): JSX.Element => {
     const response = await axios.post('/api/auth/guest', data);
     // if repsonse successful, make another call to /access for access token
   };
-
-  console.log(methods.getValues('username'), methods.formState.isValid);
 
   return (
     <RouteTransition>
@@ -62,17 +61,7 @@ const UnauthHomePage = (): JSX.Element => {
           </form>
         </FormProvider>
       </Flex>
-      <Flex flow='column' crossAxis='center' style={{marginBottom: '2rem'}}>
-        <motion.div key='/sign-up' variants={childVariants}>
-          <HomepageLink to='/sign-up'>Sign Up</HomepageLink>
-        </motion.div>
-        <motion.div key='divider' variants={childVariants}>
-          <Icon.Scale />
-        </motion.div>
-        <motion.div key='/login' variants={childVariants}>
-          <HomepageLink to='/login'>Login</HomepageLink>
-        </motion.div>
-      </Flex>
+      <AuthNav upper={{text: 'Sign Up', url: '/sign-up'}} lower={{text: 'Login', url: '/login'}} />
     </RouteTransition>
   );
 };

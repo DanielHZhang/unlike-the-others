@@ -1,13 +1,14 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {useLocation} from 'wouter';
-import {AnimateSharedLayout, motion, useIsPresent} from 'framer-motion';
+import {motion, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {axios, isAxiosError} from 'src/client/network';
 import {HomepageLink} from 'src/client/components/link';
 import {Flex, Icon, MotionButton, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {EmailInput, PasswordInput, UsernameInput} from 'src/client/components/auth/input';
+import {AuthNav} from 'src/client/components/auth/nav';
 
 type FormState = {
   username: string;
@@ -42,7 +43,6 @@ export const SignUpPage = (): JSX.Element => {
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Flex mainAxis='center' css={{margin: '4rem 0'}}>
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
-              {/* <AnimateSharedLayout> */}
               <UsernameInput showError={isPresent} />
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
@@ -57,25 +57,11 @@ export const SignUpPage = (): JSX.Element => {
                   <Icon.ArrowRight color='#fff' />
                 </MotionButton>
               </Flex>
-              {/* </AnimateSharedLayout> */}
             </Stack>
           </Flex>
         </form>
       </FormProvider>
-
-      {/* Section below can be converted to component and reused in home/sign-up */}
-      <Flex flow='column' crossAxis='center' style={{marginBottom: '2rem'}}>
-        <motion.div key='login' variants={childVariants}>
-          <HomepageLink to='/login'>Login</HomepageLink>
-        </motion.div>
-        <motion.div key='divider' variants={childVariants}>
-          <Icon.Scale />
-        </motion.div>
-        <motion.div key='home' variants={childVariants}>
-          <HomepageLink to='/'>Home</HomepageLink>
-        </motion.div>
-      </Flex>
-      {/* end section */}
+      <AuthNav upper={{text: 'Login', url: '/login'}} lower={{text: 'Home', url: '/'}} />
     </RouteTransition>
   );
 };
