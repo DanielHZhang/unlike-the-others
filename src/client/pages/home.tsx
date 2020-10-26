@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {useState} from 'react';
+import {Fragment, useState} from 'react';
 import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
 import {motion, AnimatePresence, useIsPresent} from 'framer-motion';
@@ -9,11 +9,12 @@ import {atoms} from 'src/client/store';
 import {axios, isAxiosError} from 'src/client/network';
 import {Button, Flex, Icon, Input, InputWithIcon, Modal, Stack} from 'src/client/components/base';
 import {UsernameInput} from 'src/client/components/auth/input';
-import {RouteTransition} from 'src/client/components/animation/route-transition';
+import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessResponse} from 'src/shared/types';
 import {InputButtonWrapper} from 'src/client/components/home/input';
+import {MotionFlex} from 'src/client/components/home/motion';
 
 type FormState = {username: string};
 
@@ -47,7 +48,7 @@ const UnauthHomePage = (): JSX.Element => {
   };
 
   return (
-    <RouteTransition>
+    <Fragment>
       <Flex mainAxis='center' css={{margin: '10rem 0'}}>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -63,7 +64,7 @@ const UnauthHomePage = (): JSX.Element => {
         </FormProvider>
       </Flex>
       <AuthNav upper={{text: 'Sign Up', url: '/sign-up'}} lower={{text: 'Login', url: '/login'}} />
-    </RouteTransition>
+    </Fragment>
   );
 };
 
@@ -111,37 +112,32 @@ const AuthHomePage = (): JSX.Element => {
   return (
     <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
       <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
-        <Button loading={state.loadingCreate} onClick={onCreateClick}>
-          HOST NEW GAME
-        </Button>
-        {state.joining ? (
-          <InputButtonWrapper>
-            <InputWithIcon
-              icon={Icon.AtSign}
-              type='password'
-              maxLength={40}
-              placeholder='Enter code'
-            />
-            {/* <Input
-              placeholder='Enter code'
-              // onChange={(event) => setRoom({id: event.target.value})}
-              type='password'
-              maxLength={40}
-              style={{flexGrow: 1}}
-            /> */}
-          </InputButtonWrapper>
-        ) : (
-          <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
-        )}
-        <Button>FIND A GAME</Button>
-        <Button>HOW TO PLAY</Button>
+        <MotionFlex key='host'>
+          <Button loading={state.loadingCreate} onClick={onCreateClick}>
+            HOST NEW GAME
+          </Button>
+        </MotionFlex>
+        <MotionFlex key='join'>
+          {state.joining ? (
+            <InputButtonWrapper>
+              <InputWithIcon
+                icon={Icon.AtSign}
+                type='password'
+                maxLength={40}
+                placeholder='Enter code'
+              />
+            </InputButtonWrapper>
+          ) : (
+            <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
+          )}
+        </MotionFlex>
+        <MotionFlex key='find'>
+          <Button>FIND A GAME</Button>
+        </MotionFlex>
+        <MotionFlex key='how'>
+          <Button>HOW TO PLAY</Button>
+        </MotionFlex>
       </Stack>
-      {/* <Modal
-          title='JOIN GAME'
-          visible={state.joinModalVisible}
-          onVisibleChange={(visible) => setState({...state, joinModalVisible: visible})}
-        >
-        </Modal> */}
       <Modal
         title='Whoops!'
         visible={state.errorModalVisible}
@@ -156,6 +152,15 @@ const AuthHomePage = (): JSX.Element => {
 export const HomePage = (): JSX.Element => {
   const user = useRecoilValue(atoms.user);
   // const [user, setUser] = useRecoilState(atoms.user);
-  return <UnauthHomePage />;
-  return user.isAuthed ? <AuthHomePage /> : <UnauthHomePage />;
+  // return (
+  //   <RouteTransition>
+  //     <UnauthHomePage />
+  //   </RouteTransition>
+  // );
+  return (
+    <RouteTransition>
+      <AuthHomePage />
+    </RouteTransition>
+  );
+  return <RouteTransition>{user.isAuthed ? <AuthHomePage /> : <UnauthHomePage />}</RouteTransition>;
 };

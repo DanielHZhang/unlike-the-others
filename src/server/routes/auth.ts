@@ -86,5 +86,21 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
     },
   });
 
+  fastify.route({
+    method: 'DELETE',
+    url: '/logout',
+    handler: async (req, reply) => {
+      const refreshCookie = req.cookies[CookieKeys.Refresh];
+
+      if (!refreshCookie) {
+        reply.status(400);
+        throw new Error('No refresh token.');
+      }
+
+      reply.clearCookie(CookieKeys.Refresh, REFRESH_COOKIE_OPTIONS);
+      return {success: true};
+    },
+  });
+
   next();
 };
