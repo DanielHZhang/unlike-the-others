@@ -15,7 +15,7 @@ export const FieldError = (props: Props): JSX.Element => {
       exit={{opacity: 0}}
       css={{
         marginTop: 8,
-        textAlign: 'right',
+        textAlign: 'center',
         fontSize: '0.9em',
         color: '#ff4d4f',
       }}

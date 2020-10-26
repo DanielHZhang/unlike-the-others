@@ -2,12 +2,11 @@ import styled from '@emotion/styled';
 import {css} from '@emotion/react';
 import {styledOptions} from 'src/client/components/props';
 import {theme} from 'src/client/styles/theme';
-import {motion} from 'framer-motion';
 
 export const baseInputStyles = css`
   background-color: #010101;
   border: 2px solid ${theme.borderColor};
-  border-radius: 4px;
+  border-radius: 8px;
   color: #fff;
   height: 48px;
   outline: none;
@@ -48,10 +47,6 @@ export const Input = styled(
     }
   `
 );
-
-export const MotionInput = styled(motion.input)`
-  ${baseInputStyles}
-`;
 
 // export const Input = styled(
 //   'input',

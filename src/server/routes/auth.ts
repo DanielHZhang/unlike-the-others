@@ -69,11 +69,13 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
     handler: async (req, reply) => {
       const {username} = req.body as {username: string};
 
-      // Set new refresh token
+      // Random int between [0001-9999]
+      const int = Math.floor(1 + 9999 * Math.random());
       const claims: JwtClaims = {
         id: await nanoid(),
-        username,
         isGuest: true,
+        hashtag: int.toString().padStart(4, '0'),
+        username,
       };
       const refreshToken = signJwt('refresh', claims);
       reply.setCookie(CookieKeys.Refresh, refreshToken, REFRESH_COOKIE_OPTIONS);

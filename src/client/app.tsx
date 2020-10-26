@@ -15,7 +15,13 @@ const App = () => {
     const response = await postAccessToken();
     if (!isAxiosError(response)) {
       const {accessToken, claims} = response;
-      setUser({accessToken, ...claims, isAuthed: true});
+      const {isGuest, username, hashtag} = claims;
+      setUser({
+        accessToken,
+        ...claims,
+        username: isGuest ? `${username}#${hashtag}` : username,
+        isAuthed: true,
+      });
     }
   }, []);
 

@@ -1,14 +1,15 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
+import {Fragment} from 'react';
 import {useLocation} from 'wouter';
 import {motion, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {axios, isAxiosError} from 'src/client/network';
-import {HomepageLink} from 'src/client/components/link';
-import {Flex, Icon, MotionButton, Stack} from 'src/client/components/base';
+import {Button, Flex, Icon, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {EmailInput, PasswordInput, UsernameInput} from 'src/client/components/auth/input';
 import {AuthNav} from 'src/client/components/auth/nav';
+import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 
 type FormState = {
   username: string;
@@ -46,17 +47,22 @@ export const SignUpPage = (): JSX.Element => {
               <UsernameInput showError={isPresent} />
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
-              <Flex mainAxis='flex-end'>
-                <MotionButton
-                  key='anim-signup-submit'
-                  type='submit'
-                  variants={childVariants}
-                  disabled={methods.formState.isSubmitting}
-                >
-                  <span css={{margin: '0 6px'}}>Continue</span>
-                  <Icon.ArrowRight color='#fff' />
-                </MotionButton>
-              </Flex>
+              <motion.div
+                key='anim-submit'
+                variants={childVariants}
+                css={{display: 'flex', justifyContent: 'flex-end'}}
+              >
+                <Button type='submit' loading={methods.formState.isSubmitting}>
+                  {methods.formState.isSubmitting ? (
+                    <RhombusSpinner />
+                  ) : (
+                    <Fragment>
+                      <span css={{margin: '0 6px'}}>Continue</span>
+                      <Icon.ArrowRight color='#fff' />
+                    </Fragment>
+                  )}
+                </Button>
+              </motion.div>
             </Stack>
           </Flex>
         </form>

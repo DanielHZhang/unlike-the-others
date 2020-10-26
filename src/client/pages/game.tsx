@@ -6,7 +6,7 @@ import {socket} from 'src/client/network/socket';
 import {atoms} from 'src/client/store';
 import {Chatbox} from 'src/client/components/chatbox';
 import {channel} from 'src/client/network/webrtc';
-import {FingerprintSpinner} from 'src/client/components/spinner';
+import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
 import {useDidMount} from 'src/client/hooks';
 
 type Props = /* RouteComponentProps<any> & */ {};

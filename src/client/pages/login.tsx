@@ -1,13 +1,12 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {motion, useIsPresent} from 'framer-motion';
+import {useLocation} from 'wouter';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import {Flex, Icon, MotionButton, Stack} from 'src/client/components/base';
+import {Button, Flex, Icon, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {EmailInput, PasswordInput} from 'src/client/components/auth/input';
-import {HomepageLink} from 'src/client/components/link';
 import {axios, isAxiosError} from 'src/client/network';
-import {useLocation} from 'wouter';
 import {AuthNav} from 'src/client/components/auth/nav';
 
 type FormState = {
@@ -42,12 +41,16 @@ export const LoginPage = (): JSX.Element => {
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
-              <Flex mainAxis='flex-end'>
-                <MotionButton key='anim-login-submit' type='submit' variants={childVariants}>
+              <motion.div
+                key='anim-submit'
+                variants={childVariants}
+                css={{display: 'flex', justifyContent: 'flex-end'}}
+              >
+                <Button type='submit' loading={methods.formState.isSubmitting}>
                   <span css={{margin: '0 6px'}}>Login</span>
                   <Icon.ArrowRight color='#fff' />
-                </MotionButton>
-              </Flex>
+                </Button>
+              </motion.div>
             </Stack>
           </Flex>
         </form>

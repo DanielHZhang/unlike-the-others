@@ -6,6 +6,7 @@ export const atoms = {
     key: 'user',
     default: {
       accessToken: '',
+      id: '',
       isAuthed: false,
       isGuest: true,
       username: '',

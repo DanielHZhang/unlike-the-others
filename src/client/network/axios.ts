@@ -1,6 +1,6 @@
 import Axios, {AxiosError} from 'axios';
 import {ROOT_URL} from 'src/shared/constants';
-import type {FastifyReplyError, JwtClaims} from 'src/shared/types';
+import type {AccessResponse, FastifyReplyError} from 'src/shared/types';
 
 export const axios = Axios.create();
 
@@ -23,8 +23,6 @@ type AxiosResponseError = Required<AxiosError<FastifyReplyError>>;
 export function isAxiosError(error: any): error is AxiosResponseError {
   return error.isAxiosError && error.response && error.response.data;
 }
-
-type AccessResponse = {accessToken: string; claims: JwtClaims};
 
 export async function postAccessToken(): Promise<AccessResponse | AxiosResponseError> {
   try {

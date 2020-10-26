@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {useState} from 'react';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
 import {motion, AnimatePresence, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
@@ -9,13 +9,14 @@ import {atoms} from 'src/client/store';
 import {axios, isAxiosError} from 'src/client/network';
 import {Button, Flex, Icon, Input, Modal, Stack} from 'src/client/components/base';
 import {UsernameInput} from 'src/client/components/auth/input';
-import {HomepageLink} from 'src/client/components/link';
-import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
+import {RouteTransition} from 'src/client/components/animation/route-transition';
 import {AuthNav} from 'src/client/components/auth/nav';
+import type {AccessResponse} from 'src/shared/types';
 
 type FormState = {username: string};
 
 const UnauthHomePage = (): JSX.Element => {
+  const setUser = useSetRecoilState(atoms.user);
   const methods = useForm<FormState>({
     mode: 'onChange',
     reValidateMode: 'onSubmit',
@@ -23,8 +24,21 @@ const UnauthHomePage = (): JSX.Element => {
   });
   const isPresent = useIsPresent();
   const onSubmit: SubmitHandler<FormState> = async (data) => {
-    const response = await axios.post('/api/auth/guest', data);
-    // if repsonse successful, make another call to /access for access token
+    try {
+      const response = await axios.post<AccessResponse>('/api/auth/guest', data);
+      const {accessToken, claims} = response.data;
+      setUser({
+        accessToken,
+        ...claims,
+        username: `${claims.username}#${claims.hashtag}`,
+        isAuthed: true,
+      });
+    } catch (error) {
+      if (isAxiosError(error)) {
+        // Set errors on forms here
+        console.log(error);
+      }
+    }
   };
 
   return (

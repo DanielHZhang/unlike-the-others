@@ -101,7 +101,7 @@ type SpinnerProps = {
   duration?: number;
 };
 
-export const FingerprintSpinner = (props: SpinnerProps) => {
+export const FingerprintSpinner = (props: SpinnerProps): JSX.Element => {
   const {size = 120, color = '#fff', duration = 1500} = props;
   const outerRingSize = size - containerPadding * 2;
   const ringBase = outerRingSize / numRings;

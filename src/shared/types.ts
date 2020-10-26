@@ -35,6 +35,7 @@ export type JwtClaims = {
   id: string;
   isGuest: boolean;
   username: string;
+  hashtag?: string | undefined;
   iat?: number;
 };
 
@@ -85,3 +86,5 @@ export type BufferSnapshotData = {
 };
 
 export type SocketMessage = [string, any];
+
+export type AccessResponse = {accessToken: string; claims: JwtClaims};

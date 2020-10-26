@@ -1,6 +1,5 @@
 import styled from '@emotion/styled';
 import {css} from '@emotion/react';
-import {motion} from 'framer-motion';
 import {styledOptions} from 'src/client/components/props';
 import {theme} from 'src/client/styles/theme';
 
@@ -28,20 +27,6 @@ export const Button = styled(
   'button',
   styledOptions
 )<ButtonProps>(
-  ({theme: {button}, loading}) => css`
-    ${baseButtonStyles}
-    cursor: ${loading ? 'inherit' : 'pointer'};
-    &:focus,
-    &:hover {
-      background-color: ${loading ? button.loadingColor : button.hoverColor};
-    }
-    &:active {
-      background-color: ${loading ? button.loadingColor : button.activeColor};
-    }
-  `
-);
-
-export const MotionButton = styled(motion.button)<ButtonProps>(
   ({theme: {button}, loading}) => css`
     ${baseButtonStyles}
     cursor: ${loading ? 'inherit' : 'pointer'};
