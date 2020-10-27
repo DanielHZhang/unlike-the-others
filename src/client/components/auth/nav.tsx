@@ -3,7 +3,7 @@ import {jsx} from '@emotion/react';
 import {motion} from 'framer-motion';
 import {childVariants} from 'src/client/components/animation/route-transition';
 import {Flex, Icon} from 'src/client/components/base';
-import {HomepageLink} from 'src/client/components/link';
+import {HomepageLink} from 'src/client/components/home/link';
 
 type Link = {
   url: string;

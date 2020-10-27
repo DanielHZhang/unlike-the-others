@@ -1,6 +1,6 @@
 import React, {FC, useEffect, useState} from 'react';
 import {useRecoilValue} from 'recoil';
-import {AudioCall} from 'src/client/components/audio-call';
+import {AudioCall} from 'src/client/components/game/audio-call';
 import {GameWindow} from 'src/client/game';
 import {socket} from 'src/client/network/socket';
 import {atoms} from 'src/client/store';

@@ -2,9 +2,9 @@ import React, {memo, useState} from 'react';
 import styled from '@emotion/styled';
 import {tsParticles} from 'tsparticles';
 import {Container} from 'tsparticles/dist/Core/Container';
+import {useDidMount} from 'src/client/hooks';
 import type {RecursivePartial} from 'tsparticles/dist/Types/RecursivePartial';
 import type {IOptions} from 'tsparticles/dist/Interfaces/Options/IOptions';
-import {useDidMount} from 'src/client/utils/hooks';
 
 const particleOptions: RecursivePartial<IOptions> = {
   // backgroundMask: {
