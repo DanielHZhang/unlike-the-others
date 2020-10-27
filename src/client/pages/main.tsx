@@ -48,7 +48,7 @@ export const MainPage: FC = () => {
     >
       <Flex crossAxis='stretch' mainAxis='flex-end' css={{height: '64px'}}>
         <Flex css={{padding: '0 2rem'}}>
-          {user.isAuthed && (
+          {user?.isAuthed && (
             <Flex crossAxis='center' onClick={onClick}>
               <Icon.User color='#fff' />
               <span css={{marginLeft: 8}}>{user.username}</span>

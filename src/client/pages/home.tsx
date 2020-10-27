@@ -12,7 +12,7 @@ import {UsernameInput} from 'src/client/components/auth/input';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 import {AuthNav} from 'src/client/components/auth/nav';
-import type {AccessResponse} from 'src/shared/types';
+import type {AccessTokenData} from 'src/shared/types';
 import {InputButtonWrapper} from 'src/client/components/home/input';
 import {MotionFlex} from 'src/client/components/home/motion';
 import {useAsyncAtomValue, useAsyncAtomLoadable} from 'src/client/hooks';
@@ -29,7 +29,7 @@ const UnauthHomePage = (): JSX.Element => {
   const isPresent = useIsPresent();
   const onSubmit: SubmitHandler<FormState> = async (data) => {
     try {
-      const response = await axios.post<AccessResponse>('/api/auth/guest', data);
+      const response = await axios.post<AccessTokenData>('/api/auth/guest', data);
       const {accessToken, claims} = response.data;
       setUser({
         accessToken,
@@ -152,23 +152,28 @@ const AuthHomePage = (): JSX.Element => {
 
 export const HomePage = (): JSX.Element => {
   // const user = useRecoilValue(atoms.user);
-  const [user, setUser] = useAsyncAtomLoadable(asyncAtoms.user);
+  // const [user, setUser] = useAsyncAtomLoadable(asyncAtoms.user);
+  const user = useAsyncAtomValue(asyncAtoms.user);
 
-  if (user.state === 'hasError') {
-    return <div>some error occurred</div>;
-  }
+  // if (user.state === 'hasError') {
+  //   return <div>some error occurred</div>;
+  // }
 
-  // console.log('what am i getting from atom async:', what);
+  // console.log('what am i getting from atom async:', user);
   // const [user, setUser] = useRecoilState(atoms.user);
   // return (
   //   <RouteTransition>
   //     <UnauthHomePage />
   //   </RouteTransition>
   // );
+  // return (
+  //   <RouteTransition>
+  //     <AuthHomePage />
+  //   </RouteTransition>
+  // );
   return (
-    <RouteTransition>
-      <AuthHomePage />
-    </RouteTransition>
+    // <Suspense fallback={<div>loaderinoing</div>}>
+    <RouteTransition>{user?.isAuthed ? <AuthHomePage /> : <UnauthHomePage />}</RouteTransition>
+    // </Suspense>
   );
-  return <RouteTransition>{user.isAuthed ? <AuthHomePage /> : <UnauthHomePage />}</RouteTransition>;
 };

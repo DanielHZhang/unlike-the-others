@@ -87,4 +87,4 @@ export type BufferSnapshotData = {
 
 export type SocketMessage = [string, any];
 
-export type AccessResponse = {accessToken: string; claims: JwtClaims};
+export type AccessTokenData = {accessToken: string; claims: JwtClaims};

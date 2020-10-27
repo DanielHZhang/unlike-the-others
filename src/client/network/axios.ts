@@ -1,6 +1,6 @@
 import Axios, {AxiosError} from 'axios';
 import {ROOT_URL} from 'src/shared/constants';
-import type {AccessResponse, FastifyReplyError} from 'src/shared/types';
+import type {AccessTokenData, FastifyReplyError} from 'src/shared/types';
 
 export const axios = Axios.create();
 
@@ -24,17 +24,9 @@ export function isAxiosError(error: any): error is AxiosResponseError {
   return error.isAxiosError && error.response && error.response.data;
 }
 
-export async function fetchAccessToken(): Promise<AccessResponse | AxiosResponseError> {
-  const response = await axios.post('/api/auth/access');
+export async function fetchAccessToken(): Promise<AccessTokenData> {
+  const response = await axios.post<AccessTokenData>('/api/auth/access');
   // Set JWT access token as header on future requests
   axios.defaults.headers.authorization = response.data.accessToken;
   return response.data;
-  // try {
-  //   const response = await axios.post('/api/auth/access');
-  //   // Set JWT access token as header on future requests
-  //   axios.defaults.headers.authorization = response.data.accessToken;
-  //   return response.data;
-  // } catch (error) {
-  //   return error;
-  // }
 }

@@ -1,6 +1,7 @@
 import {atom, useRecoilSnapshot, useRecoilState} from 'recoil';
 import type {RecoilState, Loadable, LoadablePromise, Snapshot} from 'recoil';
 import {useCallback} from 'react';
+import {isAxiosError} from 'src/client/network';
 
 type AsyncSetter<T> = Promise<T> | (<TArgs extends any[]>(...args: TArgs) => Promise<T>);
 
@@ -33,44 +34,43 @@ export function useAsyncAtomLoadable<T>(
           const promise: LoadablePromise<T> = new Promise((resolve, reject) => {
             (typeof setter === 'function' ? setter() : setter)
               .then((result) => {
-                resolve({value: result});
+                resolve({value: result}); // Resolve the outer promise with the result
               })
-              .catch((reason) => reject(reason));
-            // .catch((reason) => reject(reason));
+              .catch(reject); // Reject the outer promise with the reason
           });
           setValue({state: 'loading', contents: promise});
-
-          setValue({state: 'hasValue', contents: (await promise).value});
+          const resolved = await promise; // Await the promise
+          setValue({state: 'hasValue', contents: resolved.value});
         } catch (error) {
-          console.log('goes here with error:', error);
-          setValue({state: 'hasError', contents: error});
+          // If the error is an axios network error, get the inner data object
+          setValue({
+            state: 'hasError',
+            contents: isAxiosError(error) ? error.response.data : error,
+          });
         }
-      })(); // wrapping this so the return type is void, not Promise<void>
+      })(); // wrap to ensure the return type is void, not Promise<void>
     },
     [setValue]
   );
   return [value, set];
 }
 
-export function useAsyncAtom<T>(atom: RecoilState<T>): [T, (arg: AsyncSetter<T>) => void] {
-  const [value, setValue] = useAsyncAtomLoadable(atom);
-  if (value.state === 'hasValue') {
-    return [value.contents, setValue];
-  }
-  return value;
-  throw value.contents;
-}
-
+/**
+ * Returns a setter function to change the value of the async atom.
+ */
 export function useSetAsyncAtom<T>(atom: RecoilState<T>): (arg: AsyncSetter<T>) => void {
   const [, setValue] = useAsyncAtomLoadable(atom);
   return setValue;
 }
 
-export function useAsyncAtomValue<T>(atom: RecoilState<T>): T {
+/**
+ * Returns the contents of the resolved atom, or undefined if in 'hasError'
+ * or 'loading' states.
+ */
+export function useAsyncAtomValue<T>(atom: RecoilState<T>): T | undefined {
   const [value] = useAsyncAtomLoadable(atom);
   if (value.state === 'hasValue') {
     return value.contents;
   }
-  return value;
-  // throw value.contents;
+  return undefined;
 }

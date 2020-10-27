@@ -1,41 +1,24 @@
 import React from 'react';
-import {Route, Router, Switch} from 'wouter';
+import {Global} from '@emotion/react';
 import {hot} from 'react-hot-loader/root';
-import {useSetRecoilState} from 'recoil';
-import {useAsyncEffect, useDidMount, useSetAsyncAtom} from 'src/client/hooks';
+import {Route, Router, Switch} from 'wouter';
+import {useDidMount, useSetAsyncAtom} from 'src/client/hooks';
 import {GamePage} from 'src/client/pages/game';
 import {MainPage} from 'src/client/pages/main';
-import {asyncAtoms, atoms} from 'src/client/store';
-import {isAxiosError, fetchAccessToken} from 'src/client/network';
-import {Global} from '@emotion/react';
+import {asyncAtoms} from 'src/client/store';
+import {fetchAccessToken} from 'src/client/network';
 import {globalStyles} from 'src/client/styles/global';
 import {multipathMatcher} from 'src/client/routes';
 
 const App = () => {
-  // const setUser = useSetRecoilState(atoms.user);
   const setUser = useSetAsyncAtom(asyncAtoms.user);
 
   useDidMount(() => {
     setUser(async () => {
-      const response = await fetchAccessToken();
-      // if (isAxiosError(response)) {
-      //   throw response;
-      // }
-      // const {accessToken, claims} = response;
-      // const {isGuest, username, hashtag} = claims;
-      // return {
-      //   accessToken,
-      //   ...claims,
-      //   username: isGuest ? `${username}#${hashtag}` : username,
-      //   isAuthed: true,
-      // };
+      const {accessToken, claims} = await fetchAccessToken();
+      return {accessToken, ...claims, isAuthed: true};
     });
   });
-
-  // useAsyncEffect(async () => {
-
-  //     setUser();
-  // }, []);
 
   return (
     <Router matcher={multipathMatcher}>

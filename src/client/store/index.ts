@@ -19,6 +19,20 @@ export const atoms = {
   }),
 };
 
+/**
+ * By setting the default value to any truthy value, while the async promise is still awaiting
+ * the useAsyncAtomValue hook will return the default value until the promise has resolved or
+ * rejected. However by setting the default value to a resolved promise, the hook will
+ * return undefined until the promise has resolved.
+ */
+// default: {
+//   accessToken: '',
+//   id: '',
+//   isAuthed: false,
+//   isGuest: true,
+//   username: '',
+// },
+
 export const asyncAtoms = {
   user: atom({
     key: 'user',
