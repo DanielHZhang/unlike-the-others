@@ -1,11 +1,11 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {Fragment, useState} from 'react';
+import {Fragment, Suspense, useState} from 'react';
 import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
 import {motion, AnimatePresence, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import {atoms} from 'src/client/store';
+import {asyncAtoms, atoms} from 'src/client/store';
 import {axios, isAxiosError} from 'src/client/network';
 import {Button, Flex, Icon, Input, InputWithIcon, Modal, Stack} from 'src/client/components/base';
 import {UsernameInput} from 'src/client/components/auth/input';
@@ -15,11 +15,12 @@ import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessResponse} from 'src/shared/types';
 import {InputButtonWrapper} from 'src/client/components/home/input';
 import {MotionFlex} from 'src/client/components/home/motion';
+import {useAtomAsyncValue} from 'src/client/hooks';
 
 type FormState = {username: string};
 
 const UnauthHomePage = (): JSX.Element => {
-  const setUser = useSetRecoilState(atoms.user);
+  // const setUser = useSetRecoilState(atoms.user);
   const methods = useForm<FormState>({
     mode: 'onChange',
     reValidateMode: 'onSubmit',
@@ -150,7 +151,10 @@ const AuthHomePage = (): JSX.Element => {
 };
 
 export const HomePage = (): JSX.Element => {
-  const user = useRecoilValue(atoms.user);
+  // const user = useRecoilValue(atoms.user);
+  const what = useAtomAsyncValue(asyncAtoms.user);
+
+  console.log('what am i getting from atom async:', what);
   // const [user, setUser] = useRecoilState(atoms.user);
   // return (
   //   <RouteTransition>

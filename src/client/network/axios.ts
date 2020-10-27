@@ -24,13 +24,17 @@ export function isAxiosError(error: any): error is AxiosResponseError {
   return error.isAxiosError && error.response && error.response.data;
 }
 
-export async function postAccessToken(): Promise<AccessResponse | AxiosResponseError> {
-  try {
-    const response = await axios.post('/api/auth/access');
-    // Set JWT access token as header on future requests
-    axios.defaults.headers.authorization = response.data.accessToken;
-    return response.data;
-  } catch (error) {
-    return error;
-  }
+export async function fetchAccessToken(): Promise<AccessResponse | AxiosResponseError> {
+  const response = await axios.post('/api/auth/access');
+  // Set JWT access token as header on future requests
+  axios.defaults.headers.authorization = response.data.accessToken;
+  return response.data;
+  // try {
+  //   const response = await axios.post('/api/auth/access');
+  //   // Set JWT access token as header on future requests
+  //   axios.defaults.headers.authorization = response.data.accessToken;
+  //   return response.data;
+  // } catch (error) {
+  //   return error;
+  // }
 }

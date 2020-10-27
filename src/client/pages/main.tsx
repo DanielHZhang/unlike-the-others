@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import {css, jsx} from '@emotion/react';
-import {FC} from 'react';
+import {FC, Suspense} from 'react';
 import {useLocation} from 'wouter';
 import {AnimatePresence} from 'framer-motion';
 import {HomePage} from 'src/client/pages/home';
@@ -13,8 +13,8 @@ import {axios} from 'src/client/network';
 
 export const MainPage: FC = () => {
   const [location, setLocation] = useLocation();
-  const user = useRecoilValue(atoms.user);
-
+  // const user = useRecoilValue(atoms.user);
+  const user = {};
   const onClick = async () => {
     const response = await axios.delete('/api/auth/logout');
     if (response.data.success) {
@@ -46,10 +46,12 @@ export const MainPage: FC = () => {
     >
       <Flex crossAxis='stretch' mainAxis='flex-end' css={{height: '64px'}}>
         <Flex css={{padding: '0 2rem'}}>
-          <Flex crossAxis='center' onClick={onClick}>
-            <Icon.User color='#fff' />
-            <span css={{marginLeft: 8}}>{user.username}</span>
-          </Flex>
+          {user.isAuthed && (
+            <Flex crossAxis='center' onClick={onClick}>
+              <Icon.User color='#fff' />
+              <span css={{marginLeft: 8}}>{user.username}</span>
+            </Flex>
+          )}
         </Flex>
       </Flex>
       <div
@@ -63,7 +65,9 @@ export const MainPage: FC = () => {
       >
         UNLIKE the OTHERS
       </div>
-      <AnimatePresence exitBeforeEnter={true}>{renderLocationMatch(location)}</AnimatePresence>
+      <Suspense fallback={<div>Loading...</div>}>
+        <AnimatePresence exitBeforeEnter={true}>{renderLocationMatch(location)}</AnimatePresence>
+      </Suspense>
     </Flex>
   );
 };

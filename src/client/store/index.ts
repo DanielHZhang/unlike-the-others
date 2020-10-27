@@ -2,16 +2,6 @@ import {atom} from 'recoil';
 import {GameControls} from 'src/shared/types';
 
 export const atoms = {
-  user: atom({
-    key: 'user',
-    default: {
-      accessToken: '',
-      id: '',
-      isAuthed: false,
-      isGuest: true,
-      username: '',
-    },
-  }),
   room: atom({
     key: 'room',
     default: {
@@ -26,5 +16,18 @@ export const atoms = {
       down: 83, // S
       right: 68, // D
     },
+  }),
+};
+
+export const asyncAtoms = {
+  user: atom({
+    key: 'user',
+    default: Promise.resolve({
+      accessToken: '',
+      id: '',
+      isAuthed: false,
+      isGuest: true,
+      username: '',
+    }),
   }),
 };
