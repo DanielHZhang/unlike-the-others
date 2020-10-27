@@ -7,6 +7,7 @@ export function useAtomAsync<T>(atom: RecoilState<T>): [T, (arg: AsyncSetter<T>)
   if (value.state === 'hasValue') {
     return [value.contents, setValue];
   }
+  return value;
   throw value.contents;
 }
 
