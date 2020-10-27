@@ -1,7 +1,6 @@
 {
   "name": "unlike-the-others",
   "version": "0.1.0",
-  "main": "index.js",
   "repository": "https://github.com/DanielHZhang/unlike-the-others.git",
   "contributors": [
     "Jason Pu (https://github.com/jasonjpu)",

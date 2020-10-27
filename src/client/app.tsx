@@ -2,7 +2,7 @@ import React from 'react';
 import {Route, Router, Switch} from 'wouter';
 import {hot} from 'react-hot-loader/root';
 import {useSetRecoilState} from 'recoil';
-import {useAsyncEffect, useDidMount, useSetAtomAsync} from 'src/client/hooks';
+import {useAsyncEffect, useDidMount, useSetAsyncAtom} from 'src/client/hooks';
 import {GamePage} from 'src/client/pages/game';
 import {MainPage} from 'src/client/pages/main';
 import {asyncAtoms, atoms} from 'src/client/store';
@@ -13,7 +13,7 @@ import {multipathMatcher} from 'src/client/routes';
 
 const App = () => {
   // const setUser = useSetRecoilState(atoms.user);
-  const setUser = useSetAtomAsync(asyncAtoms.user);
+  const setUser = useSetAsyncAtom(asyncAtoms.user);
 
   useDidMount(() => {
     setUser(async () => {

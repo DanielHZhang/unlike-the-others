@@ -15,7 +15,7 @@ import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessResponse} from 'src/shared/types';
 import {InputButtonWrapper} from 'src/client/components/home/input';
 import {MotionFlex} from 'src/client/components/home/motion';
-import {useAtomAsyncValue} from 'src/client/hooks';
+import {useAsyncAtomValue, useAsyncAtomLoadable} from 'src/client/hooks';
 
 type FormState = {username: string};
 
@@ -152,9 +152,13 @@ const AuthHomePage = (): JSX.Element => {
 
 export const HomePage = (): JSX.Element => {
   // const user = useRecoilValue(atoms.user);
-  const what = useAtomAsyncValue(asyncAtoms.user);
+  const [user, setUser] = useAsyncAtomLoadable(asyncAtoms.user);
 
-  console.log('what am i getting from atom async:', what);
+  if (user.state === 'hasError') {
+    return <div>some error occurred</div>;
+  }
+
+  // console.log('what am i getting from atom async:', what);
   // const [user, setUser] = useRecoilState(atoms.user);
   // return (
   //   <RouteTransition>

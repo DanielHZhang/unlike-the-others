@@ -1,4 +1,4 @@
-import React, {Component, ReactNode} from 'react';
+import React, {Component, ReactElement, ReactNode, Suspense} from 'react';
 
 type State = {
   hasError: boolean;
@@ -6,7 +6,8 @@ type State = {
 };
 
 type Props = {
-  fallback: ReactNode;
+  error: ReactElement;
+  loading: ReactElement;
   children: ReactNode;
 };
 
@@ -20,10 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  public render(): ReactNode {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
+  public render(): JSX.Element {
+    return <Suspense fallback={this.props.loading}>{this.props.children}</Suspense>;
   }
 }

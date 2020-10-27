@@ -88,5 +88,3 @@ export type BufferSnapshotData = {
 export type SocketMessage = [string, any];
 
 export type AccessResponse = {accessToken: string; claims: JwtClaims};
-
-export type AsyncSetter<T> = Promise<T> | (<TArgs extends any[]>(...args: TArgs) => Promise<T>);

@@ -8,13 +8,15 @@ import {LoginPage} from 'src/client/pages/login';
 import {SignUpPage} from 'src/client/pages/sign-up';
 import {Flex, Icon} from 'src/client/components/base';
 import {useRecoilValue} from 'recoil';
-import {atoms} from 'src/client/store';
+import {asyncAtoms, atoms} from 'src/client/store';
 import {axios} from 'src/client/network';
+import {useAsyncAtomValue} from 'src/client/hooks';
 
 export const MainPage: FC = () => {
   const [location, setLocation] = useLocation();
+  const user = useAsyncAtomValue(asyncAtoms.user);
   // const user = useRecoilValue(atoms.user);
-  const user = {};
+
   const onClick = async () => {
     const response = await axios.delete('/api/auth/logout');
     if (response.data.success) {
