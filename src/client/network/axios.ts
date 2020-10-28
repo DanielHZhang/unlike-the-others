@@ -18,11 +18,20 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-export type AxiosResponseError = Required<AxiosError<FastifyReplyError>>;
-export type Success = {success: true};
+type AxiosResponseError = Required<AxiosError<FastifyReplyError>>;
 
 export function isAxiosError(error: any): error is AxiosResponseError {
   return error.isAxiosError && error.response && error.response.data;
+}
+
+export function isNetworkError(error: any): error is Error {
+  // For connection errors where the request fails, the message will be "Network Error"
+  if (error instanceof Error && error.message.toLowerCase().includes('network')) {
+    // Rewrite the error message to be more descriptive.
+    error.message = 'Network request failed. Check your internet connection.';
+    return true;
+  }
+  return false;
 }
 
 export async function fetchAccessToken(): Promise<AccessTokenData> {

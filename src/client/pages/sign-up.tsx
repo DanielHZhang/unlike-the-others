@@ -5,7 +5,7 @@ import {useLocation} from 'wouter';
 import {motion, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {axios, isAxiosError} from 'src/client/network';
-import {Button, Flex, Icon, Stack} from 'src/client/components/base';
+import {Alert, Button, Flex, Icon, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route';
 import {EmailInput, PasswordInput, UsernameInput} from 'src/client/components/auth/input';
 import {AuthNav} from 'src/client/components/auth/nav';
@@ -15,18 +15,19 @@ type FormState = {
   username: string;
   email: string;
   password: string;
+  networkError: null;
 };
 
 export const SignUpPage = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
   const methods = useForm<FormState>({
-    // reValidateMode: 'onSubmit',
-    defaultValues: {username: '', email: '', password: ''},
+    defaultValues: {username: '', email: '', password: '', networkError: null},
   });
+  const {errors, formState} = methods;
   const onSubmit: SubmitHandler<FormState> = async (data) => {
     try {
-      const response = await axios.post('/api/user/sign-up', data);
+      await axios.post('/api/user/sign-up', data);
       setLocation('/'); // Push back to homepage
       // Potentially return user data in response and set on user atom
     } catch (error) {
@@ -44,6 +45,7 @@ export const SignUpPage = (): JSX.Element => {
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Flex mainAxis='center' css={{margin: '4.5rem 0'}}>
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
+              {errors.networkError && <Alert type='error' message={errors.networkError.message!} />}
               <UsernameInput showError={isPresent} />
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
@@ -52,8 +54,8 @@ export const SignUpPage = (): JSX.Element => {
                 variants={childVariants}
                 css={{display: 'flex', justifyContent: 'flex-end'}}
               >
-                <Button type='submit' loading={methods.formState.isSubmitting}>
-                  {methods.formState.isSubmitting ? (
+                <Button type='submit' loading={formState.isSubmitting}>
+                  {formState.isSubmitting ? (
                     <RhombusSpinner />
                   ) : (
                     <Fragment>

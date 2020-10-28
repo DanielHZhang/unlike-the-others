@@ -6,7 +6,7 @@ import {useLocation} from 'wouter';
 import {AnimatePresence, useIsPresent, usePresence} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {asyncAtoms, atoms} from 'src/client/store';
-import {axios, isAxiosError, Success} from 'src/client/network';
+import {axios, isAxiosError} from 'src/client/network';
 import {
   Button,
   Flex,
@@ -97,7 +97,7 @@ const AuthHomePage = (): JSX.Element => {
 
   const onSubmit = async () => {
     try {
-      await axios.put<Success>(`/api/room/${room.id}/join`);
+      await axios.put(`/api/room/${room.id}/join`);
       setLocation('/game');
     } catch (error) {
       if (isAxiosError(error)) {

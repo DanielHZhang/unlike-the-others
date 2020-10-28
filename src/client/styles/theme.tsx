@@ -3,6 +3,12 @@ export const theme = {
   backgroundColor: '#111111',
   borderColor: '#21ad99',
   errorColor: '#d64747',
+  // alert: {
+  //   error: {
+  //     backgroundColor: '#ffccc7',
+  //     borderColor: '#d64747',
+  //   },
+  // },
   button: {
     activeColor: '#21ac99',
     hoverColor: '#25cab4',

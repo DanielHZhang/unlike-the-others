@@ -8,7 +8,7 @@ import {LoginPage} from 'src/client/pages/login';
 import {SignUpPage} from 'src/client/pages/sign-up';
 import {Flex, Icon} from 'src/client/components/base';
 import {asyncAtoms} from 'src/client/store';
-import {axios, Success} from 'src/client/network';
+import {axios} from 'src/client/network';
 import {useAsyncAtomValue} from 'src/client/hooks';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
 
@@ -18,7 +18,7 @@ export const MainPage: FC = () => {
 
   const onClick = async () => {
     try {
-      await axios.delete<Success>('/api/auth/logout');
+      await axios.delete('/api/auth/logout');
       setLocation('/');
     } catch (error) {
       console.error(error);
