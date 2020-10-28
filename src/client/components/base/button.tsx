@@ -1,9 +1,15 @@
 import styled from '@emotion/styled';
 import {css} from '@emotion/react';
 import {styledOptions} from 'src/client/components/props';
-import {theme} from 'src/client/styles/theme';
+import type {DeclaredTheme} from 'src/client/styles/theme';
 
-const baseButtonStyles = ({loading}: ButtonProps) => css`
+type Props = {
+  loading?: boolean;
+};
+
+type BaseProps = Props & {theme: DeclaredTheme};
+
+const baseButtonStyles = ({loading, theme}: BaseProps) => css`
   align-items: center;
   background-color: ${theme.button.primaryColor};
   border: none;
@@ -27,20 +33,6 @@ const baseButtonStyles = ({loading}: ButtonProps) => css`
   }
 `;
 
-type ButtonProps = {
-  loading?: boolean;
-};
-
-export const Button = styled('button', styledOptions)<ButtonProps>`
+export const Button = styled('button', styledOptions)<Props>`
   ${baseButtonStyles};
 `;
-
-// export const Button = styled(
-//   'button',
-//   styledOptions
-// )<ButtonProps>(
-//   ({theme: {button}, loading}) => css`
-//     ${baseButtonStyles}
-
-//   `
-// );
