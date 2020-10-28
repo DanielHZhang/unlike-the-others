@@ -2,14 +2,16 @@
 import {jsx} from '@emotion/react';
 import {Fragment} from 'react';
 import {useLocation} from 'wouter';
-import {motion, useIsPresent} from 'framer-motion';
+import {useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import {axios, isAxiosError} from 'src/client/network';
-import {Alert, Button, Flex, Icon, Stack} from 'src/client/components/base';
+import {axios, fetchAccessToken, isNetworkError} from 'src/client/network';
+import {Alert, Button, Flex, Icon, MotionFlex, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route';
 import {EmailInput, PasswordInput, UsernameInput} from 'src/client/components/auth/input';
 import {AuthNav} from 'src/client/components/auth/nav';
 import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
+import {asyncAtoms} from 'src/client/store';
+import {useSetAsyncAtom} from 'src/client/hooks';
 
 type FormState = {
   username: string;
@@ -21,20 +23,24 @@ type FormState = {
 export const SignUpPage = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
+  const setUser = useSetAsyncAtom(asyncAtoms.user);
   const methods = useForm<FormState>({
     defaultValues: {username: '', email: '', password: '', networkError: null},
   });
   const {errors, formState} = methods;
-  const onSubmit: SubmitHandler<FormState> = async (data) => {
+  const onSubmit: SubmitHandler<FormState> = async ({username, email, password}) => {
     try {
-      await axios.post('/api/user/sign-up', data);
+      methods.clearErrors('networkError');
+      await axios.post('/api/user/sign-up', {username, email, password});
+      await setUser(async () => {
+        const {accessToken, claims} = await fetchAccessToken();
+        return {accessToken, ...claims, isAuthed: true};
+      });
       setLocation('/'); // Push back to homepage
-      // Potentially return user data in response and set on user atom
     } catch (error) {
-      if (isAxiosError(error)) {
-        // set errors on forms
-      } else {
-        console.error(error);
+      // Bad request is either from network error or user messing with client code
+      if (isNetworkError(error)) {
+        methods.setError('networkError', {message: error.message});
       }
     }
   };
@@ -49,11 +55,7 @@ export const SignUpPage = (): JSX.Element => {
               <UsernameInput showError={isPresent} />
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
-              <motion.div
-                key='anim-submit'
-                variants={childVariants}
-                css={{display: 'flex', justifyContent: 'flex-end'}}
-              >
+              <MotionFlex key='anim-submit' variants={childVariants} mainAxis='flex-end'>
                 <Button type='submit' loading={formState.isSubmitting}>
                   {formState.isSubmitting ? (
                     <RhombusSpinner />
@@ -64,7 +66,7 @@ export const SignUpPage = (): JSX.Element => {
                     </Fragment>
                   )}
                 </Button>
-              </motion.div>
+              </MotionFlex>
             </Stack>
           </Flex>
         </form>

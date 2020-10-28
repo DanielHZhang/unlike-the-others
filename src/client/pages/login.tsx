@@ -3,11 +3,13 @@ import {jsx} from '@emotion/react';
 import {motion, useIsPresent} from 'framer-motion';
 import {useLocation} from 'wouter';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import {Alert, Button, Flex, Icon, Stack} from 'src/client/components/base';
+import {Alert, Button, Flex, Icon, MotionFlex, Stack} from 'src/client/components/base';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route';
 import {EmailInput, PasswordInput} from 'src/client/components/auth/input';
-import {axios, isNetworkError} from 'src/client/network';
+import {axios, fetchAccessToken, isNetworkError} from 'src/client/network';
 import {AuthNav} from 'src/client/components/auth/nav';
+import {useSetAsyncAtom} from 'src/client/hooks';
+import {asyncAtoms} from 'src/client/store';
 
 type FormState = {
   email: string;
@@ -18,14 +20,19 @@ type FormState = {
 export const LoginPage = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
+  const setUser = useSetAsyncAtom(asyncAtoms.user);
   const methods = useForm<FormState>({
     defaultValues: {email: '', password: '', networkError: null},
   });
   const {errors, formState} = methods;
-  const onSubmit: SubmitHandler<FormState> = async (data) => {
+  const onSubmit: SubmitHandler<FormState> = async ({email, password}) => {
     try {
       methods.clearErrors('networkError');
-      await axios.post('/api/user/login', data);
+      await axios.post('/api/user/login', {email, password});
+      await setUser(async () => {
+        const {accessToken, claims} = await fetchAccessToken();
+        return {accessToken, ...claims, isAuthed: true};
+      });
       setLocation('/'); // Push back to homepage
     } catch (error) {
       // Bad request is either from network error or user messing with client code
@@ -44,16 +51,12 @@ export const LoginPage = (): JSX.Element => {
               {errors.networkError && <Alert type='error' message={errors.networkError.message!} />}
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />
-              <motion.div
-                key='anim-submit'
-                variants={childVariants}
-                css={{display: 'flex', justifyContent: 'flex-end'}}
-              >
+              <MotionFlex key='anim-submit' variants={childVariants} mainAxis='flex-end'>
                 <Button type='submit' loading={formState.isSubmitting}>
                   <span css={{margin: '0 6px'}}>Login</span>
                   <Icon.ArrowRight color='#fff' />
                 </Button>
-              </motion.div>
+              </MotionFlex>
             </Stack>
           </Flex>
         </form>
