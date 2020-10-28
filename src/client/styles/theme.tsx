@@ -1,10 +1,11 @@
+export type DeclaredTheme = typeof theme;
 export const theme = {
   backgroundColor: '#111111',
   borderColor: '#21ad99',
   errorColor: '#d64747',
   button: {
     activeColor: '#21ac99',
-    hoverColor: '#21ab99',
+    hoverColor: '#25cab4',
     loadingColor: '#21aa99',
     primaryColor: '#21ad99',
   },
@@ -28,11 +29,3 @@ export const theme = {
     },
   },
 };
-
-declare module '@emotion/react' {
-  type DeclaredTheme = typeof theme;
-
-  export interface Theme extends DeclaredTheme {
-    notEmpty: any;
-  }
-}

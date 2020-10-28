@@ -116,12 +116,12 @@ const AuthHomePage = (): JSX.Element => {
     <RouteTransition>
       <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
         <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
-          <MotionFlex /* name='host' */>
+          <MotionFlex>
             <Button loading={state.loadingCreate} onClick={onCreateClick}>
               HOST NEW GAME
             </Button>
           </MotionFlex>
-          <MotionFlex /* name='join' */>
+          <MotionFlex>
             {state.joining ? (
               <InputButtonWrapper>
                 <InputWithIcon
@@ -135,10 +135,10 @@ const AuthHomePage = (): JSX.Element => {
               <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
             )}
           </MotionFlex>
-          <MotionFlex /* name='find' */>
+          <MotionFlex>
             <Button>FIND A GAME</Button>
           </MotionFlex>
-          <MotionFlex /* name='how' */>
+          <MotionFlex>
             <Button>HOW TO PLAY</Button>
           </MotionFlex>
         </Stack>

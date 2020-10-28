@@ -1,28 +1,41 @@
-import type Peer from 'peerjs';
-import type {Server} from 'ws';
-import type {ServerSocket} from 'src/server/services/sockets';
-
-declare module 'peerjs' {
-  export namespace peerjs {
-    const Peer: {new (...args: any[]): Peer};
-    const util: util;
-  }
-}
-
-declare module 'fastify' {
-  export interface FastifyRequest {
-    claims: Required<JwtClaims>;
-  }
-
-  export interface FastifyInstance {
-    websocket: {
-      server: Server;
-      clients: ServerSocket[];
-    };
-  }
-}
+// Agnostic types
 
 export type AnyFunction = (...args: any[]) => any;
+
+// Client-side types
+
+export type AccessTokenData = {accessToken: string; claims: JwtClaims};
+
+export type InputData = {
+  sequenceNumber: number;
+  verticalMovement: number;
+  horizontalMovement: number;
+  actionType: number;
+  // /** Type of input */
+  // t: PlayerInput;
+  // /** Timestamp */
+  // ts: number;
+};
+
+export type BufferPlayerData = {
+  uiid: number;
+  x: number;
+  y: number;
+};
+
+export type BufferInputData = {
+  s: number; // Sequence number
+  h: number;
+  v: number;
+};
+
+export type BufferSnapshotData = {
+  seq: number;
+  tick: number;
+  players: BufferPlayerData[];
+};
+
+// Server-side types
 
 export type GameControls = {
   up: number;
@@ -55,36 +68,3 @@ export type UdpMessage = {
   entityId: number;
   pressTime: number;
 };
-
-export type InputData = {
-  sequenceNumber: number;
-  verticalMovement: number;
-  horizontalMovement: number;
-  actionType: number;
-  // /** Type of input */
-  // t: PlayerInput;
-  // /** Timestamp */
-  // ts: number;
-};
-
-export type BufferPlayerData = {
-  uiid: number;
-  x: number;
-  y: number;
-};
-
-export type BufferInputData = {
-  s: number; // Sequence number
-  h: number;
-  v: number;
-};
-
-export type BufferSnapshotData = {
-  seq: number;
-  tick: number;
-  players: BufferPlayerData[];
-};
-
-export type SocketMessage = [string, any];
-
-export type AccessTokenData = {accessToken: string; claims: JwtClaims};
