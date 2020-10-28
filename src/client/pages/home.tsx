@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {Fragment, Suspense, useState} from 'react';
+import {Fragment, Suspense, useEffect, useState} from 'react';
 import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
 import {motion, AnimatePresence, useIsPresent} from 'framer-motion';
@@ -15,12 +15,12 @@ import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessTokenData} from 'src/shared/types';
 import {InputButtonWrapper} from 'src/client/components/home/input';
 import {MotionFlex} from 'src/client/components/home/motion';
-import {useAsyncAtomValue, useAsyncAtomLoadable} from 'src/client/hooks';
+import {useAsyncAtomValue, useDidMount, useSetAsyncAtom} from 'src/client/hooks';
 
 type FormState = {username: string};
 
 const UnauthHomePage = (): JSX.Element => {
-  // const setUser = useSetRecoilState(atoms.user);
+  const setUser = useSetAsyncAtom(asyncAtoms.user);
   const methods = useForm<FormState>({
     mode: 'onChange',
     reValidateMode: 'onSubmit',
@@ -28,28 +28,30 @@ const UnauthHomePage = (): JSX.Element => {
   });
   const isPresent = useIsPresent();
   const onSubmit: SubmitHandler<FormState> = async (data) => {
-    try {
+    const {formState} = methods;
+    if (!formState.isValid || formState.isSubmitting || formState.isSubmitted) {
+      return;
+    }
+    await setUser(async () => {
       const response = await axios.post<AccessTokenData>('/api/auth/guest', data);
       const {accessToken, claims} = response.data;
-      setUser({
-        accessToken,
-        ...claims,
-        username: `${claims.username}#${claims.hashtag}`,
-        isAuthed: true,
-      });
-    } catch (error) {
-      if (isAxiosError(error)) {
-        // Messsage should only ever be set if user messes with form properties
-        methods.setError('username', {
-          message: error.response.data.message,
-          shouldFocus: true,
-        });
-      }
-    }
+      // resolve();
+      return {accessToken, ...claims, isAuthed: true};
+    });
+    // await new Promise((resolve) => {
+    //   setUser(async () => {
+    //     const response = await axios.post<AccessTokenData>('/api/auth/guest', data);
+    //     const {accessToken, claims} = response.data;
+    //     resolve();
+    //     return {accessToken, ...claims, isAuthed: true};
+    //   });
+    // });
   };
 
+  // console.log('formstate:', methods.formState.isSubmitting);
+
   return (
-    <Fragment>
+    <RouteTransition key='anim-unauth'>
       <Flex mainAxis='center' css={{margin: '10rem 0'}}>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -65,7 +67,7 @@ const UnauthHomePage = (): JSX.Element => {
         </FormProvider>
       </Flex>
       <AuthNav upper={{text: 'Sign Up', url: '/sign-up'}} lower={{text: 'Login', url: '/login'}} />
-    </Fragment>
+    </RouteTransition>
   );
 };
 
@@ -111,42 +113,44 @@ const AuthHomePage = (): JSX.Element => {
   };
 
   return (
-    <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
-      <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
-        <MotionFlex key='host'>
-          <Button loading={state.loadingCreate} onClick={onCreateClick}>
-            HOST NEW GAME
-          </Button>
-        </MotionFlex>
-        <MotionFlex key='join'>
-          {state.joining ? (
-            <InputButtonWrapper>
-              <InputWithIcon
-                icon={Icon.AtSign}
-                type='password'
-                maxLength={40}
-                placeholder='Enter code'
-              />
-            </InputButtonWrapper>
-          ) : (
-            <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
-          )}
-        </MotionFlex>
-        <MotionFlex key='find'>
-          <Button>FIND A GAME</Button>
-        </MotionFlex>
-        <MotionFlex key='how'>
-          <Button>HOW TO PLAY</Button>
-        </MotionFlex>
-      </Stack>
-      <Modal
-        title='Whoops!'
-        visible={state.errorModalVisible}
-        onVisibleChange={(visible) => setState({...state, errorModalVisible: visible})}
-      >
-        <div css={{fontSize: 18, fontWeight: 500}}>{state.errorModalText}</div>
-      </Modal>
-    </Flex>
+    <RouteTransition>
+      <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
+        <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
+          <MotionFlex /* name='host' */>
+            <Button loading={state.loadingCreate} onClick={onCreateClick}>
+              HOST NEW GAME
+            </Button>
+          </MotionFlex>
+          <MotionFlex /* name='join' */>
+            {state.joining ? (
+              <InputButtonWrapper>
+                <InputWithIcon
+                  icon={Icon.AtSign}
+                  type='password'
+                  maxLength={40}
+                  placeholder='Enter code'
+                />
+              </InputButtonWrapper>
+            ) : (
+              <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
+            )}
+          </MotionFlex>
+          <MotionFlex /* name='find' */>
+            <Button>FIND A GAME</Button>
+          </MotionFlex>
+          <MotionFlex /* name='how' */>
+            <Button>HOW TO PLAY</Button>
+          </MotionFlex>
+        </Stack>
+        <Modal
+          title='Whoops!'
+          visible={state.errorModalVisible}
+          onVisibleChange={(visible) => setState({...state, errorModalVisible: visible})}
+        >
+          <div css={{fontSize: 18, fontWeight: 500}}>{state.errorModalText}</div>
+        </Modal>
+      </Flex>
+    </RouteTransition>
   );
 };
 
@@ -154,7 +158,7 @@ export const HomePage = (): JSX.Element => {
   // const user = useRecoilValue(atoms.user);
   // const [user, setUser] = useAsyncAtomLoadable(asyncAtoms.user);
   const user = useAsyncAtomValue(asyncAtoms.user);
-
+  const [state, setState] = useState(true);
   // if (user.state === 'hasError') {
   //   return <div>some error occurred</div>;
   // }
@@ -171,9 +175,17 @@ export const HomePage = (): JSX.Element => {
   //     <AuthHomePage />
   //   </RouteTransition>
   // );
+
+  useDidMount(() => {
+    console.log('home page mounting');
+    return () => {
+      console.log('home page unmounting');
+    };
+  });
+
   return (
-    // <Suspense fallback={<div>loaderinoing</div>}>
-    <RouteTransition>{user?.isAuthed ? <AuthHomePage /> : <UnauthHomePage />}</RouteTransition>
-    // </Suspense>
+    <AnimatePresence exitBeforeEnter={true} onExitComplete={() => console.log('exit complete')}>
+      {state ? <AuthHomePage /> : <UnauthHomePage />}
+    </AnimatePresence>
   );
 };

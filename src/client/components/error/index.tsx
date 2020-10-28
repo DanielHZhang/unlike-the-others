@@ -11,7 +11,7 @@ type Props = {
   children: ReactNode;
 };
 
-export class ErrorBoundary extends Component<Props, State> {
+export class SuspenseErrorBoundary extends Component<Props, State> {
   public state = {hasError: false, error: null};
 
   public static getDerivedStateFromError(error: Error): Partial<State> {

@@ -1,4 +1,4 @@
-import {nanoid} from 'nanoid/async';
+import {nanoid} from 'nanoid';
 import type {FastifyPluginCallback} from 'fastify';
 import {prisma} from 'src/server/prisma';
 import {signJwt, verifyJwt} from 'src/server/config/keys';
@@ -72,7 +72,7 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
       // Random int between [0001-9999]
       const int = Math.floor(1 + 9999 * Math.random());
       const claims: JwtClaims = {
-        id: await nanoid(),
+        id: nanoid(),
         isGuest: true,
         hashtag: int.toString().padStart(4, '0'),
         username,

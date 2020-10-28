@@ -35,7 +35,9 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
     >
       {children(name, register, hasError)}
       <AnimatePresence exitBeforeEnter={true}>
-        {hasError && <FieldError key={`anim-error-${name}`}>{errors[name].message}</FieldError>}
+        {hasError && (
+          <FieldError /* key={`anim-error-${name}`} */>{errors[name].message}</FieldError>
+        )}
       </AnimatePresence>
     </motion.div>
   );

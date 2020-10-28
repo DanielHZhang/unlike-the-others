@@ -11,6 +11,7 @@ import {useRecoilValue} from 'recoil';
 import {asyncAtoms, atoms} from 'src/client/store';
 import {axios} from 'src/client/network';
 import {useAsyncAtomValue} from 'src/client/hooks';
+import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
 
 export const MainPage: FC = () => {
   const [location, setLocation] = useLocation();
@@ -67,7 +68,13 @@ export const MainPage: FC = () => {
       >
         UNLIKE the OTHERS
       </div>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense
+        fallback={
+          <Flex mainAxis='center' crossAxis='center' css={{marginTop: '8rem'}}>
+            <FingerprintSpinner />
+          </Flex>
+        }
+      >
         <AnimatePresence exitBeforeEnter={true}>{renderLocationMatch(location)}</AnimatePresence>
       </Suspense>
     </Flex>
