@@ -6,7 +6,7 @@ import {useLocation} from 'wouter';
 import {AnimatePresence, useIsPresent, usePresence} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {asyncAtoms, atoms} from 'src/client/store';
-import {axios, isAxiosError} from 'src/client/network';
+import {axios, isAxiosError, Success} from 'src/client/network';
 import {
   Button,
   Flex,
@@ -23,17 +23,17 @@ import {UsernameInput} from 'src/client/components/auth/input';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessTokenData} from 'src/shared/types';
 
-type FormState = {username: string};
+type UsernameFormState = {username: string};
 
 const UnauthHomePage = (): JSX.Element => {
   const setUser = useSetAsyncAtom(asyncAtoms.user);
-  const methods = useForm<FormState>({
+  const methods = useForm<UsernameFormState>({
     mode: 'onChange',
     reValidateMode: 'onSubmit',
     defaultValues: {username: ''},
   });
   const isPresent = useIsPresent();
-  const onSubmit: SubmitHandler<FormState> = async (data) => {
+  const onSubmit: SubmitHandler<UsernameFormState> = async (data) => {
     const {formState} = methods;
     if (!formState.isValid || formState.isSubmitting || formState.isSubmitted) {
       return;
@@ -66,30 +66,18 @@ const UnauthHomePage = (): JSX.Element => {
   );
 };
 
+type CodeFormState = {code: string};
+
 const AuthHomePage = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const [room, setRoom] = useRecoilState(atoms.room);
   const [state, setState] = useState({
-    joining: false,
+    showCodeInput: false,
     errorModalVisible: false,
     errorModalText: '',
     loadingCreate: false,
-    loadingJoin: false,
   });
-
-  const onJoinClick = async () => {
-    try {
-      setState({...state, loadingJoin: true});
-      await axios.put(`/api/room/${room.id}/join`);
-      setLocation('/game');
-    } catch (error) {
-      if (isAxiosError(error)) {
-        setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
-      } else {
-        console.error(error);
-      }
-    }
-  };
+  const {handleSubmit, register, formState} = useForm<CodeFormState>({defaultValues: {code: ''}});
 
   const onCreateClick = async () => {
     try {
@@ -107,6 +95,17 @@ const AuthHomePage = (): JSX.Element => {
     }
   };
 
+  const onSubmit = async () => {
+    try {
+      await axios.put<Success>(`/api/room/${room.id}/join`);
+      setLocation('/game');
+    } catch (error) {
+      if (isAxiosError(error)) {
+        setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
+      }
+    }
+  };
+
   return (
     <RouteTransition key='anim-auth'>
       <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
@@ -117,17 +116,22 @@ const AuthHomePage = (): JSX.Element => {
             </Button>
           </MotionFlex>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
-            {state.joining ? (
-              <InputButtonWrapper>
-                <InputWithIcon
-                  icon={Icon.AtSign}
-                  type='password'
-                  maxLength={40}
-                  placeholder='Enter code'
-                />
-              </InputButtonWrapper>
+            {state.showCodeInput ? (
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <InputButtonWrapper loading={formState.isSubmitting}>
+                  <InputWithIcon
+                    ref={register({
+                      required: true,
+                    })}
+                    icon={Icon.AtSign}
+                    type='password'
+                    maxLength={40}
+                    placeholder='Enter code'
+                  />
+                </InputButtonWrapper>
+              </form>
             ) : (
-              <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
+              <Button onClick={() => setState({...state, showCodeInput: true})}>JOIN A GAME</Button>
             )}
           </MotionFlex>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>

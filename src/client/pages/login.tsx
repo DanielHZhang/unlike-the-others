@@ -22,14 +22,10 @@ export const LoginPage = (): JSX.Element => {
   });
   const onSubmit: SubmitHandler<FormState> = async (data) => {
     try {
-      const response = await axios.post('/api/user/login', data);
+      await axios.post('/api/user/login', data);
       setLocation('/'); // Push back to homepage
     } catch (error) {
-      if (isAxiosError(error)) {
-        // set form errors
-      } else {
-        console.error(error);
-      }
+      // Bad request is either from network error or user messing with client code
     }
   };
 

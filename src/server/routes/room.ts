@@ -30,6 +30,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         properties: {
           id: {
             type: 'string',
+            minLength: 1,
           },
         },
       },

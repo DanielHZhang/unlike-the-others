@@ -17,11 +17,13 @@ export const MainPage: FC = () => {
   const user = useAsyncAtomValue(asyncAtoms.user);
 
   const onClick = async () => {
-    const response = await axios.delete<Success>('/api/auth/logout');
-    if (response.data.success) {
+    try {
+      await axios.delete<Success>('/api/auth/logout');
       setLocation('/');
-      window.location.reload(); // Reload the page to signal logout confirmed
+    } catch (error) {
+      console.error(error);
     }
+    window.location.reload(); // Reload the page to signal logout confirmed
   };
 
   return (

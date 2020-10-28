@@ -23,6 +23,7 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         properties: {
           email: {
             type: 'string',
+            minLength: 1,
             maxLength: MAX_EMAIL_LENGTH,
           },
           password: {
@@ -46,6 +47,7 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         password: string;
       };
       const {username, email, password} = req.body as RequestBody;
+
       const hash = await hashPassword(password);
       const newUser = await prisma.user.create({
         data: {
@@ -54,7 +56,6 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
           password: hash,
         },
       });
-
       fastify.log.info(`Created new user: ${newUser.id}`);
 
       const refreshToken = signJwt('refresh', {
@@ -63,7 +64,6 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         username: newUser.username,
       });
       reply.setCookie(CookieKeys.Refresh, refreshToken, REFRESH_COOKIE_OPTIONS);
-
       return {success: true};
     },
   });
@@ -78,25 +78,33 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         properties: {
           email: {
             type: 'string',
-            maxLength: 50,
+            minLength: 1,
+            maxLength: MAX_EMAIL_LENGTH,
           },
           password: {
             type: 'string',
-            maxLength: 50,
+            minLength: 1,
+            maxLength: MAX_PASSWORD_LENGTH,
           },
         },
       },
     },
     handler: async (req, reply) => {
-      const {email, password} = req.body as {email: string; password: string};
+      type RequestBody = {
+        email: string;
+        password: string;
+      };
+      const {email, password} = req.body as RequestBody;
       const foundUser = await prisma.user.findOne({where: {email}});
       if (!foundUser) {
-        throw 404;
+        reply.status(401);
+        throw new Error('Unauthorized.');
       }
 
       const passwordMatch = await verifyPassword(password, foundUser.password);
       if (!passwordMatch) {
-        throw 401;
+        reply.status(401);
+        throw new Error('Unauthorized.');
       }
 
       const refreshToken = signJwt('refresh', {
@@ -105,7 +113,6 @@ export const userRoutes: FastifyPluginCallback = (fastify, options, next) => {
         username: foundUser.username,
       });
       reply.setCookie(CookieKeys.Refresh, refreshToken, REFRESH_COOKIE_OPTIONS);
-
       return {success: true};
     },
   });
