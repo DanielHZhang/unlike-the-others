@@ -3,7 +3,7 @@ import {jsx} from '@emotion/react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useFormContext, UseFormMethods} from 'react-hook-form';
 import {Icon, InputWithIcon, MotionFlex} from 'src/client/components/base';
-import {childVariants} from 'src/client/components/animation/route-transition';
+import {childVariants} from 'src/client/components/animation/route';
 import {FieldError} from 'src/client/components/auth/error';
 import {
   MAX_EMAIL_LENGTH,

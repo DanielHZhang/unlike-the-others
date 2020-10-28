@@ -1,9 +1,9 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {Fragment, useState} from 'react';
+import {useState} from 'react';
 import {useRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
-import {motion, AnimatePresence, useIsPresent, usePresence} from 'framer-motion';
+import {AnimatePresence, useIsPresent, usePresence} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {asyncAtoms, atoms} from 'src/client/store';
 import {axios, isAxiosError} from 'src/client/network';
@@ -16,12 +16,12 @@ import {
   MotionFlex,
   Stack,
 } from 'src/client/components/base';
+import {InputButtonWrapper} from 'src/client/components/home/input';
+import {useAsyncAtomValue, useSetAsyncAtom} from 'src/client/hooks';
+import {childVariants, RouteTransition} from 'src/client/components/animation/route';
 import {UsernameInput} from 'src/client/components/auth/input';
-import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessTokenData} from 'src/shared/types';
-import {InputButtonWrapper} from 'src/client/components/home/input';
-import {useAsyncAtomValue, useDidMount, useSetAsyncAtom} from 'src/client/hooks';
 
 type FormState = {username: string};
 
@@ -107,14 +107,6 @@ const AuthHomePage = (): JSX.Element => {
     }
   };
 
-  const [isPresent, safeToRemove] = usePresence();
-
-  console.log('Auth homepage:', isPresent, safeToRemove);
-
-  if (safeToRemove) {
-    safeToRemove();
-  }
-
   return (
     <RouteTransition key='anim-auth'>
       <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
@@ -158,68 +150,17 @@ const AuthHomePage = (): JSX.Element => {
 };
 
 export const HomePage = (): JSX.Element => {
-  // const user = useRecoilValue(atoms.user);
-  // const [user, setUser] = useAsyncAtomLoadable(asyncAtoms.user);
   const user = useAsyncAtomValue(asyncAtoms.user);
-  const [state, setState] = useState(true);
-  const [isRemoving, setRemoving] = useState(false);
-  // if (user.state === 'hasError') {
-  //   return <div>some error occurred</div>;
-  // }
-
-  // console.log('what am i getting from atom async:', user);
-  // const [user, setUser] = useRecoilState(atoms.user);
-  // return (
-  //   <RouteTransition>
-  //     <UnauthHomePage />
-  //   </RouteTransition>
-  // );
-  // return (
-  //   <RouteTransition>
-  //     <AuthHomePage />
-  //   </RouteTransition>
-  // );
-
-  useDidMount(() => {
-    console.log('Homepage mounting');
-    return () => {
-      console.log('Homepage unmounting');
-    };
-  });
-
   const [isPresent, safeToRemove] = usePresence();
-
-  console.log('Homepage usePresence:', isPresent, safeToRemove);
+  const [isRemoving, setRemoving] = useState(false);
 
   if (!isPresent && !isRemoving) {
-    setRemoving(true);
+    setRemoving(true); // Trigger exit animations in nested AnimatePresence
   }
 
   return (
-    <RouteTransition key='what'>
-      {/* <UnauthHomePage /> */}
-      <AnimatePresence
-        key='same'
-        exitBeforeEnter={true}
-        onExitComplete={() => {
-          console.log('Homepage onExitComplete');
-          if (safeToRemove) {
-            safeToRemove();
-          }
-        }}
-      >
-        {isRemoving ? null : state ? (
-          <Fragment key='same'>
-            <AuthHomePage />
-            <Button onClick={() => setState(!state)}>go</Button>
-          </Fragment>
-        ) : (
-          <Fragment key='wow'>
-            <UnauthHomePage />
-            <Button onClick={() => setState(!state)}>go</Button>
-          </Fragment>
-        )}
-      </AnimatePresence>
-    </RouteTransition>
+    <AnimatePresence exitBeforeEnter={true} onExitComplete={() => safeToRemove?.()}>
+      {isRemoving ? null : user?.isAuthed ? <AuthHomePage /> : <UnauthHomePage />}
+    </AnimatePresence>
   );
 };

@@ -18,7 +18,8 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-type AxiosResponseError = Required<AxiosError<FastifyReplyError>>;
+export type AxiosResponseError = Required<AxiosError<FastifyReplyError>>;
+export type Success = {success: true};
 
 export function isAxiosError(error: any): error is AxiosResponseError {
   return error.isAxiosError && error.response && error.response.data;

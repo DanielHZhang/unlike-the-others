@@ -4,7 +4,7 @@ import {motion, useIsPresent} from 'framer-motion';
 import {useLocation} from 'wouter';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {Button, Flex, Icon, Stack} from 'src/client/components/base';
-import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
+import {childVariants, RouteTransition} from 'src/client/components/animation/route';
 import {EmailInput, PasswordInput} from 'src/client/components/auth/input';
 import {axios, isAxiosError} from 'src/client/network';
 import {AuthNav} from 'src/client/components/auth/nav';
@@ -37,7 +37,7 @@ export const LoginPage = (): JSX.Element => {
     <RouteTransition>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Flex mainAxis='center' css={{margin: '6rem 0'}}>
+          <Flex mainAxis='center' css={{margin: '6.5rem 0'}}>
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
               <EmailInput showError={isPresent} />
               <PasswordInput showError={isPresent} />

@@ -8,31 +8,19 @@ import {LoginPage} from 'src/client/pages/login';
 import {SignUpPage} from 'src/client/pages/sign-up';
 import {Flex, Icon} from 'src/client/components/base';
 import {asyncAtoms} from 'src/client/store';
-import {axios} from 'src/client/network';
+import {axios, Success} from 'src/client/network';
 import {useAsyncAtomValue} from 'src/client/hooks';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
 
 export const MainPage: FC = () => {
   const [location, setLocation] = useLocation();
   const user = useAsyncAtomValue(asyncAtoms.user);
-  // const user = useRecoilValue(atoms.user);
 
   const onClick = async () => {
-    const response = await axios.delete('/api/auth/logout');
+    const response = await axios.delete<Success>('/api/auth/logout');
     if (response.data.success) {
       setLocation('/');
-      window.location.reload();
-    }
-  };
-
-  const renderLocationMatch = (location: string) => {
-    switch (location) {
-      case '/login':
-        return <LoginPage key={location} />;
-      case '/sign-up':
-        return <SignUpPage key={location} />;
-      default:
-        return <HomePage key={location} />;
+      window.location.reload(); // Reload the page to signal logout confirmed
     }
   };
 
@@ -76,9 +64,19 @@ export const MainPage: FC = () => {
       >
         <AnimatePresence
           exitBeforeEnter={true}
-          onExitComplete={() => console.log('Main page onExitComplete')}
+          // onExitComplete={() => console.log('Main page onExitComplete')}
         >
-          {renderLocationMatch(location)}
+          {(() => {
+            const key = `anim-${location}`;
+            switch (location) {
+              case '/login':
+                return <LoginPage key={key} />;
+              case '/sign-up':
+                return <SignUpPage key={key} />;
+              default:
+                return <HomePage key={key} />;
+            }
+          })()}
         </AnimatePresence>
       </Suspense>
     </Flex>

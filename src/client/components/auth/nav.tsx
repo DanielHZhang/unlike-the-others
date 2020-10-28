@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {motion} from 'framer-motion';
-import {childVariants} from 'src/client/components/animation/route-transition';
+import {childVariants} from 'src/client/components/animation/route';
 import {Flex, Icon} from 'src/client/components/base';
 import {HomepageLink} from 'src/client/components/home/link';
 

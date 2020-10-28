@@ -6,7 +6,7 @@ import {motion, useIsPresent} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {axios, isAxiosError} from 'src/client/network';
 import {Button, Flex, Icon, Stack} from 'src/client/components/base';
-import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
+import {childVariants, RouteTransition} from 'src/client/components/animation/route';
 import {EmailInput, PasswordInput, UsernameInput} from 'src/client/components/auth/input';
 import {AuthNav} from 'src/client/components/auth/nav';
 import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
@@ -42,7 +42,7 @@ export const SignUpPage = (): JSX.Element => {
     <RouteTransition>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Flex mainAxis='center' css={{margin: '4rem 0'}}>
+          <Flex mainAxis='center' css={{margin: '4.5rem 0'}}>
             <Stack flow='column' crossAxis='stretch' spacing='1rem' css={{width: 300}}>
               <UsernameInput showError={isPresent} />
               <EmailInput showError={isPresent} />

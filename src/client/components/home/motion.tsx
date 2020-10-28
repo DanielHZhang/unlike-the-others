@@ -2,7 +2,7 @@
 import {jsx} from '@emotion/react';
 import {motion} from 'framer-motion';
 import {ReactNode} from 'react';
-import {childVariants} from 'src/client/components/animation/route-transition';
+import {childVariants} from 'src/client/components/animation/route';
 
 type Props = {children: ReactNode};
 
