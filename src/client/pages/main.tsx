@@ -7,8 +7,7 @@ import {HomePage} from 'src/client/pages/home';
 import {LoginPage} from 'src/client/pages/login';
 import {SignUpPage} from 'src/client/pages/sign-up';
 import {Flex, Icon} from 'src/client/components/base';
-import {useRecoilValue} from 'recoil';
-import {asyncAtoms, atoms} from 'src/client/store';
+import {asyncAtoms} from 'src/client/store';
 import {axios} from 'src/client/network';
 import {useAsyncAtomValue} from 'src/client/hooks';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
@@ -75,7 +74,12 @@ export const MainPage: FC = () => {
           </Flex>
         }
       >
-        <AnimatePresence exitBeforeEnter={true}>{renderLocationMatch(location)}</AnimatePresence>
+        <AnimatePresence
+          exitBeforeEnter={true}
+          onExitComplete={() => console.log('Main page onExitComplete')}
+        >
+          {renderLocationMatch(location)}
+        </AnimatePresence>
       </Suspense>
     </Flex>
   );

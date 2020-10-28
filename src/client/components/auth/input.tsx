@@ -2,7 +2,7 @@
 import {jsx} from '@emotion/react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useFormContext, UseFormMethods} from 'react-hook-form';
-import {Icon, InputWithIcon} from 'src/client/components/base';
+import {Icon, InputWithIcon, MotionFlex} from 'src/client/components/base';
 import {childVariants} from 'src/client/components/animation/route-transition';
 import {FieldError} from 'src/client/components/auth/error';
 import {
@@ -28,18 +28,14 @@ const AuthFormInput = (props: FormInputProps): JSX.Element => {
   const {name, children, showError} = props;
   const hasError = showError && errors[name] && formState.dirtyFields[name];
   return (
-    <motion.div
-      key={`anim-${name}`}
-      variants={childVariants}
-      css={{display: 'flex', flexFlow: 'column', flexGrow: 1}}
-    >
+    <MotionFlex key={`anim-${name}`} variants={childVariants} flow='column' grow={1}>
       {children(name, register, hasError)}
       <AnimatePresence exitBeforeEnter={true}>
         {hasError && (
           <FieldError /* key={`anim-error-${name}`} */>{errors[name].message}</FieldError>
         )}
       </AnimatePresence>
-    </motion.div>
+    </MotionFlex>
   );
 };
 

@@ -1,20 +1,26 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {Fragment, Suspense, useEffect, useState} from 'react';
-import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
+import {Fragment, useState} from 'react';
+import {useRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
-import {motion, AnimatePresence, useIsPresent} from 'framer-motion';
+import {motion, AnimatePresence, useIsPresent, usePresence} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {asyncAtoms, atoms} from 'src/client/store';
 import {axios, isAxiosError} from 'src/client/network';
-import {Button, Flex, Icon, Input, InputWithIcon, Modal, Stack} from 'src/client/components/base';
+import {
+  Button,
+  Flex,
+  Icon,
+  InputWithIcon,
+  Modal,
+  MotionFlex,
+  Stack,
+} from 'src/client/components/base';
 import {UsernameInput} from 'src/client/components/auth/input';
 import {childVariants, RouteTransition} from 'src/client/components/animation/route-transition';
-import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessTokenData} from 'src/shared/types';
 import {InputButtonWrapper} from 'src/client/components/home/input';
-import {MotionFlex} from 'src/client/components/home/motion';
 import {useAsyncAtomValue, useDidMount, useSetAsyncAtom} from 'src/client/hooks';
 
 type FormState = {username: string};
@@ -35,20 +41,9 @@ const UnauthHomePage = (): JSX.Element => {
     await setUser(async () => {
       const response = await axios.post<AccessTokenData>('/api/auth/guest', data);
       const {accessToken, claims} = response.data;
-      // resolve();
       return {accessToken, ...claims, isAuthed: true};
     });
-    // await new Promise((resolve) => {
-    //   setUser(async () => {
-    //     const response = await axios.post<AccessTokenData>('/api/auth/guest', data);
-    //     const {accessToken, claims} = response.data;
-    //     resolve();
-    //     return {accessToken, ...claims, isAuthed: true};
-    //   });
-    // });
   };
-
-  // console.log('formstate:', methods.formState.isSubmitting);
 
   return (
     <RouteTransition key='anim-unauth'>
@@ -112,16 +107,24 @@ const AuthHomePage = (): JSX.Element => {
     }
   };
 
+  const [isPresent, safeToRemove] = usePresence();
+
+  console.log('Auth homepage:', isPresent, safeToRemove);
+
+  if (safeToRemove) {
+    safeToRemove();
+  }
+
   return (
-    <RouteTransition>
+    <RouteTransition key='anim-auth'>
       <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
         <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
-          <MotionFlex>
+          <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
             <Button loading={state.loadingCreate} onClick={onCreateClick}>
               HOST NEW GAME
             </Button>
           </MotionFlex>
-          <MotionFlex>
+          <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
             {state.joining ? (
               <InputButtonWrapper>
                 <InputWithIcon
@@ -135,10 +138,10 @@ const AuthHomePage = (): JSX.Element => {
               <Button onClick={() => setState({...state, joining: true})}>JOIN A GAME</Button>
             )}
           </MotionFlex>
-          <MotionFlex>
+          <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
             <Button>FIND A GAME</Button>
           </MotionFlex>
-          <MotionFlex>
+          <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
             <Button>HOW TO PLAY</Button>
           </MotionFlex>
         </Stack>
@@ -159,6 +162,7 @@ export const HomePage = (): JSX.Element => {
   // const [user, setUser] = useAsyncAtomLoadable(asyncAtoms.user);
   const user = useAsyncAtomValue(asyncAtoms.user);
   const [state, setState] = useState(true);
+  const [isRemoving, setRemoving] = useState(false);
   // if (user.state === 'hasError') {
   //   return <div>some error occurred</div>;
   // }
@@ -177,15 +181,45 @@ export const HomePage = (): JSX.Element => {
   // );
 
   useDidMount(() => {
-    console.log('home page mounting');
+    console.log('Homepage mounting');
     return () => {
-      console.log('home page unmounting');
+      console.log('Homepage unmounting');
     };
   });
 
+  const [isPresent, safeToRemove] = usePresence();
+
+  console.log('Homepage usePresence:', isPresent, safeToRemove);
+
+  if (!isPresent && !isRemoving) {
+    setRemoving(true);
+  }
+
   return (
-    <AnimatePresence exitBeforeEnter={true} onExitComplete={() => console.log('exit complete')}>
-      {state ? <AuthHomePage /> : <UnauthHomePage />}
-    </AnimatePresence>
+    <RouteTransition key='what'>
+      {/* <UnauthHomePage /> */}
+      <AnimatePresence
+        key='same'
+        exitBeforeEnter={true}
+        onExitComplete={() => {
+          console.log('Homepage onExitComplete');
+          if (safeToRemove) {
+            safeToRemove();
+          }
+        }}
+      >
+        {isRemoving ? null : state ? (
+          <Fragment key='same'>
+            <AuthHomePage />
+            <Button onClick={() => setState(!state)}>go</Button>
+          </Fragment>
+        ) : (
+          <Fragment key='wow'>
+            <UnauthHomePage />
+            <Button onClick={() => setState(!state)}>go</Button>
+          </Fragment>
+        )}
+      </AnimatePresence>
+    </RouteTransition>
   );
 };
