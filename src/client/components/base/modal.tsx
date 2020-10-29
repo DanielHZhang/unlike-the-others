@@ -1,7 +1,6 @@
 /** @jsx jsx */
-import styled from '@emotion/styled';
 import {css, jsx, useTheme} from '@emotion/react';
-import {useState, useEffect, ReactNode} from 'react';
+import {useEffect, ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {Flex, GhostButton, Icon} from 'src/client/components/base';
 import {AnimatePresence} from 'framer-motion';
@@ -9,25 +8,25 @@ import {MotionFlex} from 'src/client/components/base/flex';
 
 type Props = {
   title?: string;
-  visible?: boolean;
-  onVisibleChange?: (newVisibility: boolean) => any;
+  visible: boolean;
+  onClose: () => any;
   children: ReactNode;
 };
 
 export const Modal = (props: Props): JSX.Element => {
+  const {children, onClose, visible = false, title} = props;
   const theme = useTheme();
-  const {children, onVisibleChange, visible: propVisible = false, title} = props;
-  const [visible, setVisible] = useState(propVisible);
 
-  const onClickClose = () => {
-    setVisible(false);
-    onVisibleChange?.(false);
-  };
-
+  // Handle pressing Escape on keyboard to close modal
   useEffect(() => {
-    setVisible(propVisible);
-    onVisibleChange?.(propVisible);
-  }, [propVisible]);
+    const listener = (event: KeyboardEvent) => {
+      if (visible && event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keyup', listener);
+    return () => document.removeEventListener('keyup', listener);
+  }, [visible]);
 
   return createPortal(
     <AnimatePresence exitBeforeEnter={true}>
@@ -35,7 +34,7 @@ export const Modal = (props: Props): JSX.Element => {
         <Flex
           mainAxis='center'
           crossAxis='center'
-          onClick={onClickClose}
+          onClick={onClose}
           css={{
             position: 'fixed',
             top: 0,
@@ -48,7 +47,7 @@ export const Modal = (props: Props): JSX.Element => {
         >
           <MotionFlex
             key='anim-modal'
-            initial={{opacity: 0, scale: 0.1}}
+            initial={{opacity: 1, scale: 0.1}}
             animate={{opacity: 1, scale: 1}}
             exit={{opacity: 0, scale: 0.1}}
             role='dialog'
@@ -73,7 +72,7 @@ export const Modal = (props: Props): JSX.Element => {
                   zIndex: theme.modal.content.zIndex + 1,
                 }}
               >
-                <GhostButton onClick={onClickClose} css={{height: 36, width: 36, padding: 0}}>
+                <GhostButton onClick={onClose} css={{height: 36, width: 36, padding: 0}}>
                   <Icon.Ecks color='#fff' />
                 </GhostButton>
               </div>

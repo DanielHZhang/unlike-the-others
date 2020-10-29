@@ -152,7 +152,7 @@ const AuthHomePage = (): JSX.Element => {
         <Modal
           title='Whoops!'
           visible={errorModal.visible}
-          onVisibleChange={(visible) => setErrorModal({...errorModal, visible})}
+          onClose={() => setErrorModal({...errorModal, visible: false})}
         >
           <div css={{fontSize: 18, fontWeight: 500}}>{errorModal.text}</div>
         </Modal>
