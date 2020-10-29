@@ -86,7 +86,7 @@ const AuthHomePage = (): JSX.Element => {
       setLocation('/game');
     } catch (error) {
       if (isAxiosError(error)) {
-        setErrorModal({visible: true, text: error.response.data.message});
+        setErrorModal({visible: true, text: 'There is no active game with that code!'});
       }
     }
   };
@@ -108,8 +108,6 @@ const AuthHomePage = (): JSX.Element => {
   const onSubmit: SubmitHandler<CodeFormState> = async (data) => {
     await fetchJoinRoom(data.code);
   };
-
-  // console.log(getValues());
 
   return (
     <RouteTransition key='anim-auth'>

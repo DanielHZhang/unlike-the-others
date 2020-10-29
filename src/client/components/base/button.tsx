@@ -43,5 +43,10 @@ export const Button = styled('button', styledOptions)<Props>`
 
 export const GhostButton = styled.button`
   ${baseButtonStyles};
+  background-color: transparent;
   cursor: pointer;
+  &:focus,
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
 `;
