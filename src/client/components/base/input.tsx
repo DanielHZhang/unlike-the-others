@@ -66,7 +66,7 @@ export const InputWithIcon = forwardRef<HTMLInputElement, InputWithIconProps>((p
   const {icon: Icon, prefix = true, ...rest} = props;
   return (
     <Flex flow='column' crossAxis='stretch' grow={1} css={{position: 'relative'}}>
-      <Input {...rest} ref={ref} css={{padding: prefix ? '0 0 0 44px' : '0 44px 0 0'}} />
+      <Input {...rest} ref={ref} css={{padding: prefix ? '1px 0 1px 44px' : '1px 44px 1px 0'}} />
       <Flex
         crossAxis='center'
         mainAxis='center'

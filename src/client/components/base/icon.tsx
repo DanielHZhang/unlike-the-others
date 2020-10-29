@@ -69,4 +69,22 @@ export namespace Icon {
       />
     </svg>
   );
+
+  export const Lock = ({size = 24, color = '#000'}: Props): JSX.Element => (
+    <svg width={size} height={size} viewBox='0 0 24 24'>
+      <path
+        fill={color}
+        d='M17,9V7A5,5,0,0,0,7,7V9a3,3,0,0,0-3,3v7a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V12A3,3,0,0,0,17,9ZM9,7a3,3,0,0,1,6,0V9H9Zm9,12a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V12a1,1,0,0,1,1-1H17a1,1,0,0,1,1,1Z'
+      />
+    </svg>
+  );
+
+  export const Ecks = ({size = 24, color = '#000'}: Props): JSX.Element => (
+    <svg width={size} height={size} viewBox='0 0 24 24'>
+      <path
+        fill={color}
+        d='M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z'
+      />
+    </svg>
+  );
 }

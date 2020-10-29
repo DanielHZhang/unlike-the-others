@@ -1,7 +1,10 @@
 {
   "name": "unlike-the-others",
   "version": "0.1.0",
-  "repository": "https://github.com/DanielHZhang/unlike-the-others.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DanielHZhang/unlike-the-others.git"
+  },
   "contributors": [
     "Jason Pu (https://github.com/jasonjpu)",
     "Michael Shnaider (https://github.com/michaelshnaider)",
@@ -87,6 +90,9 @@
     "webpack-cli": "^3.3.12",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.25.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   },
   "browserslist": [
     "last 2 versions",

@@ -1,19 +1,19 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {AnimatePresence, motion} from 'framer-motion';
-import {Fragment, ReactNode} from 'react';
-import {Button, Icon, MotionFlex} from 'src/client/components/base';
+import {AnimatePresence} from 'framer-motion';
+import {ReactElement} from 'react';
+import {Button, Flex, Icon, MotionFlex} from 'src/client/components/base';
 import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 
 type Props = {
   loading?: boolean;
   showButton?: boolean;
-  children: ReactNode;
+  children: ReactElement;
 };
 
 export const InputButtonWrapper = (props: Props): JSX.Element => {
   return (
-    <Fragment>
+    <Flex css={{position: 'relative'}}>
       {props.children}
       <AnimatePresence>
         {props.showButton && (
@@ -36,6 +36,6 @@ export const InputButtonWrapper = (props: Props): JSX.Element => {
           </MotionFlex>
         )}
       </AnimatePresence>
-    </Fragment>
+    </Flex>
   );
 };

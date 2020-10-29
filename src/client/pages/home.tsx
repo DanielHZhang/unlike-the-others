@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {useState} from 'react';
-import {useRecoilState} from 'recoil';
+import {useSetRecoilState} from 'recoil';
 import {useLocation} from 'wouter';
 import {AnimatePresence, useIsPresent, usePresence} from 'framer-motion';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
@@ -32,9 +32,9 @@ const UnauthHomePage = (): JSX.Element => {
     reValidateMode: 'onSubmit',
     defaultValues: {username: ''},
   });
+  const {formState} = methods;
   const isPresent = useIsPresent();
   const onSubmit: SubmitHandler<UsernameFormState> = async (data) => {
-    const {formState} = methods;
     if (!formState.isValid || formState.isSubmitting || formState.isSubmitted) {
       return;
     }
@@ -50,9 +50,9 @@ const UnauthHomePage = (): JSX.Element => {
       <Flex mainAxis='center' css={{margin: '10rem 0'}}>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
-            <Flex css={{position: 'relative', width: '300px'}}>
+            <Flex flow='column' crossAxis='stretch' css={{width: '300px'}}>
               <InputButtonWrapper
-                loading={methods.formState.isSubmitting}
+                loading={formState.isSubmitting}
                 showButton={isPresent && Boolean(methods.getValues('username'))}
               >
                 <UsernameInput showError={isPresent} />
@@ -69,61 +69,70 @@ const UnauthHomePage = (): JSX.Element => {
 type CodeFormState = {code: string};
 
 const AuthHomePage = (): JSX.Element => {
+  const isPresent = useIsPresent();
+  const setRoom = useSetRecoilState(atoms.room);
   const [, setLocation] = useLocation();
-  const [room, setRoom] = useRecoilState(atoms.room);
-  const [state, setState] = useState({
-    showCodeInput: false,
-    errorModalVisible: false,
-    errorModalText: '',
-    loadingCreate: false,
+  const [loadingHost, setLoadingHost] = useState(false);
+  const [codeInputVisible, setCodeInputVisible] = useState(false);
+  const [errorModal, setErrorModal] = useState({visible: false, text: ''});
+  const {handleSubmit, register, formState, getValues} = useForm<CodeFormState>({
+    mode: 'onChange',
+    defaultValues: {code: ''},
   });
-  const {handleSubmit, register, formState} = useForm<CodeFormState>({defaultValues: {code: ''}});
 
-  const onCreateClick = async () => {
+  const fetchJoinRoom = async (roomId: string) => {
     try {
-      setState({...state, loadingCreate: true});
-      const {data: roomId} = await axios.post<string>('/api/room/create');
-      await axios.post(`/api/room/${roomId}/join`);
+      await axios.put(`/api/room/${roomId}/join`);
+      setLocation('/game');
+    } catch (error) {
+      if (isAxiosError(error)) {
+        setErrorModal({visible: true, text: error.response.data.message});
+      }
+    }
+  };
+
+  const onClickHost = async () => {
+    try {
+      setLoadingHost(true);
+      const response = await axios.post<{roomId: string}>('/api/room/create');
+      const {roomId} = response.data;
       setRoom({id: roomId});
-      setLocation('/game');
+      await fetchJoinRoom(roomId);
     } catch (error) {
       if (isAxiosError(error)) {
-        setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
-      } else {
-        console.error(error);
+        setErrorModal({visible: true, text: error.response.data.message});
       }
     }
   };
 
-  const onSubmit = async () => {
-    try {
-      await axios.put(`/api/room/${room.id}/join`);
-      setLocation('/game');
-    } catch (error) {
-      if (isAxiosError(error)) {
-        setState({...state, errorModalVisible: true, errorModalText: error.response.data.message});
-      }
-    }
+  const onSubmit: SubmitHandler<CodeFormState> = async (data) => {
+    await fetchJoinRoom(data.code);
   };
+
+  // console.log(getValues());
 
   return (
     <RouteTransition key='anim-auth'>
       <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
         <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
-            <Button loading={state.loadingCreate} onClick={onCreateClick}>
+            <Button loading={loadingHost} onClick={onClickHost}>
               HOST NEW GAME
             </Button>
           </MotionFlex>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
-            {state.showCodeInput ? (
+            {codeInputVisible ? (
               <form onSubmit={handleSubmit(onSubmit)}>
-                <InputButtonWrapper loading={formState.isSubmitting}>
+                <InputButtonWrapper
+                  loading={formState.isSubmitting}
+                  showButton={isPresent && Boolean(getValues('code'))}
+                >
                   <InputWithIcon
                     ref={register({
                       required: true,
                     })}
-                    icon={Icon.AtSign}
+                    name='code'
+                    icon={Icon.Lock}
                     type='password'
                     maxLength={40}
                     placeholder='Enter code'
@@ -131,7 +140,7 @@ const AuthHomePage = (): JSX.Element => {
                 </InputButtonWrapper>
               </form>
             ) : (
-              <Button onClick={() => setState({...state, showCodeInput: true})}>JOIN A GAME</Button>
+              <Button onClick={() => setCodeInputVisible(true)}>JOIN A GAME</Button>
             )}
           </MotionFlex>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
@@ -143,10 +152,10 @@ const AuthHomePage = (): JSX.Element => {
         </Stack>
         <Modal
           title='Whoops!'
-          visible={state.errorModalVisible}
-          onVisibleChange={(visible) => setState({...state, errorModalVisible: visible})}
+          visible={errorModal.visible}
+          onVisibleChange={(visible) => setErrorModal({...errorModal, visible})}
         >
-          <div css={{fontSize: 18, fontWeight: 500}}>{state.errorModalText}</div>
+          <div css={{fontSize: 18, fontWeight: 500}}>{errorModal.text}</div>
         </Modal>
       </Flex>
     </RouteTransition>

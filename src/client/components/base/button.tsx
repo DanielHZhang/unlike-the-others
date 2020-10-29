@@ -9,20 +9,23 @@ type Props = {
 
 type BaseProps = Props & {theme: DeclaredTheme};
 
-const baseButtonStyles = ({loading, theme}: BaseProps) => css`
+const baseButtonStyles = () => css`
   align-items: center;
-  background-color: ${theme.button.primaryColor};
   border: none;
   border-radius: 4px;
   color: #fff;
-  display: flex;
+  display: inline-flex;
   font-weight: 500;
   height: 46px;
   justify-content: center;
   outline: none;
-  padding: 1px 8px;
+  padding: 1px 11px;
   transition: all 0.3s ease-out;
   user-select: none;
+`;
+
+const primaryButtonStyles = ({loading, theme}: BaseProps) => css`
+  background-color: ${theme.button.primaryColor};
   cursor: ${loading ? 'inherit' : 'pointer'};
   &:focus,
   &:hover {
@@ -35,4 +38,10 @@ const baseButtonStyles = ({loading, theme}: BaseProps) => css`
 
 export const Button = styled('button', styledOptions)<Props>`
   ${baseButtonStyles};
+  ${primaryButtonStyles};
+`;
+
+export const GhostButton = styled.button`
+  ${baseButtonStyles};
+  cursor: pointer;
 `;

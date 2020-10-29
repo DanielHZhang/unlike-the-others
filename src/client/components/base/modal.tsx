@@ -1,9 +1,9 @@
-import React, {FC, useState, useEffect} from 'react';
+/** @jsx jsx */
 import styled from '@emotion/styled';
+import {jsx} from '@emotion/react';
+import {FC, useState, useEffect} from 'react';
 import {createPortal} from 'react-dom';
-import {Button} from 'src/client/components/base/button';
-import {Flex} from 'src/client/components/base/flex';
-import {Icon} from 'src/client/components/base/icon';
+import {Flex, GhostButton, Icon} from 'src/client/components/base';
 
 const Mask = styled(Flex)`
   position: fixed;
@@ -58,7 +58,8 @@ type Props = {
 export const Modal: FC<Props> = (props) => {
   const {children, onVisibleChange, visible = false, title} = props;
   const [state, setState] = useState({visible});
-  const onCloseClick = () => {
+
+  const onClickClose = () => {
     setState({visible: false});
     onVisibleChange?.(false);
   };
@@ -71,13 +72,14 @@ export const Modal: FC<Props> = (props) => {
   if (!state.visible) {
     return null;
   }
+
   return createPortal(
-    <Mask onClick={onCloseClick}>
+    <Mask onClick={onClickClose}>
       <Dialog role='dialog' onClick={(event) => event.stopPropagation()}>
         <Titlebar>
-          <Button onClick={onCloseClick}>
-            <Icon type='close' />
-          </Button>
+          <GhostButton onClick={onClickClose} css={{backgroundColor: 'transparent'}}>
+            <Icon.Ecks color='#fff' />
+          </GhostButton>
         </Titlebar>
         <Content>
           {title && <Title>{title}</Title>}
