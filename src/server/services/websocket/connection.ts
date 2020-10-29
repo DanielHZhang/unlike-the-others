@@ -4,7 +4,6 @@ import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
 import {ServerSocket} from 'src/server/services/websocket';
 import {AudioChannel} from 'src/server/config/constants';
-import {verifyJwt} from 'src/server/config/keys';
 import {JwtClaims} from 'src/shared/types';
 
 const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
@@ -33,38 +32,38 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   }
 
   // Ensure player or room exists (/room/:id/join called)
-  const foundPlayer = Player.getById(claims.id);
-  if (!foundPlayer || !foundPlayer.roomId || !GameRoom.getById(foundPlayer.roomId)) {
+  const player = Player.getById(claims.id);
+  if (!player || !player.roomId || !GameRoom.getById(player.roomId)) {
     return raw.close();
   }
 
   const socket = new ServerSocket(raw);
   fastify.websocket.clients.push(socket);
-  fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
+  fastify.log.info(`Websocket client '${player.id}' connected.`);
 
   /**
-   * Handle socket disconnect.
+   * Handle client websocket disconnect.
    */
   socket.on('close', (code, reason) => {
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (!room) {
-      throw new Error(`No room found with id: ${socket.player.roomId}`);
+      throw new Error(`No room with id '${player.roomId}' found!`);
     }
 
     // Deactivate player if match has already started to allow for reconnects.
     // If still in pre-game lobby, remove the player completely.
     if (room.isMatchStarted) {
-      socket.player.active = false;
+      player.deactivate();
     } else {
-      room.removePlayer(socket.player);
-      Player.deleteById(socket.player.id);
+      Player.deleteById(player.id);
+      room.removePlayer(player);
       if (room.isEmpty()) {
         room.endGame(); // TODO: account for endLobby
         GameRoom.deleteById(room.id);
       }
     }
 
-    fastify.log.info(`Websocket ${socket.player.id} closed, code: ${code}, reason: ${reason}`);
+    fastify.log.info(`Websocket client ${player.id} closed, code: ${code}, reason: ${reason}`);
   });
 
   /**
@@ -74,20 +73,20 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
     if (typeof audioId !== 'string') {
       throw new Error();
     }
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (room) {
-      socket.player.audioId = audioId;
+      player.audioId = audioId;
       const audioIds = room.getAudioIdsInChannel(AudioChannel.Lobby);
       socket.emit('connectAudioIds', audioIds);
     }
-    fastify.log.info(`Client ${socket.player.id} registered with audioId ${audioId}`);
+    fastify.log.info(`Client ${player.id} registered with audioId ${audioId}`);
   });
 
   /**
    * Handle chat message.
    */
   socket.on('chatMessage', (message) => {
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -95,7 +94,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('startGame', () => {
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -103,7 +102,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('endGame', () => {
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -111,7 +110,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('startVoting', () => {
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (!room) {
       throw new Error();
     }
@@ -119,7 +118,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   });
 
   socket.on('endVoting', () => {
-    const room = GameRoom.getById(socket.player.roomId);
+    const room = GameRoom.getById(player.roomId);
     if (!room) {
       throw new Error();
     }

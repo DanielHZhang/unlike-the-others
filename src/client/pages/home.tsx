@@ -84,6 +84,7 @@ const AuthHomePage = (): JSX.Element => {
   const fetchJoinRoom = async (roomId: string) => {
     try {
       await axios.put(`/api/room/${roomId}/join`);
+      setRoom({id: roomId});
       setLocation('/game');
     } catch (error) {
       if (isAxiosError(error)) {
@@ -97,7 +98,6 @@ const AuthHomePage = (): JSX.Element => {
       setLoadingHost(true);
       const response = await axios.post<{roomId: string}>('/api/room/create');
       const {roomId} = response.data;
-      setRoom({id: roomId});
       await fetchJoinRoom(roomId);
     } catch (error) {
       if (isAxiosError(error)) {

@@ -3,25 +3,44 @@ import {FastifyInstance} from 'fastify';
 import {GameRoom, Player} from 'src/server/store';
 import {inputModel} from 'src/shared/buffer-schema';
 
-export const udpConnectionHandler = (fastify: FastifyInstance) => (
+export const webrtcConnectionHandler = (fastify: FastifyInstance) => (
   channel: ServerChannel
 ): void => {
-  let room: GameRoom;
-  const playerId = channel.userData.id as string;
-  const player = Player.getById(playerId)!;
-  player.channel = channel;
-  fastify.log.info(`UDP client connected: ${player.id}`);
+  type ChannelUserData = {
+    id: string;
+  };
+  const {id}: ChannelUserData = channel.userData;
+  const player = Player.getById(id);
+  const room = GameRoom.getById(player?.roomId);
 
+  // Do not allow the connection if the player or room could not be found.
+  if (!player || !room) {
+    return channel.close();
+  }
+
+  player.channel = channel;
+
+  fastify.log.info(`WebRTC client '${player.id}' connected.`);
+
+  /**
+   * Handle client webRTC disconnect.
+   */
   channel.onDisconnect((reason) => {
-    fastify.log.info(`UDP client ${reason}: ${player.id}`);
+    fastify.log.info(`WebRTC client '${player.id}' ${reason}`);
     player.channel = undefined; // Remove reference to this channel
   });
 
+  /**
+   * Handle receiving raw byte data from the client.
+   */
   channel.onRaw((buffer) => {
-    if (!room) {
-      room = GameRoom.getById(player.roomId)!;
+    if (typeof buffer === 'string') {
+      return; // Do not handle raw string data
     }
-    // DOES NOT HANDLE ANY ERROR
+    if (buffer.byteLength > 1000000) {
+      // TODO: Should not handle byte length over set maximum
+    }
+    // TODO: Handle error from .fromBuffer parsing
     const input = inputModel.fromBuffer(buffer as ArrayBuffer);
     player.enqueueInput(input);
   });

@@ -7,18 +7,18 @@ export class Player {
   public static readonly MAX_QUEUE_SIZE = 20;
   private static readonly instances = new Map<string, Player>();
   private inputQueue: BufferInputData[] = [];
+  private active = false;
+  private alive = true;
   // private jobs: Job[];
   private spy = false;
   private meetingsRemaining = 0;
   public name = '';
-  public alive = true;
   public id: string;
   public uiid?: number; // Unsigned integer id
   public audioId?: string;
   public roomId?: string;
   public socket?: ServerSocket;
   public channel?: ServerChannel;
-  public active = false;
   public body?: Box2d.b2Body;
   public lastProcessedInput = 0;
 
@@ -54,6 +54,26 @@ export class Player {
    */
   public static deleteById(id: string): boolean {
     return Player.instances.delete(id);
+  }
+
+  public get isActive(): boolean {
+    return this.active;
+  }
+
+
+  public get isAlive(): boolean {
+    return this.alive;
+  }
+
+
+  public activate(socket: ServerSocket): void {
+    this.socket = socket;
+    this.active = true;
+  }
+
+  public deactivate(): void {
+    this.socket = undefined;
+    this.active = false;
   }
 
   public enqueueInput(input: BufferInputData) {

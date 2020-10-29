@@ -305,13 +305,13 @@ export class GameRoom {
     // log('info', `Start game for room ${this.id}`);
   }
 
-  public endGame() {
+  public endGame(): void {
     this.isMatchStarted = false;
     if (this.timeout !== undefined) {
       clearTimeout(this.timeout);
     }
     // Remove all players who disconnected
-    this.players = this.players.filter((player) => player.active);
+    this.players = this.players.filter((player) => player.isActive);
 
     // TODO: Calculate ranking differential
 
