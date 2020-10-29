@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import {css, jsx} from '@emotion/react';
-import {FC, Suspense} from 'react';
+import {Suspense} from 'react';
 import {useLocation} from 'wouter';
 import {AnimatePresence} from 'framer-motion';
 import {HomePage} from 'src/client/pages/home';
@@ -12,7 +12,7 @@ import {axios} from 'src/client/network';
 import {useAsyncAtomValue} from 'src/client/hooks';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
 
-export const MainPage: FC = () => {
+export const MainPage = (): JSX.Element => {
   const [location, setLocation] = useLocation();
   const user = useAsyncAtomValue(asyncAtoms.user);
 

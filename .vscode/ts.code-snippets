@@ -139,11 +139,11 @@ placeholders. Placeholders with the same ids are connected.
     "scope": "typescriptreact",
     "prefix": "reactfunc",
     "body": [
-      "import React, {SFC} from 'react';",
+      "import React from 'react';",
       "",
       "type ${1:Name}Props = {};",
       "",
-      "const ${1:Name}: SFC<${1:Name}Props> = (props) => {",
+      "const ${1:Name} = (props: Props): JSX.Element => {",
       "",
       "\treturn (",
       "\t\t<div>Component</div>",

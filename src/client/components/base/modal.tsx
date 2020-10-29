@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import styled from '@emotion/styled';
 import {css, jsx, useTheme} from '@emotion/react';
-import {FC, useState, useEffect} from 'react';
+import {useState, useEffect, ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {Flex, GhostButton, Icon} from 'src/client/components/base';
 import {AnimatePresence} from 'framer-motion';
@@ -11,9 +11,10 @@ type Props = {
   title?: string;
   visible?: boolean;
   onVisibleChange?: (newVisibility: boolean) => any;
+  children: ReactNode;
 };
 
-export const Modal: FC<Props> = (props) => {
+export const Modal = (props: Props): JSX.Element => {
   const theme = useTheme();
   const {children, onVisibleChange, visible: propVisible = false, title} = props;
   const [visible, setVisible] = useState(propVisible);

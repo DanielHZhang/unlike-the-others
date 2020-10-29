@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useRecoilValue} from 'recoil';
 import {AudioCall} from 'src/client/components/game/audio-call';
 import {GameWindow} from 'src/client/game';
@@ -11,7 +11,7 @@ import {useDidMount} from 'src/client/hooks';
 
 type Props = /* RouteComponentProps<any> & */ {};
 
-export const GamePage: FC<Props> = (props) => {
+export const GamePage = (props: Props): JSX.Element => {
   const {accessToken} = useRecoilValue(atoms.user);
   const [state, setState] = useState({loading: true, errorModalVisible: false});
 

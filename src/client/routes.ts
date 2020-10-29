@@ -1,4 +1,4 @@
-import {FC} from 'react';
+import {ReactElement} from 'react';
 import {GamePage} from 'src/client/pages/game';
 import {HomePage} from 'src/client/pages/home';
 import {LoginPage} from 'src/client/pages/login';
@@ -10,7 +10,7 @@ import makeMatcher, {Match, MatcherFn, NoMatch} from 'wouter/matcher';
 
 const defaultMatcher = makeMatcher();
 
-/*
+/**
  * A custom routing matcher function that supports multipath routes
  */
 export const multipathMatcher: MatcherFn = (patterns, path) => {
@@ -23,11 +23,19 @@ export const multipathMatcher: MatcherFn = (patterns, path) => {
   return [false, null] as NoMatch;
 };
 
-// type Route = {
-//   component: FC<any>;
-//   exact?: boolean;
-//   path?: string | string[];
-// };
+type Route = {
+  component: ReactElement;
+  path?: string | string[];
+};
+
+export const routes: Route[] = [
+  {
+    path: ['/', '/login', '/sign-up'],
+    component: MainPage,
+  }
+]
+
+
 
 // export const routes: Route[] = [
 //   {
