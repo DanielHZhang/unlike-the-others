@@ -1,18 +1,12 @@
-import {ReactElement} from 'react';
+import makeMatcher, {DefaultParams, Match, MatcherFn, NoMatch} from 'wouter/matcher';
 import {GamePage} from 'src/client/pages/game';
-import {HomePage} from 'src/client/pages/home';
-import {LoginPage} from 'src/client/pages/login';
 import {MainPage} from 'src/client/pages/main';
-import {SignUpPage} from 'src/client/pages/sign-up';
 import {ChatPage} from 'src/client/pages/temp-chatroom';
-
-import makeMatcher, {Match, MatcherFn, NoMatch} from 'wouter/matcher';
+import {NotFoundPage} from 'src/client/pages/not-found';
 
 const defaultMatcher = makeMatcher();
 
-/**
- * A custom routing matcher function that supports multipath routes
- */
+/** A custom routing matcher function that supports multipath routes */
 export const multipathMatcher: MatcherFn = (patterns, path) => {
   for (const pattern of [patterns].flat()) {
     const [match, params] = defaultMatcher(pattern, path);
@@ -24,48 +18,27 @@ export const multipathMatcher: MatcherFn = (patterns, path) => {
 };
 
 type Route = {
-  component: ReactElement;
-  path?: string | string[];
+  params?: boolean;
+  component: (props: {params: DefaultParams} | undefined) => JSX.Element;
+  path: any; // should be string | string[], but string[] is not supported by wouter
 };
 
 export const routes: Route[] = [
   {
+    path: '/chat',
+    component: ChatPage,
+  },
+  {
+    path: '/game',
+    component: GamePage,
+  },
+  {
     path: ['/', '/login', '/sign-up'],
     component: MainPage,
-  }
-]
-
-
-
-// export const routes: Route[] = [
-//   {
-//     component: ChatPage,
-//     exact: true,
-//     path: '/chat',
-//   },
-//   {
-//     component: GamePage,
-//     exact: true,
-//     path: '/game',
-//   },
-//   {
-//     component: MainPage,
-//     // exact: true,
-//     path: '*',
-//   },
-//   // {
-//   //   component: SignUpPage,
-//   //   exact: true,
-//   //   path: '/sign-up',
-//   // },
-//   // {
-//   //   component: LoginPage,
-//   //   exact: true,
-//   //   path: '/login',
-//   // },
-//   // {
-//   //   component: HomePage,
-//   //   exact: true,
-//   //   path: '/',
-//   // },
-// ];
+  },
+  {
+    params: true,
+    path: '/:rest*',
+    component: NotFoundPage,
+  },
+];

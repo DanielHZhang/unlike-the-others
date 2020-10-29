@@ -3,12 +3,10 @@ import {Global} from '@emotion/react';
 import {hot} from 'react-hot-loader/root';
 import {Route, Router, Switch} from 'wouter';
 import {useDidMount, useSetAsyncAtom} from 'src/client/hooks';
-import {GamePage} from 'src/client/pages/game';
-import {MainPage} from 'src/client/pages/main';
-import {asyncAtoms} from 'src/client/store';
-import {fetchAccessToken} from 'src/client/network';
+import {multipathMatcher, routes} from 'src/client/routes';
 import {globalStyles} from 'src/client/styles/global';
-import {multipathMatcher} from 'src/client/routes';
+import {fetchAccessToken} from 'src/client/network';
+import {asyncAtoms} from 'src/client/store';
 
 const App = () => {
   const setUser = useSetAsyncAtom(asyncAtoms.user);
@@ -24,8 +22,18 @@ const App = () => {
     <Router matcher={multipathMatcher}>
       <Global styles={globalStyles} />
       <Switch>
-        <Route path='/game' component={GamePage} />
-        <Route path={['/', '/login', '/sign-up'] as any} component={MainPage} />
+        {routes.map(
+          ({params, component: Component, path}, index): JSX.Element => {
+            if (params) {
+              return (
+                <Route key={index} path={path}>
+                  {(params) => <Component params={params} />}
+                </Route>
+              );
+            }
+            return <Route key={index} path={path} component={Component} />;
+          }
+        )}
       </Switch>
     </Router>
   );

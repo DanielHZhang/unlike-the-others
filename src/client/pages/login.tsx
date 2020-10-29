@@ -17,7 +17,7 @@ type FormState = {
   networkError: null;
 };
 
-export const LoginPage = (): JSX.Element => {
+export const LoginPage = (props): JSX.Element => {
   const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
   const setUser = useSetAsyncAtom(asyncAtoms.user);
@@ -41,6 +41,8 @@ export const LoginPage = (): JSX.Element => {
       }
     }
   };
+
+  console.log(props);
 
   return (
     <RouteTransition>

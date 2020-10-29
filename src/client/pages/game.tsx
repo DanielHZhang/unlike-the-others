@@ -9,9 +9,7 @@ import {channel} from 'src/client/network/webrtc';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
 import {useDidMount} from 'src/client/hooks';
 
-type Props = /* RouteComponentProps<any> & */ {};
-
-export const GamePage = (props: Props): JSX.Element => {
+export const GamePage = (): JSX.Element => {
   const {accessToken} = useRecoilValue(atoms.user);
   const [state, setState] = useState({loading: true, errorModalVisible: false});
 
