@@ -1,5 +1,4 @@
 import {FastifyPluginCallback} from 'fastify';
-import {prisma} from 'src/server/prisma';
 import {GameRoom, Player} from 'src/server/store';
 
 export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
@@ -11,10 +10,10 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
       protected: true,
     },
     handler: async (req, reply) => {
-      const playerId = req.claims.guestId || req.claims.userId;
+      const playerId = req.claims.id;
       const room = GameRoom.create(playerId);
       fastify.log.info(`Client ${playerId} created room ${room.id}`);
-      return room.id;
+      return {id: room.id};
     },
   });
 
@@ -31,6 +30,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
           id: {
             type: 'string',
             minLength: 1,
+            maxLength: 40,
           },
         },
       },
@@ -48,8 +48,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         throw new Error('This match has already started!');
       }
 
-      const playerId = req.claims.guestId || req.claims.userId;
-
+      const playerId = req.claims.id;
       if (room.hasPlayerWithId(playerId)) {
         // Player connected previously
         // TODO: might need to do some stuff here?

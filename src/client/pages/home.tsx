@@ -22,6 +22,7 @@ import {childVariants, RouteTransition} from 'src/client/components/animation/ro
 import {UsernameInput} from 'src/client/components/auth/input';
 import {AuthNav} from 'src/client/components/auth/nav';
 import type {AccessTokenData} from 'src/shared/types';
+import {RhombusSpinner} from 'src/client/components/spinner/rhombus';
 
 type UsernameFormState = {username: string};
 
@@ -115,7 +116,7 @@ const AuthHomePage = (): JSX.Element => {
         <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
             <Button loading={loadingHost} onClick={onClickHost}>
-              HOST NEW GAME
+              {loadingHost ? <RhombusSpinner /> : 'HOST NEW GAME'}
             </Button>
           </MotionFlex>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>

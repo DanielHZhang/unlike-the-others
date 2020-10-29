@@ -1,7 +1,8 @@
 import type Peer from 'peerjs';
 import type {Server} from 'ws';
 import type {DeclaredTheme} from 'src/client/styles/theme';
-import type {ServerSocket} from 'src/server/services/sockets';
+import type {ServerSocket} from 'src/server/services/websocket';
+import type {JwtClaims} from 'src/shared/types';
 
 // Client-side module overriden definitions
 

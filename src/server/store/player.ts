@@ -1,6 +1,6 @@
 import Box2d from '@supersede/box2d';
 import {ServerChannel} from '@geckos.io/server';
-import {ServerSocket} from 'src/server/services/sockets';
+import {ServerSocket} from 'src/server/services/websocket';
 import type {BufferInputData, InputData} from 'src/shared/types';
 
 export class Player {

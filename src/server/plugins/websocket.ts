@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import type {Socket} from 'net';
 import type {IncomingMessage} from 'http';
 import {createFastifyPlugin} from 'src/server/plugins';
-import {tcpConnectionHandler} from 'src/server/services/sockets';
+import {websocketConnectionHandler} from 'src/server/services/websocket';
 import {verifyJwt} from 'src/server/config/keys';
 
 type Options = {
@@ -28,14 +28,10 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
 
   fastify.server.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
     try {
-      if (!request.url) {
-        throw 400;
-      }
-      const {query} = url.parse(request.url, true);
+      const {query} = url.parse(request.url ?? '', true);
       if (typeof query.token !== 'string') {
-        throw 400;
+        throw new Error('Bad token.');
       }
-
       const claims = verifyJwt('access', query.token);
       wss.handleUpgrade(request, socket, head, (socket) => {
         wss.emit('connection', socket, request, claims);
@@ -48,6 +44,7 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
   fastify.decorate('websocket', {server: wss, clients: []});
   fastify.addHook('onClose', (_, done) => wss.close(done));
 
+  // Handle heartbeat connection with clients
   const interval = setInterval(() => {
     let i = 0;
     const {clients} = fastify.websocket;
@@ -64,7 +61,7 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
     }
   }, options.heartbeatInterval * 1000);
 
-  wss.on('connection', tcpConnectionHandler(fastify));
+  wss.on('connection', websocketConnectionHandler(fastify));
   wss.on('close', () => {
     clearInterval(interval);
     wss.clients.forEach((client) => client.close());

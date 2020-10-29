@@ -1,5 +1,4 @@
 import WebSocket from 'ws';
-import {Player} from 'src/server/store';
 import type {AnyFunction} from 'src/shared/types';
 
 export class ServerSocket {
@@ -11,7 +10,6 @@ export class ServerSocket {
   private static readonly MAX_MESSAGE_SIZE = 5e5;
   private connection: WebSocket;
   private listeners = new Map<string, AnyFunction[]>();
-  private playerRef?: Player;
   private isDisposed = false;
   public isAlive = true;
 
@@ -34,15 +32,6 @@ export class ServerSocket {
         this.dispatch(json[0], json[1]);
       }
     });
-  }
-
-  public get player() {
-    return this.playerRef as Player;
-  }
-
-  public set player(newPlayer: Player) {
-    newPlayer.socket = this;
-    this.playerRef = newPlayer;
   }
 
   public on(eventName: 'close', callback: (code: number, reason: string) => void): void;
@@ -69,7 +58,7 @@ export class ServerSocket {
     }
   }
 
-  public emit(eventName: string, data?: unknown, status = 200) {
+  public emit(eventName: string, data?: unknown, status = 200): void {
     if (this.isDisposed) {
       throw new Error('Attempting to emit a message on a disposed socket.');
     }
@@ -81,8 +70,7 @@ export class ServerSocket {
    * Dispose of this socket connection and associated resources.
    * Uses `WebSocket.terminate()` to end the connection immediately.
    */
-  public dispose() {
-    this.playerRef = undefined;
+  public dispose(): void {
     this.isDisposed = true;
     this.isAlive = false;
     this.connection.terminate();
@@ -90,12 +78,12 @@ export class ServerSocket {
   }
 
   /** Ping the client for a response to keep the heartbeat alive. */
-  public ping() {
+  public ping(): void {
     this.isAlive = false;
     this.connection.ping();
   }
 
-  private dispatch(eventName: string, ...dataArgs: any[]) {
+  private dispatch(eventName: string, ...dataArgs: any[]): void {
     const handlers = this.listeners.get(eventName);
     if (handlers) {
       handlers.forEach((handler) => handler(...dataArgs));

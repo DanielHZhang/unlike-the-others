@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
-import {ServerSocket} from 'src/server/services/sockets';
+import {ServerSocket} from 'src/server/services/websocket';
 import {AudioChannel} from 'src/server/config/constants';
 import {verifyJwt} from 'src/server/config/keys';
 import {JwtClaims} from 'src/shared/types';
@@ -23,41 +23,28 @@ const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): v
 /**
  * Handles onConnection event for WebSockets.
  */
-export const tcpConnectionHandler = (fastify: FastifyInstance) => (
+export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   raw: WebSocket,
   msg: IncomingMessage,
   claims: Required<JwtClaims>
-) => {
+): void => {
   if (msg.aborted || msg.destroyed) {
     return;
   }
-  const foundPlayer = Player.getById(claims.guestId || claims.userId);
 
+  // Ensure player or room exists (/room/:id/join called)
+  const foundPlayer = Player.getById(claims.id);
   if (!foundPlayer || !foundPlayer.roomId || !GameRoom.getById(foundPlayer.roomId)) {
-    // No player exists (/room/:id/join not called) or no room exists
     return raw.close();
   }
 
   const socket = new ServerSocket(raw);
-  socket.player = foundPlayer;
-
   fastify.websocket.clients.push(socket);
   fastify.log.info(`Socket client authenticated: ${foundPlayer.id}`);
 
-  // /** Handle JWT authentication */
-  // socket.on('authenticate', (data) => {
-  //   try {
-  //     if (!isPayloadValid(data, {jwt: '', roomId: ''})) {
-  //       throw 'Bad JWT.';
-  //     }
-  //     const claims = verifyJwt('access', data.jwt);
-  //     socket.emit('authenticate-reply', true);
-  //   } catch (error) {
-  //     socket.emit('authenticate-reply', 'No room exists', 404);
-  //   }
-  // });
-
-  /** Handle socket disconnect */
+  /**
+   * Handle socket disconnect.
+   */
   socket.on('close', (code, reason) => {
     const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
@@ -80,6 +67,9 @@ export const tcpConnectionHandler = (fastify: FastifyInstance) => (
     fastify.log.info(`Websocket ${socket.player.id} closed, code: ${code}, reason: ${reason}`);
   });
 
+  /**
+   * Handle new audioId
+   */
   socket.on('registerAudioId', (audioId) => {
     if (typeof audioId !== 'string') {
       throw new Error();
@@ -93,6 +83,9 @@ export const tcpConnectionHandler = (fastify: FastifyInstance) => (
     fastify.log.info(`Client ${socket.player.id} registered with audioId ${audioId}`);
   });
 
+  /**
+   * Handle chat message.
+   */
   socket.on('chatMessage', (message) => {
     const room = GameRoom.getById(socket.player.roomId);
     if (!room) {
