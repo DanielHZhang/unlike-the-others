@@ -12,7 +12,7 @@ export const theme = {
   button: {
     activeColor: '#21ac99',
     hoverColor: '#25cab4',
-    loadingColor: '#21aa99',
+    loadingColor: '#6bc7b9',
     primaryColor: '#21ad99',
   },
   modal: {

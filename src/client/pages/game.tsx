@@ -1,14 +1,11 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {useState} from 'react';
 import {asyncAtoms} from 'src/client/store';
 import {useAsyncAtomValue} from 'src/client/hooks';
-import {GameWindow} from 'src/client/components/game/window';
-import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
+import {GameLoading} from 'src/client/components/game/loading';
 
 export const GamePage = (): JSX.Element => {
   const user = useAsyncAtomValue(asyncAtoms.user);
-  // const [state, setState] = useState({loading: true, errorModalVisible: false});
 
   // useEffect(() => {
   //   if (!accessToken || socket.isConnected()) {
@@ -28,19 +25,13 @@ export const GamePage = (): JSX.Element => {
   //       }
   //     });
   //   });
-
   //   return () => {
   //     socket.dispose(); // Dispose of the socket on page unmount
   //   };
   // }, [accessToken]);
 
   if (true /* state.loading */) {
-    return (
-      <div>
-        <FingerprintSpinner color='#fff' />
-        <div>Loading...</div>
-      </div>
-    );
+    return <GameLoading />;
   }
 
   // return <GameWindow />;

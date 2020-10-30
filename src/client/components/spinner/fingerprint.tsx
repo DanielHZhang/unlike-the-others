@@ -6,7 +6,10 @@ import {css} from '@emotion/react';
 const numRings = 9;
 const containerPadding = 2;
 
-type RingProps = {ringBase: number};
+type RingProps = {
+  ringBase: number;
+  duration: number;
+};
 
 const Ring = styled(
   'div',
@@ -17,7 +20,8 @@ const Ring = styled(
     border-radius: 50%;
     border: 2px solid transparent;
     border-top-color: ${props.color};
-    animation: fingerprint 1500ms cubic-bezier(0.68, -0.75, 0.265, 1.75) infinite forwards;
+    animation: fingerprint ${props.duration}ms cubic-bezier(0.68, -0.75, 0.265, 1.75) infinite
+      forwards;
     margin: auto;
     bottom: 0;
     left: 0;
@@ -100,13 +104,14 @@ type Props = {
   duration?: number;
 };
 
-export const FingerprintSpinner = ({size = 120, color = '#fff'}: Props): JSX.Element => {
+export const FingerprintSpinner = (props: Props): JSX.Element => {
+  const {size = 120, color = '#fff', duration = 1500} = props;
   const outerRingSize = size - containerPadding * 2;
   const ringBase = outerRingSize / numRings;
   return (
     <SpinnerWrapper size={size}>
       {Array.from({length: numRings}).map((_, index) => (
-        <Ring key={index} color={color} ringBase={ringBase} />
+        <Ring key={index} color={color} ringBase={ringBase} duration={duration} />
       ))}
     </SpinnerWrapper>
   );

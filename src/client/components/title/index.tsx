@@ -9,10 +9,11 @@ const numbers = Array.from({length: 3}, () =>
 );
 
 type Props = {
+  animate?: boolean;
   fontSize?: number;
 };
 
-export const Title = ({fontSize = 84}: Props): JSX.Element => {
+export const Title = ({animate = true, fontSize = 84}: Props): JSX.Element => {
   return (
     <Flex
       mainAxis='center'
@@ -29,14 +30,18 @@ export const Title = ({fontSize = 84}: Props): JSX.Element => {
       {title.map((letter, index) => (
         <motion.div
           key={index}
-          initial={{
-            opacity: 0,
-            x: -100,
-            y: 40,
-            rotateX: 180 * numbers[0][index],
-            rotateY: 180 * numbers[1][index],
-            rotateZ: 180 * numbers[2][index],
-          }}
+          initial={
+            animate
+              ? {
+                  opacity: 0,
+                  x: -100,
+                  y: 40,
+                  rotateX: 180 * numbers[0][index],
+                  rotateY: 180 * numbers[1][index],
+                  rotateZ: 180 * numbers[2][index],
+                }
+              : false
+          }
           animate={{
             opacity: 1,
             x: 0,
