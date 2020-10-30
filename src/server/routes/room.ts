@@ -19,7 +19,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
 
   fastify.route({
     url: '/:id/join',
-    method: 'POST',
+    method: 'PUT',
     config: {
       protected: true,
     },

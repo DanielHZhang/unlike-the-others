@@ -97,9 +97,8 @@ const AuthHomePage = (): JSX.Element => {
   const onClickHost = async () => {
     try {
       setLoadingHost(true);
-      const response = await axios.post<{roomId: string}>('/api/room/create');
-      const {roomId} = response.data;
-      await fetchJoinRoom(roomId);
+      const response = await axios.post<{id: string}>('/api/room/create');
+      await fetchJoinRoom(response.data.id);
     } catch (error) {
       if (isAxiosError(error)) {
         setErrorModal({visible: true, text: error.response.data.message});
@@ -116,7 +115,7 @@ const AuthHomePage = (): JSX.Element => {
       <Flex mainAxis='center' css={{backgroundColor: 'transparent', marginTop: '8rem'}}>
         <Stack flow='column' spacing='1.5rem' css={{flex: '1 1 0%', maxWidth: 300}}>
           <MotionFlex flow='column' crossAxis='stretch' variants={childVariants}>
-            <Button loading={loadingHost} onClick={onClickHost}>
+            <Button loading={loadingHost} disabled={loadingHost} onClick={onClickHost}>
               {loadingHost ? <RhombusSpinner /> : 'HOST NEW GAME'}
             </Button>
           </MotionFlex>
