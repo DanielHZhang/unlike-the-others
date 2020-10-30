@@ -42,6 +42,7 @@ const UnauthHomePage = (): JSX.Element => {
     await setUser(async () => {
       const response = await axios.post<AccessTokenData>('/api/auth/guest', data);
       const {accessToken, claims} = response.data;
+      axios.defaults.headers.authorization = accessToken;
       return {accessToken, ...claims, isAuthed: true};
     });
   };

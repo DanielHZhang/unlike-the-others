@@ -1,8 +1,8 @@
 import React, {memo} from 'react';
 import Phaser from 'phaser';
-import {useDidMount} from 'src/client/hooks';
 import {useRecoilValue} from 'recoil';
 import {atoms} from 'src/client/store';
+import {useDidMount} from 'src/client/hooks';
 import {Lobby} from 'src/client/game/scenes/lobby-nolights';
 
 const elementId = 'game-window';

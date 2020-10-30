@@ -1,17 +1,14 @@
-import React, {useState} from 'react';
-import {useRecoilValue} from 'recoil';
-import {AudioCall} from 'src/client/components/game/audio-call';
-import {GameWindow} from 'src/client/game';
-import {socket} from 'src/client/network/socket';
-import {atoms} from 'src/client/store';
-import {Chatbox} from 'src/client/components/chatbox';
-import {channel} from 'src/client/network/webrtc';
+/** @jsx jsx */
+import {jsx} from '@emotion/react';
+import {useState} from 'react';
+import {asyncAtoms} from 'src/client/store';
+import {useAsyncAtomValue} from 'src/client/hooks';
+import {GameWindow} from 'src/client/components/game/window';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
-import {useDidMount} from 'src/client/hooks';
 
 export const GamePage = (): JSX.Element => {
-  const {accessToken} = useRecoilValue(atoms.user);
-  const [state, setState] = useState({loading: true, errorModalVisible: false});
+  const user = useAsyncAtomValue(asyncAtoms.user);
+  // const [state, setState] = useState({loading: true, errorModalVisible: false});
 
   // useEffect(() => {
   //   if (!accessToken || socket.isConnected()) {
@@ -39,35 +36,28 @@ export const GamePage = (): JSX.Element => {
 
   if (true /* state.loading */) {
     return (
-      <Layout>
-        <div>
-          {' '}
-          // this div shoudl center everything
-          <FingerprintSpinner color='#fff' />
-          <div>Loading...</div>
-        </div>
-      </Layout>
+      <div>
+        <FingerprintSpinner color='#fff' />
+        <div>Loading...</div>
+      </div>
     );
   }
-  if (state.errorModalVisible) {
-    return <div>error modal here</div>;
-  }
 
-  return <GameWindow />;
+  // return <GameWindow />;
 
-  return (
-    <div style={{backgroundColor: 'black'}}>
-      {/* <Stack flow='column' style={{width: 200}}>
-        <Button onClick={() => socket.emit('startGame')}>Start game</Button>
-        <Button onClick={() => socket.emit('endGame')}>End game</Button>
-        <Button onClick={() => socket.emit('startVoting')}>Start vote</Button>
-        <Button onClick={() => socket.emit('endVoting')}>End vote</Button>
-        <Button onClick={() => socket.emit('TEMP_killSelf')}>Kill yourself</Button>
-        <Button onClick={() => socket.emit('TEMP_reviveSelf')}>Revive yourself</Button>
-      </Stack>
-      <Chatbox /> */}
-      <GameWindow />9
-      <AudioCall />
-    </div>
-  );
+  // return (
+  //   <div style={{backgroundColor: 'black'}}>
+  //     {/* <Stack flow='column' style={{width: 200}}>
+  //       <Button onClick={() => socket.emit('startGame')}>Start game</Button>
+  //       <Button onClick={() => socket.emit('endGame')}>End game</Button>
+  //       <Button onClick={() => socket.emit('startVoting')}>Start vote</Button>
+  //       <Button onClick={() => socket.emit('endVoting')}>End vote</Button>
+  //       <Button onClick={() => socket.emit('TEMP_killSelf')}>Kill yourself</Button>
+  //       <Button onClick={() => socket.emit('TEMP_reviveSelf')}>Revive yourself</Button>
+  //     </Stack>
+  //     <Chatbox /> */}
+  //     <GameWindow />9
+  //     <AudioCall />
+  //   </div>
+  // );
 };
