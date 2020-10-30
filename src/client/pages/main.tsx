@@ -11,6 +11,7 @@ import {asyncAtoms} from 'src/client/store';
 import {axios} from 'src/client/network';
 import {useAsyncAtomValue} from 'src/client/hooks';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
+import {Title} from 'src/client/components/title';
 
 export const MainPage = (): JSX.Element => {
   const [location, setLocation] = useLocation();
@@ -46,16 +47,8 @@ export const MainPage = (): JSX.Element => {
           )}
         </Flex>
       </Flex>
-      <div
-        css={{
-          margin: '3rem 0',
-          textAlign: 'center',
-          font: '84px Simplifica',
-          color: 'white',
-          letterSpacing: '0.2em',
-        }}
-      >
-        UNLIKE the OTHERS
+      <div css={{margin: '3rem 0'}}>
+        <Title />
       </div>
       <Suspense
         fallback={
