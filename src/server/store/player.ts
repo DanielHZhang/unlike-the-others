@@ -1,42 +1,42 @@
 import Box2d from '@supersede/box2d';
 import {ServerChannel} from '@geckos.io/server';
 import {ServerSocket} from 'src/server/services/websocket';
-import type {BufferInputData, InputData} from 'src/shared/types';
+import type {BufferInputData} from 'src/shared/types';
 
 export class Player {
-  public static readonly MAX_QUEUE_SIZE = 20;
   private static readonly instances = new Map<string, Player>();
-  private inputQueue: BufferInputData[] = [];
-  private active = false;
-  private alive = true;
-  // private jobs: Job[];
-  private spy = false;
-  private meetingsRemaining = 0;
-  public name = '';
+  public static readonly MAX_QUEUE_SIZE = 20;
+  public readonly username: string;
   public id: string;
+  public lastProcessedInput = 0;
   public uiid?: number; // Unsigned integer id
   public audioId?: string;
+  public body?: Box2d.b2Body;
+  public channel?: ServerChannel;
   public roomId?: string;
   public socket?: ServerSocket;
-  public channel?: ServerChannel;
-  public body?: Box2d.b2Body;
-  public lastProcessedInput = 0;
+  private active = false;
+  private alive = true;
+  private inputQueue: BufferInputData[] = [];
+  // private meetingsRemaining = 0;
+  // private spy = false;
+  // private jobs: Job[];
 
   /**
    * Private constructor to prevent instances from being created outside of static methods
    * @param socket Reference to the socket object
    * @param id Id of the room, if any
    */
-  private constructor(id: string) {
-    // this.socket = socket;
+  private constructor(id: string, username: string) {
     this.id = id;
+    this.username = username;
   }
 
   /**
-   * Creates a new room instance with the specified id.
+   * Creates a new player instance.
    */
-  public static create(id: string): Player {
-    const player = new Player(id);
+  public static create(id: string, username: string): Player {
+    const player = new Player(id, username);
     Player.instances.set(player.id, player);
     return player;
   }
@@ -56,15 +56,17 @@ export class Player {
     return Player.instances.delete(id);
   }
 
+  /**
+   * Returns whether the player is currently active. Players are considered active if they
+   * have joined a room and have an active websocket connection.
+   */
   public get isActive(): boolean {
-    return this.active;
+    return this.socket !== undefined && this.active;
   }
-
 
   public get isAlive(): boolean {
     return this.alive;
   }
-
 
   public activate(socket: ServerSocket): void {
     this.socket = socket;
@@ -76,42 +78,42 @@ export class Player {
     this.active = false;
   }
 
-  public enqueueInput(input: BufferInputData) {
+  public enqueueInput(input: BufferInputData): void {
     this.inputQueue.push(input);
     if (this.inputQueue.length > Player.MAX_QUEUE_SIZE) {
       this.inputQueue.shift(); // Drop the previously queued input
     }
   }
 
-  public dequeueInput() {
+  public dequeueInput(): BufferInputData | undefined {
     return this.inputQueue.shift();
   }
 
-  public processInputs() {
+  public processInputs(): void {
     // POTENTIALLY HANDLE PLAYER INPUTS HERE
   }
 
-  public joinRoom(roomId: string) {
+  public joinRoom(roomId: string): void {
     this.roomId = roomId;
-    this.active = true;
-    this.socket.join(roomId);
+    // this.active = true;
+    // this.socket.join(roomId);
   }
 
-  public leaveRoom(audioIds: string[]) {
-    this.socket.emit('connectAudioIds', audioIds);
-    this.socket.leave(this.roomId!);
+  public leaveRoom(audioIds: string[]): void {
+    // this.socket.emit('connectAudioIds', audioIds);
+    // this.socket.leave(this.roomId!);
     this.active = false;
     this.roomId = undefined;
     this.uiid = undefined;
     this.inputQueue = []; // Drop all input when leaving room
   }
 
-  public kill(audioIds: string[]) {
+  public kill(audioIds: string[]): void {
     this.alive = false;
     this.socket.emit('connectAudioIds', audioIds);
   }
 
-  public revive(audioIds: string[]) {
+  public revive(audioIds: string[]): void {
     this.alive = true;
     this.socket.emit('connectAudioIds', audioIds);
   }
