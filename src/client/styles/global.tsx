@@ -18,6 +18,7 @@ export const globalStyles = css`
     ${scrollbarStyles}
     margin: 0;
     height: 100%;
+    color: #fff;
   }
 
   #root {
