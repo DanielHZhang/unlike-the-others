@@ -20,10 +20,12 @@ export const NotFoundPage = (): JSX.Element => {
         <Title fontSize={48} />
       </div>
       <Flex flow='column' crossAxis='center' css={{margin: '7rem 0'}}>
-        <div css={{fontSize: '12rem'}}>404</div>
-        <div css={{fontSize: '30px'}}>Whoops! You fell down a hole.</div>
-        <div css={{marginTop: 8}}>The page that you're looking for is nowhere to be found.</div>
-        <div css={{marginTop: 32}}>
+        <div css={{fontSize: '12rem', color: '#d64747'}}>404</div>
+        <div css={{fontSize: '30px'}}>Whoops! Reduced to atoms.</div>
+        <div css={{fontSize: '18px', marginTop: 8, color: 'rgba(255, 255, 255, 0.85)'}}>
+          We couldn't find the page you were looking for.
+        </div>
+        <div css={{marginTop: '3rem'}}>
           <HomepageLink to='/' css={{letterSpacing: '0.15em'}}>
             HOME
           </HomepageLink>

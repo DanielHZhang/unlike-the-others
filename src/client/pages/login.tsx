@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {motion, useIsPresent} from 'framer-motion';
+import {useIsPresent} from 'framer-motion';
 import {useLocation} from 'wouter';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
 import {Alert, Button, Flex, Icon, MotionFlex, Stack} from 'src/client/components/base';
@@ -17,7 +17,7 @@ type FormState = {
   networkError: null;
 };
 
-export const LoginPage = (props): JSX.Element => {
+export const LoginPage = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const isPresent = useIsPresent();
   const setUser = useSetAsyncAtom(asyncAtoms.user);
@@ -41,8 +41,6 @@ export const LoginPage = (props): JSX.Element => {
       }
     }
   };
-
-  console.log(props);
 
   return (
     <RouteTransition>
