@@ -1,6 +1,6 @@
 import React, {Component, createRef, RefObject} from 'react';
 import Peer, {peerjs} from 'peerjs';
-import {socket} from 'src/client/network/socket';
+import {connection} from 'src/client/network/socket';
 
 type AudioStream = {
   reactRef: RefObject<HTMLAudioElement>;
@@ -88,10 +88,10 @@ export class AudioCall extends Component<Props, State> {
   }
 
   handlePeerOpen = (id: string) => {
-    socket.on('connectAudioIds', (audioIds: string[]) => {
+    connection.on('connectAudioIds', (audioIds: string[]) => {
       this.connectAudioIds(audioIds);
     });
-    socket.emit('registerAudioId', id);
+    connection.emit('registerAudioId', id);
   };
 
   connectAudioIds(audioIds: string[]) {

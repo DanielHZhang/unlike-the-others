@@ -57,7 +57,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         // Player has not connected previously
         if (room.isFullCapacity()) {
           reply.status(400);
-          throw new Error('Room has reached full capacity!');
+          throw new Error('This match has already reached full capacity!');
         }
         const player = Player.create(id, derivedUsername);
         room.addPlayer(player);
