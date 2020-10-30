@@ -21,8 +21,8 @@ export const Title = ({fontSize = 84}: Props): JSX.Element => {
         fontFamily: 'Simplifica',
         fontSize,
         height: fontSize,
-        letterSpacing: '0.2em',
         overflow: 'hidden',
+        userSelect: 'none',
         width: '100%',
       }}
     >
@@ -50,7 +50,7 @@ export const Title = ({fontSize = 84}: Props): JSX.Element => {
               delay: 0.07 * index,
             },
           }}
-          css={{width: 'auto', height: fontSize, position: 'relative'}}
+          css={{width: 'auto', height: fontSize, position: 'relative', padding: '0 8px'}}
         >
           {letter === ' ' ? '\u00A0' : letter}
         </motion.div>

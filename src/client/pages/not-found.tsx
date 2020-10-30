@@ -16,13 +16,19 @@ export const NotFoundPage = (): JSX.Element => {
 
   return (
     <Flex flow='column'>
-      <Title />
-      <Flex>
-        <div css={{fontSize: '15rem'}}>404</div>
+      <div css={{margin: '3rem 0'}}>
+        <Title fontSize={48} />
+      </div>
+      <Flex flow='column' crossAxis='center' css={{margin: '7rem 0'}}>
+        <div css={{fontSize: '12rem'}}>404</div>
+        <div css={{fontSize: '30px'}}>Whoops! You fell down a hole.</div>
+        <div css={{marginTop: 8}}>The page that you're looking for is nowhere to be found.</div>
+        <div css={{marginTop: 32}}>
+          <HomepageLink to='/' css={{letterSpacing: '0.15em'}}>
+            HOME
+          </HomepageLink>
+        </div>
       </Flex>
-      <div>The page that you're looking for is nowhere to be found.</div>
-      <div>Whoops! You fell down a hole.</div>
-      <HomepageLink>HOME</HomepageLink>
     </Flex>
   );
 };

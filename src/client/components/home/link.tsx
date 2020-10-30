@@ -1,7 +1,10 @@
 import styled from '@emotion/styled';
-import {Link} from 'wouter';
+import {FC} from 'react';
+import {Link, LinkProps} from 'wouter';
 
-export const HomepageLink = styled(Link)`
+// Use FC here because Link will always require children and to fix an issue where styled
+// is suppressing LinkProps.
+export const HomepageLink: FC<LinkProps> = styled(Link)`
   display: block;
   color: #9b9f9f;
   text-decoration: none;
