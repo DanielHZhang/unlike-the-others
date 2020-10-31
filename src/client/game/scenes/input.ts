@@ -1,5 +1,5 @@
 import Box2d from '@supersede/box2d';
-import {channel} from 'src/client/network/webrtc';
+import {connection} from 'src/client/network';
 import {inputModel} from 'src/shared/buffer-schema';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData, BufferSnapshotData} from 'src/shared/types';
@@ -72,7 +72,7 @@ export const InputHandler = new (class {
   public emit() {
     // Only emit if h or v have non-zero values
     if (this.input.h > 0 || this.input.v > 0) {
-      channel.raw.emit(inputModel.toBuffer(this.input));
+      connection.raw.emit(inputModel.toBuffer(this.input));
       this.input.s++;
       this.reset();
     }

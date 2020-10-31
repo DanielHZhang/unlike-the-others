@@ -17,6 +17,8 @@ export const GamePage = (): JSX.Element => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  return <GameWindow />;
+
   useEffect(() => {
     // Do not run the effect unless the access token is defined
     // and the connection has not yet been initiated.
@@ -65,19 +67,3 @@ export const GamePage = (): JSX.Element => {
 
   return loading ? <GameLoading /> : <GameWindow />;
 };
-
-// return (
-//   <div style={{backgroundColor: 'black'}}>
-//     {/* <Stack flow='column' style={{width: 200}}>
-//       <Button onClick={() => socket.emit('startGame')}>Start game</Button>
-//       <Button onClick={() => socket.emit('endGame')}>End game</Button>
-//       <Button onClick={() => socket.emit('startVoting')}>Start vote</Button>
-//       <Button onClick={() => socket.emit('endVoting')}>End vote</Button>
-//       <Button onClick={() => socket.emit('TEMP_killSelf')}>Kill yourself</Button>
-//       <Button onClick={() => socket.emit('TEMP_reviveSelf')}>Revive yourself</Button>
-//     </Stack>
-//     <Chatbox /> */}
-//     <GameWindow />9
-//     <AudioCall />
-//   </div>
-// );
