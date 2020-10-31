@@ -1,6 +1,6 @@
 import type {AnyFunction} from 'src/shared/types';
 
-interface DebouncedFunction<F extends AnyFunction> {
+interface Debounced<F extends AnyFunction> {
   (...args: Parameters<F>): ReturnType<F>;
   cancel: () => void;
   isActive: () => boolean;
@@ -9,9 +9,10 @@ interface DebouncedFunction<F extends AnyFunction> {
 
 /**
  * Invokes given function `wait` milliseconds after this function was last called.
- * Can be cleared, called immediately, and checked for activity.
+ * Can be cancelled via `.cancel()`, called immediately via `.now()`, or checked
+ * if active via `.isActive()`.
  */
-export function debounce<F extends AnyFunction>(fn: F, wait: number): DebouncedFunction<F> {
+export function debounce<F extends AnyFunction>(fn: F, wait: number): Debounced<F> {
   let timer: number | undefined = undefined;
 
   function debounced(...args: Parameters<F>) {
@@ -34,5 +35,5 @@ export function debounce<F extends AnyFunction>(fn: F, wait: number): DebouncedF
     return timer ? !isNaN(timer) : false;
   };
 
-  return debounced as DebouncedFunction<F>;
+  return debounced as Debounced<F>;
 }

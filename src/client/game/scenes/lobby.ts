@@ -1,5 +1,4 @@
 import * as box2d from '@supersede/box2d';
-import Phaser from 'phaser';
 import type {GameControls} from 'src/shared/types';
 import {Player} from 'src/client/game/scenes/player';
 import {RaycastPolygon} from 'src/client/game/scenes/raycasting';
@@ -7,7 +6,7 @@ import {RaycastPolygon} from 'src/client/game/scenes/raycasting';
 const VisibilityPolygon = new RaycastPolygon();
 
 // game options
-let gameOptions = {
+const gameOptions = {
   // number of boxes in the game
   boxes: 10,
 
@@ -97,7 +96,7 @@ export class Lobby extends Phaser.Scene {
     const color = new Phaser.Display.Color();
     color.random();
     color.brighten(50).saturate(100);
-    let userData = this.add.graphics();
+    const userData = this.add.graphics();
     userData.fillStyle(color.color, 1);
     userData.fillRect(2, 2, 20, 20);
     this.sides.SetUserData(userData);
@@ -133,7 +132,7 @@ export class Lobby extends Phaser.Scene {
 
   renderLights(x: number, y: number) {
     // determine light polygon starting from pointer coordinates
-    let visibility = this.createLightPolygon(x, y);
+    const visibility = this.createLightPolygon(x, y);
     if (!visibility) {
       throw new Error('no visibility');
     }

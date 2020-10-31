@@ -1,9 +1,7 @@
-import Phaser from 'phaser';
 import Box2d from '@supersede/box2d';
 import type {BufferInputData, GameControls} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
-import {channel} from 'src/client/network/webrtc';
 import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
 import {InputHandler} from 'src/client/game/scenes/input';
 

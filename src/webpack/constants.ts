@@ -17,11 +17,13 @@ export const TEMPLATE_HTML_PATH = path.join(process.cwd(), 'src', 'client', 'tem
 
 /** Packages that are required in all routes to be bundled in the DLL */
 export const vendors = [
-  '@geckos.io/client',
+  '@emotion/react',
+  '@emotion/styled',
+  'framer-motion',
   'react',
   'react-dom',
-  'react-router-dom',
+  'react-hook-form',
   'recoil',
-  'phaser',
-  'socket.io-client',
+  'pixi.js',
+  'wouter',
 ];

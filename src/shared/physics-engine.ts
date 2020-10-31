@@ -1,5 +1,4 @@
 import Box2d from '@supersede/box2d';
-import Phaser from 'phaser';
 import {
   FIXED_TIMESTEP,
   MAX_STEPS,
@@ -23,13 +22,13 @@ export class PhysicsEngine {
   public readonly entities: Box2d.b2Body[] = []; // CURRENTLY UNUSED
   public shouldInterpolate = true;
 
-  constructor() {
+  public constructor() {
     const gravity = new Box2d.b2Vec2(0, 0);
     this.world = new Box2d.b2World(gravity);
     this.world.SetAutoClearForces(false);
   }
 
-  public createPlayer() {
+  public createPlayer(): Box2d.b2Body {
     // Shape definition
     const TEMP_WIDTH = 100;
     const TEMP_HEIGHT = 100;
@@ -55,7 +54,7 @@ export class PhysicsEngine {
     return body;
   }
 
-  public TEMP_createBoundary(x1: [number, number], x2: [number, number]) {
+  public TEMP_createBoundary(x1: [number, number], x2: [number, number]): Box2d.b2Body {
     // Shape definition
     const shape = new Box2d.b2EdgeShape();
     shape.SetTwoSided(
@@ -80,7 +79,7 @@ export class PhysicsEngine {
    * Attempts to consume time created by the renderer to step the physics world forward
    * @param deltaTime Time since the last processed frame was processed and the current frame
    */
-  public fixedStep(deltaTime: number) {
+  public fixedStep(deltaTime: number): void {
     this.timestepAccumulator += deltaTime;
 
     const numSteps = Math.floor(this.timestepAccumulator / FIXED_TIMESTEP);
