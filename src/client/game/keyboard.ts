@@ -1,4 +1,4 @@
-import {Keybindings} from 'src/shared/types';
+import {Direction, Keybindings} from 'src/shared/types';
 
 export class KeyboardManager {
   private keyCodeToAction: Map<string, keyof Keybindings> = new Map();
@@ -18,6 +18,25 @@ export class KeyboardManager {
   // public isKeyDown(key: keyof Keybindings): boolean {
   //   return !!this.actionToState.get(key);
   // }
+
+  public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Direction | undefined {
+    if (axis === 'vertical') {
+      if (this.actionToState.get('up')) {
+        return 'up';
+      }
+      if (this.actionToState.get('down')) {
+        return 'down';
+      }
+    }
+    // Check horizontal
+    if (this.actionToState.get('left')) {
+      return 'left';
+    }
+    if (this.actionToState.get('right')) {
+      return 'right';
+    }
+    return undefined;
+  }
 
   public processKeyDown(code: string, key: string): void {
     const action = this.keyCodeToAction.get(code);

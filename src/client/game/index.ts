@@ -47,6 +47,9 @@ export class Game extends PIXI.Application {
     // app.stage.addChild(line);
   }
 
+  /**
+   * Update keyboard bindings for player controls.
+   */
   public updateKeybindings(newBindings: Keybindings): void {
     this.keyboard.setBindings(newBindings);
   }
@@ -80,21 +83,8 @@ export class Game extends PIXI.Application {
 
   private processInput() {
     this.network.reset();
-
-    // Determine horizontal velocity
-    if (this.keyboard.isKeyDown('right')) {
-      this.network.setMovement('right');
-    } else if (this.keyboard.isKeyDown('left')) {
-      this.network.setMovement('left');
-    }
-
-    // Determine vertical velocity
-    if (this.keyboard.isKeyDown('up')) {
-      this.network.setMovement('up');
-    } else if (this.keyboard.isKeyDown('down')) {
-      this.network.setMovement('down');
-    }
-
+    this.network.setMovement(this.keyboard.isMovementKeyDown('horizontal'));
+    this.network.setMovement(this.keyboard.isMovementKeyDown('vertical'));
     this.network.emit();
   }
 }

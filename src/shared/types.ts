@@ -14,6 +14,8 @@ export type Keybindings = {
   use: string;
 };
 
+export type Direction = 'up' | 'down' | 'left' | 'right';
+
 // Client-side types
 
 export type AccessTokenData = {accessToken: string; claims: JwtClaims};

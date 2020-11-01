@@ -2,7 +2,7 @@ import Box2d from '@supersede/box2d';
 import {connection} from 'src/client/network';
 import {inputModel} from 'src/shared/buffer-schema';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
-import type {BufferInputData, BufferSnapshotData} from 'src/shared/types';
+import type {BufferInputData, BufferSnapshotData, Direction} from 'src/shared/types';
 
 export class NetworkInputManager {
   public pendingInputs: BufferInputData[] = [];
@@ -49,7 +49,7 @@ export class NetworkInputManager {
     this.input.v = -1;
   }
 
-  public setMovement(movementType: 'left' | 'right' | 'up' | 'down'): void {
+  public setMovement(movementType?: Direction): void {
     switch (movementType) {
       case 'up': {
         this.input.v = Movement.Up;
