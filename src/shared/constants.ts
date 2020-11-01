@@ -13,20 +13,8 @@ export const GECKOS_LABEL = 'udp';
 /** Number of ticks per second the simulation should be updated */
 export const TICK_RATE = 60;
 
-/** Time allotted for a single physics simulation step */
-export const FIXED_TIMESTEP = 1 / TICK_RATE;
-
-/** Number of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
-export const VELOCITY_ITERATIONS = 8;
-
-/** Number iterations per increment the position solver should take (more iterations = higher fidelity) */
-export const POSITION_ITERATIONS = 3;
-
 /** Conversion between metres and pixels (e.g. 1 metre = x pixels) */
 export const WORLD_SCALE = 30;
-
-/** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
-export const MAX_STEPS = 5;
 
 /** Maximum number of characters for player usernames. */
 export const MAX_USERNAME_LENGTH = 20;

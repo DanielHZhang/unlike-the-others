@@ -16,20 +16,26 @@ export type Keybindings = {
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
+export type InputData = {
+  seqNumber: number;
+  horizontal: number;
+  vertical: number;
+};
+
 // Client-side types
 
 export type AccessTokenData = {accessToken: string; claims: JwtClaims};
 
-export type InputData = {
-  sequenceNumber: number;
-  verticalMovement: number;
-  horizontalMovement: number;
-  actionType: number;
-  // /** Type of input */
-  // t: PlayerInput;
-  // /** Timestamp */
-  // ts: number;
-};
+// export type InputData = {
+//   sequenceNumber: number;
+//   verticalMovement: number;
+//   horizontalMovement: number;
+//   actionType: number;
+//   // /** Type of input */
+//   // t: PlayerInput;
+//   // /** Timestamp */
+//   // ts: number;
+// };
 
 export type BufferPlayerData = {
   uiid: number;

@@ -47,10 +47,7 @@ export class KeyboardManager {
     }
     const state = this.actionToState.get(action);
     if (!state) {
-      return;
-    }
-    if (!state) {
-      this.actionToState.set(action, false);
+      this.actionToState.set(action, true);
     }
   }
 
@@ -60,11 +57,8 @@ export class KeyboardManager {
       return;
     }
     const state = this.actionToState.get(action);
-    if (!state) {
-      return;
-    }
     if (state) {
-      this.actionToState.set(action, true);
+      this.actionToState.set(action, false);
     }
   }
 }

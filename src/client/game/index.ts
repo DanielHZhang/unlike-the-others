@@ -1,25 +1,16 @@
 import * as PIXI from 'pixi.js';
+import {Line} from 'src/client/game/debug';
+import {EntityManager} from 'src/client/game/entities';
 import {KeyboardManager} from 'src/client/game/keyboard';
 import {connection} from 'src/client/network';
 import {snapshotModel} from 'src/shared/buffer-schema';
 import {PhysicsEngine} from 'src/shared/physics-engine';
-import {Keybindings} from 'src/shared/types';
-
-type InputData = {
-  seqNumber: number;
-  horizontal: number;
-  vertical: number;
-};
+import {InputData, Keybindings} from 'src/shared/types';
 
 export class Game extends PIXI.Application {
   private engine: PhysicsEngine;
   private keyboard: KeyboardManager;
-  public pendingInputs: InputData[] = [];
-  private currentInput = {
-    seqNumber: 1,
-    horizontal: -1,
-    vertical: -1,
-  };
+  private entities: EntityManager;
 
   public constructor(view: HTMLCanvasElement, keybindings: Keybindings) {
     super({
@@ -28,10 +19,11 @@ export class Game extends PIXI.Application {
       view,
     });
     this.engine = new PhysicsEngine();
+    this.entities = new EntityManager(this.engine, this.stage);
     this.keyboard = new KeyboardManager(keybindings);
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
-    this.ticker.add(this.update.bind(this));
+    this.ticker.add(this.update);
 
     const lobby = new PIXI.Container();
     this.stage.addChild(lobby);
@@ -41,7 +33,7 @@ export class Game extends PIXI.Application {
     this.stage.addChild(main);
 
     if (connection.isOpen()) {
-      connection.onRaw(this.receiveNetwork);
+      connection.onRaw(this.entities.receiveNetwork);
     }
 
     // const baseTexture = new PIXI.BaseTexture(rawImageHere);
@@ -58,8 +50,8 @@ export class Game extends PIXI.Application {
     // rectangle.y = 170;
     // app.stage.addChild(rectangle);
 
-    // const line = new Line([200, 150, 0, 0], undefined, 0xffffff);
-    // app.stage.addChild(line);
+    const line = new Line([200, 150, 0, 0], undefined, 0xffffff);
+    this.stage.addChild(line);
   }
 
   /**
@@ -72,88 +64,51 @@ export class Game extends PIXI.Application {
   /**
    * Keydown event handler.
    */
-  public keydown(event: KeyboardEvent): void {
+  public keydown = (event: KeyboardEvent): void => {
     console.log('Keydown:', event.key);
     this.keyboard.processKeyDown(event.code, event.key);
-    event.preventDefault();
-  }
+    // event.preventDefault();
+  };
 
   /**
    * Keyup event handler.
    */
-  public keyup(event: KeyboardEvent): void {
+  public keyup = (event: KeyboardEvent): void => {
     console.log('Keyup:', event.key);
     this.keyboard.processKeyUp(event.code, event.key);
-    event.preventDefault();
-  }
+    // event.preventDefault();
+  };
 
   /**
    * Update function of the game loop.
    * @param deltaTime The completion time in ms since the last frame was rendered.
    */
-  private update(deltaTime: number): void {
-    this.processInput();
+  private update = (deltaTime: number): void => {
+    this.DEBUG_processInput();
+    // this.processInput();
     this.engine.fixedStep(deltaTime);
+  };
+
+  private DEBUG_processInput() {
+    const input: InputData = {
+      horizontal: this.keyboard.isMovementKeyDown('horizontal'),
+      vertical: this.keyboard.isMovementKeyDown('vertical'),
+      seqNumber: 0,
+    };
+    // console.log('input:', input);
+    this.entities.DEBUG_processInput(input);
   }
 
   private processInput() {
-    this.currentInput.horizontal = this.keyboard.isMovementKeyDown('horizontal');
-    this.currentInput.vertical = this.keyboard.isMovementKeyDown('vertical');
+    const input: Pick<InputData, 'horizontal' | 'vertical'> = {
+      horizontal: this.keyboard.isMovementKeyDown('horizontal'),
+      vertical: this.keyboard.isMovementKeyDown('vertical'),
+    };
 
     // Only emit if horizontal or vertical axes have been assigned values
-    if (this.currentInput.horizontal < 0 && this.currentInput.vertical < 0) {
+    if (input.horizontal < 0 && input.vertical < 0) {
       return;
     }
-
-    this.pendingInputs.push(this.currentInput);
-
-    // const inputData: BufferInputData = {
-    //   s: this.currentInput.seqNumber,
-    //   h: this.currentInput.horizontal,
-    //   v: this.currentInput.vertical,
-    // };
-    // connection.emitRaw(inputModel.toBuffer(inputData));
-
-    // Reset the current input with incremented seqNumber
-    this.currentInput = {
-      seqNumber: this.currentInput.seqNumber++,
-      horizontal: -1,
-      vertical: -1,
-    };
-  }
-
-  private receiveNetwork(data: ArrayBuffer) {
-    const snapshot = snapshotModel.fromBuffer(data);
-    // console.log('Data from update:', snapshot);
-
-    let i = 0;
-
-    // Set authoritative position received by the server
-    const playerPosition = snapshot.players[0];
-    playerBody.SetPositionXY(playerPosition.x, playerPosition.y);
-
-    // Remove all inputs that have already been processed by the server
-    while (i < this.pendingInputs.length) {
-      const input = this.pendingInputs[i];
-      if (input.seqNumber <= snapshot.seq) {
-        this.pendingInputs.splice(i, 1); // Remove input from array
-      } else {
-        // Re-apply input to player
-        const vector = new Box2d.b2Vec2();
-        const movementUnit = 90 / WORLD_SCALE;
-        if (input.horizontal === Movement.Right) {
-          vector.Set(movementUnit, 0);
-        } else if (input.horizontal === Movement.Left) {
-          vector.Set(-movementUnit, 0);
-        }
-        if (input.v === Movement.Down) {
-          vector.y = movementUnit;
-        } else if (input.v === Movement.Up) {
-          vector.y = -movementUnit;
-        }
-        playerBody.SetLinearVelocity(vector);
-        i++;
-      }
-    }
+    this.entities.enqueueInput(input);
   }
 }

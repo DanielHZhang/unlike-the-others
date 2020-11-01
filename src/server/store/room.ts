@@ -109,11 +109,11 @@ export class GameRoom {
    * Only deletes rooms that no longer contain players. Skips if id is not found in the map.
    * @param id Id of the room instance
    */
-  public static deleteById(id: string) {
+  public static deleteById(id: string): void {
     GameRoom.instances.delete(id);
   }
 
-  loop = () => {
+  private loop = () => {
     this.timeout = setTimeout(this.loop, 1000 / TICK_RATE);
     const now = hrtimeMs();
     const delta = now - this.previous; // Delta update time in milliseconds
@@ -123,13 +123,13 @@ export class GameRoom {
     this.tick++;
   };
 
-  update(deltaTime: number) {
+  private update(deltaTime: number) {
     this.processInputs();
     this.engine.fixedStep(deltaTime);
     this.emitWorldState();
   }
 
-  processInputs() {
+  private processInputs() {
     for (const player of this.players) {
       let input: BufferInputData | undefined;
       while ((input = player.dequeueInput()) !== undefined) {
@@ -158,7 +158,7 @@ export class GameRoom {
 
   // Naive implementation returns positions of all players within rectangle
   // Ideal implementation only returns positions of viewable players in raycast
-  emitWorldState() {
+  private emitWorldState() {
     const VIEW_DISTANCE_X = 1280;
     const VIEW_DISTANCE_Y = 720;
 
@@ -213,20 +213,20 @@ export class GameRoom {
     // check if player is within kill range of all other players
   }
 
-  public isEmpty() {
+  public isEmpty(): boolean {
     return this.players.length === 0;
   }
 
-  public isFullCapacity() {
+  public isFullCapacity(): boolean {
     return this.players.length === GameRoom.MAX_ROOM_SIZE;
   }
 
-  public hasPlayerWithId(id: string) {
+  public hasPlayerWithId(id: string): boolean {
     const playerIndex = this.players.findIndex((player) => player.id === id);
     return playerIndex !== -1;
   }
 
-  public addPlayer(newPlayer: Player) {
+  public addPlayer(newPlayer: Player): void {
     if (!this.host) {
       this.host = newPlayer;
     }
@@ -236,7 +236,7 @@ export class GameRoom {
     newPlayer.joinRoom(this.id);
   }
 
-  public removePlayer(player: Player) {
+  public removePlayer(player: Player): void {
     const index = this.players.findIndex((value) => value === player);
     if (index > -1) {
       this.players.splice(index, 1);

@@ -1,11 +1,7 @@
 import Box2d from '@supersede/box2d';
-import {
-  FIXED_TIMESTEP,
-  MAX_STEPS,
-  POSITION_ITERATIONS,
-  VELOCITY_ITERATIONS,
-  WORLD_SCALE,
-} from 'src/shared/constants';
+import type * as PIXI from 'pixi.js';
+import {Rectangle} from 'src/client/game/debug';
+import {TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
 
 export class PhysicsEngine {
   // private static readonly CATEGORY_TERRAIN = 0x0001;
@@ -13,14 +9,22 @@ export class PhysicsEngine {
   // private static readonly MASK_PLAYER =
   //   PhysicsEngine.CATEGORY_PLAYER | PhysicsEngine.CATEGORY_PLAYER;
   // private static readonly MASK_TERRAIN = -1; // Collide with everything
-  public static readonly GROUP_PLAYER = -1; // Do not collide with others of same group
-  public static readonly GROUP_TERRAIN = 1; // Always collide with everything else
+  /** Time allotted for a single physics simulation step */
+  private static readonly FIXED_TIMESTEP = 1 / TICK_RATE;
+  /** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
+  private static readonly MAX_STEPS = 5;
+  /** Number of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
+  private static readonly VELOCITY_ITERATIONS = 8;
+  /** Number iterations per increment the position solver should take (more iterations = higher fidelity) */
+  private static readonly POSITION_ITERATIONS = 3;
+  private static readonly GROUP_PLAYER = -1; // Do not collide with others of same group
+  private static readonly GROUP_TERRAIN = 1; // Always collide with everything else
   private static readonly LINEAR_DAMPING = 10;
-  private timestepAccumulator = 0;
-  private timestepAccumulatorRatio = 0;
   public readonly world: Box2d.b2World;
   public readonly entities: Box2d.b2Body[] = []; // CURRENTLY UNUSED
   public shouldInterpolate = true;
+  private timestepAccumulator = 0;
+  private timestepAccumulatorRatio = 0;
 
   public constructor() {
     const gravity = new Box2d.b2Vec2(0, 0);
@@ -82,14 +86,14 @@ export class PhysicsEngine {
   public fixedStep(deltaTime: number): void {
     this.timestepAccumulator += deltaTime;
 
-    const numSteps = Math.floor(this.timestepAccumulator / FIXED_TIMESTEP);
+    const numSteps = Math.floor(this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP);
     if (numSteps > 0) {
       // Avoid rounding errors by only touching the accumulator when needed
-      this.timestepAccumulator -= numSteps * FIXED_TIMESTEP;
+      this.timestepAccumulator -= numSteps * PhysicsEngine.FIXED_TIMESTEP;
     }
-    this.timestepAccumulatorRatio = this.timestepAccumulator / FIXED_TIMESTEP;
+    this.timestepAccumulatorRatio = this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP;
 
-    const numStepsClamped = Math.min(numSteps, MAX_STEPS);
+    const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
     for (let i = 0; i < numStepsClamped; ++i) {
       if (this.shouldInterpolate) {
         this.resetSmoothStates(); // Reset position to before interpolation
@@ -111,10 +115,10 @@ export class PhysicsEngine {
         continue;
       }
       const {x, y} = b.GetPosition();
-      const gameObject = b.GetUserData() as Phaser.GameObjects.Graphics;
-      gameObject.x = x * WORLD_SCALE;
-      gameObject.y = y * WORLD_SCALE;
-      gameObject.setData({prevX: gameObject.x, prevY: gameObject.y});
+      const graphics = b.GetUserData() as Rectangle;
+      graphics.x = x * WORLD_SCALE;
+      graphics.y = y * WORLD_SCALE;
+      graphics.setPrevious(graphics.x, graphics.y);
     }
   }
 
@@ -129,11 +133,11 @@ export class PhysicsEngine {
         continue; // Ignore static bodies
       }
       const {x, y} = b.GetPosition();
-      const gameObject = b.GetUserData() as Phaser.GameObjects.Graphics;
+      const gameObject = b.GetUserData() as Rectangle;
       gameObject.x =
-        this.timestepAccumulatorRatio * x * WORLD_SCALE + complement * gameObject.data.values.prevX;
+        this.timestepAccumulatorRatio * x * WORLD_SCALE + complement * gameObject.previous.x;
       gameObject.y =
-        this.timestepAccumulatorRatio * y * WORLD_SCALE + complement * gameObject.data.values.prevY;
+        this.timestepAccumulatorRatio * y * WORLD_SCALE + complement * gameObject.previous.y;
     }
   }
 
@@ -142,7 +146,11 @@ export class PhysicsEngine {
    */
   private singleStep(deltaTime: number) {
     // this.updateControllers(deltaTime);
-    this.world.Step(FIXED_TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+    this.world.Step(
+      PhysicsEngine.FIXED_TIMESTEP,
+      PhysicsEngine.VELOCITY_ITERATIONS,
+      PhysicsEngine.POSITION_ITERATIONS
+    );
     // this.consumeContacts();
   }
 }
