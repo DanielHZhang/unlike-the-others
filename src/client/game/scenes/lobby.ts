@@ -1,5 +1,5 @@
 import * as box2d from '@supersede/box2d';
-import type {GameControls} from 'src/shared/types';
+import type {Keybindings} from 'src/shared/types';
 import {Player} from 'src/client/game/scenes/player';
 import {RaycastPolygon} from 'src/client/game/scenes/raycasting';
 
@@ -23,7 +23,7 @@ const gameOptions = {
 const WORLD_SCALE = 30; // 30 pixels = 1 meter
 
 export class Lobby extends Phaser.Scene {
-  public controls: GameControls;
+  public controls: Keybindings;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private player: Phaser.GameObjects.Graphics;
   // private vision: Phaser.GameObjects.Image;
@@ -36,7 +36,7 @@ export class Lobby extends Phaser.Scene {
   private world: box2d.b2World;
   private playerPhysicsBody: box2d.b2Body;
 
-  constructor(controls: GameControls, config: Phaser.Types.Scenes.SettingsConfig = {}) {
+  constructor(controls: Keybindings, config: Phaser.Types.Scenes.SettingsConfig = {}) {
     super(config);
     this.controls = controls;
     this.cursors = {};

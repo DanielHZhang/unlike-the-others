@@ -47,7 +47,7 @@ export const MAX_PASSWORD_LENGTH = 50;
 export const MIN_PASSWORD_LENGTH = 8;
 
 export enum Movement {
-  Up = 1,
+  Up,
   Down,
   Left,
   Right,

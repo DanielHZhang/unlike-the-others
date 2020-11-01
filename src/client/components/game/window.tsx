@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {useRecoilValue} from 'recoil';
 import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/hooks';
@@ -8,15 +8,17 @@ import {debounce} from 'src/client/utils';
 import {Game} from 'src/client/game';
 
 export const GameWindow = (): JSX.Element => {
+  const gameRef = useRef<Game | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameControls = useRecoilValue(atoms.gameControls);
+  const keybindings = useRecoilValue(atoms.game.keybindings);
 
   useDidMount(() => {
     if (!canvasRef.current) {
       throw new Error('Canvas ref was not initialized.');
     }
 
-    const app = new Game(canvasRef.current);
+    const app = new Game(canvasRef.current, keybindings);
+    gameRef.current = app;
 
     // Add keyboard listeners
     document.addEventListener('keydown', app.keydown);
@@ -42,5 +44,13 @@ export const GameWindow = (): JSX.Element => {
       window.removeEventListener('resize', windowResizeListener);
     };
   });
+
+  // Update keybindings via effect from atom
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.updateKeybindings(keybindings);
+    }
+  }, [keybindings]);
+
   return <canvas ref={canvasRef} css={{position: 'absolute', display: 'block'}} />;
 };

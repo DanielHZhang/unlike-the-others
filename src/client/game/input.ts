@@ -4,19 +4,15 @@ import {inputModel} from 'src/shared/buffer-schema';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData, BufferSnapshotData} from 'src/shared/types';
 
-export const InputHandler = new (class {
+export class NetworkInputManager {
   public pendingInputs: BufferInputData[] = [];
   private input: BufferInputData = {
     s: 1,
-    h: 0,
-    v: 0,
+    h: -1,
+    v: -1,
   };
 
-  public enqueue() {
-    this.pendingInputs.push({...this.input});
-  }
-
-  public dequeue(snapshot: BufferSnapshotData, playerBody: Box2d.b2Body) {
+  public dequeue(snapshot: BufferSnapshotData, playerBody: Box2d.b2Body): void {
     let i = 0;
 
     // Set authoritative position received by the server
@@ -49,32 +45,38 @@ export const InputHandler = new (class {
   }
 
   public reset() {
-    this.input.h = 0;
-    this.input.v = 0;
+    this.input.h = -1;
+    this.input.v = -1;
   }
 
-  public right() {
-    this.input.h = Movement.Right;
+  public setMovement(movementType: 'left' | 'right' | 'up' | 'down'): void {
+    switch (movementType) {
+      case 'up': {
+        this.input.v = Movement.Up;
+        return;
+      }
+      case 'down': {
+        this.input.v = Movement.Down;
+        return;
+      }
+      case 'left': {
+        this.input.h = Movement.Left;
+        return;
+      }
+      case 'right': {
+        this.input.h = Movement.Right;
+        return;
+      }
+    }
   }
 
-  public left() {
-    this.input.h = Movement.Left;
-  }
-
-  public up() {
-    this.input.v = Movement.Up;
-  }
-
-  public down() {
-    this.input.v = Movement.Down;
-  }
-
-  public emit() {
-    // Only emit if h or v have non-zero values
-    if (this.input.h > 0 || this.input.v > 0) {
-      connection.raw.emit(inputModel.toBuffer(this.input));
+  public emit(): void {
+    this.pendingInputs.push({...this.input});
+    // Only emit if h or v have been assigned values
+    if (this.input.h > -1 || this.input.v > -1) {
+      // connection.raw.emit(inputModel.toBuffer(this.input));
       this.input.s++;
       this.reset();
     }
   }
-})();
+}

@@ -1,6 +1,18 @@
-// Agnostic types
+// Shared/agnostic types
 
 export type AnyFunction = (...args: any[]) => any;
+
+export type Keybindings = {
+  up: string;
+  left: string;
+  down: string;
+  right: string;
+  sprint: string;
+  kill: string;
+  vent: string;
+  report: string;
+  use: string;
+};
 
 // Client-side types
 
@@ -36,13 +48,6 @@ export type BufferSnapshotData = {
 };
 
 // Server-side types
-
-export type GameControls = {
-  up: number;
-  left: number;
-  down: number;
-  right: number;
-};
 
 export type JwtClaims = {
   id: string;

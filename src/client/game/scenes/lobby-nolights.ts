@@ -1,9 +1,11 @@
 import Box2d from '@supersede/box2d';
-import type {BufferInputData, GameControls} from 'src/shared/types';
+import type {BufferInputData, Keybindings} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
-import {InputHandler} from 'src/client/game/scenes/input';
+import {InputHandler} from 'src/client/game/input';
+
+/* eslint-disable  */
 
 function coordToBoundaryPhaserGraphic(
   scene: Phaser.Scene,
@@ -22,13 +24,13 @@ function coordToBoundaryPhaserGraphic(
 }
 
 export class Lobby extends Phaser.Scene {
-  public controls: GameControls;
+  public controls: Keybindings;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private player: [Box2d.b2Body, Phaser.GameObjects.Graphics];
   private grid: Phaser.GameObjects.Grid;
   private engine: PhysicsEngine;
 
-  constructor(controls: GameControls) {
+  constructor(controls: Keybindings) {
     super('PlayGame');
     this.controls = controls;
     this.engine = new PhysicsEngine();
@@ -118,26 +120,6 @@ export class Lobby extends Phaser.Scene {
     }
 
     this.player[0].SetLinearVelocity(vector);
-  }
-
-  processPlayerInput() {
-    InputHandler.reset();
-
-    // Determine horizontal velocity
-    if (this.cursors.right!.isDown) {
-      InputHandler.right();
-    } else if (this.cursors.left!.isDown) {
-      InputHandler.left();
-    }
-
-    // Determine vertical velocity
-    if (this.cursors.up!.isDown) {
-      InputHandler.up();
-    } else if (this.cursors.down!.isDown) {
-      InputHandler.down();
-    }
-    InputHandler.enqueue();
-    InputHandler.emit();
   }
 
   processInputs() {

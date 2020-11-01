@@ -1,19 +1,26 @@
 import * as PIXI from 'pixi.js';
+import {NetworkInputManager} from 'src/client/game/input';
+import {KeyboardManager} from 'src/client/game/keyboard';
 import {PhysicsEngine} from 'src/shared/physics-engine';
+import {Keybindings} from 'src/shared/types';
 
 export class Game extends PIXI.Application {
   private engine: PhysicsEngine;
+  private keyboard: KeyboardManager;
+  private network: NetworkInputManager;
 
-  public constructor(view: HTMLCanvasElement) {
+  public constructor(view: HTMLCanvasElement, keybindings: Keybindings) {
     super({
       antialias: true,
       resolution: 1,
       view,
     });
     this.engine = new PhysicsEngine();
+    this.keyboard = new KeyboardManager(keybindings);
+    this.network = new NetworkInputManager();
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
-    this.ticker.add(this.update);
+    this.ticker.add(this.update.bind(this));
 
     const lobby = new PIXI.Container();
     this.stage.addChild(lobby);
@@ -40,18 +47,26 @@ export class Game extends PIXI.Application {
     // app.stage.addChild(line);
   }
 
+  public updateKeybindings(newBindings: Keybindings): void {
+    this.keyboard.setBindings(newBindings);
+  }
+
   /**
    * Keydown event handler.
    */
   public keydown(event: KeyboardEvent): void {
-    //
+    console.log('Keydown:', event.key);
+    this.keyboard.processKeyDown(event.code, event.key);
+    event.preventDefault();
   }
 
   /**
    * Keyup event handler.
    */
   public keyup(event: KeyboardEvent): void {
-    //
+    console.log('Keyup:', event.key);
+    this.keyboard.processKeyUp(event.code, event.key);
+    event.preventDefault();
   }
 
   /**
@@ -59,7 +74,27 @@ export class Game extends PIXI.Application {
    * @param deltaTime The completion time in ms since the last frame was rendered.
    */
   private update(deltaTime: number): void {
-    // all the update code here
+    this.processInput();
     this.engine.fixedStep(deltaTime);
+  }
+
+  private processInput() {
+    this.network.reset();
+
+    // Determine horizontal velocity
+    if (this.keyboard.isKeyDown('right')) {
+      this.network.setMovement('right');
+    } else if (this.keyboard.isKeyDown('left')) {
+      this.network.setMovement('left');
+    }
+
+    // Determine vertical velocity
+    if (this.keyboard.isKeyDown('up')) {
+      this.network.setMovement('up');
+    } else if (this.keyboard.isKeyDown('down')) {
+      this.network.setMovement('down');
+    }
+
+    this.network.emit();
   }
 }

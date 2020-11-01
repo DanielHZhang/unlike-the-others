@@ -1,20 +1,27 @@
 import {atom} from 'recoil';
-import {GameControls} from 'src/shared/types';
+import {Keybindings} from 'src/shared/types';
 
 export const atoms = {
+  game: {
+    keybindings: atom<Keybindings>({
+      key: 'gameControls',
+      default: {
+        up: 'KeyW',
+        left: 'KeyA',
+        down: 'KeyS',
+        right: 'KeyD',
+        sprint: 'ShiftLeft',
+        kill: 'Space',
+        vent: 'KeyQ',
+        report: 'KeyR',
+        use: 'KeyF',
+      },
+    }),
+  },
   room: atom({
     key: 'room',
     default: {
       id: '',
-    },
-  }),
-  gameControls: atom<GameControls>({
-    key: 'gameControls',
-    default: {
-      up: 87, // W
-      left: 65, // A
-      down: 83, // S
-      right: 68, // D
     },
   }),
 };
@@ -25,13 +32,6 @@ export const atoms = {
  * rejected. However by setting the default value to a resolved promise, the hook will
  * return undefined until the promise has resolved.
  */
-// default: {
-//   accessToken: '',
-//   id: '',
-//   isAuthed: false,
-//   isGuest: true,
-//   username: '',
-// },
 
 export const asyncAtoms = {
   user: atom({
@@ -43,5 +43,12 @@ export const asyncAtoms = {
       isGuest: true,
       username: '',
     }),
+    // default: {
+    //   accessToken: '',
+    //   id: '',
+    //   isAuthed: false,
+    //   isGuest: true,
+    //   username: '',
+    // },
   }),
 };
