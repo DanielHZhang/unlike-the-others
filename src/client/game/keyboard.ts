@@ -1,3 +1,4 @@
+import {Movement} from 'src/shared/constants';
 import {Direction, Keybindings} from 'src/shared/types';
 
 export class KeyboardManager {
@@ -19,23 +20,24 @@ export class KeyboardManager {
   //   return !!this.actionToState.get(key);
   // }
 
-  public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Direction | undefined {
+  public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Movement | -1 {
+    // Check vertical
     if (axis === 'vertical') {
       if (this.actionToState.get('up')) {
-        return 'up';
+        return Movement.Up;
       }
       if (this.actionToState.get('down')) {
-        return 'down';
+        return Movement.Down;
       }
     }
     // Check horizontal
     if (this.actionToState.get('left')) {
-      return 'left';
+      return Movement.Left;
     }
     if (this.actionToState.get('right')) {
-      return 'right';
+      return Movement.Right;
     }
-    return undefined;
+    return -1;
   }
 
   public processKeyDown(code: string, key: string): void {

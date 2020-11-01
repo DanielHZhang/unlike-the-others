@@ -1,8 +1,8 @@
-import geckos, {ClientChannel} from '@geckos.io/client';
+import geckos, {ClientChannel, RawMessage} from '@geckos.io/client';
 import {GECKOS_LABEL, ROOT_URL, PORT} from 'src/shared/constants';
 import type {AnyFunction} from 'src/shared/types';
 
-export const connection = new (class ClientSocket {
+export const connection = new (class {
   private socket?: WebSocket;
   private channel?: ClientChannel;
   private listeners = new Map<string, AnyFunction[]>();
@@ -10,9 +10,10 @@ export const connection = new (class ClientSocket {
   public onConnect(accessToken: string, callback: (event?: string) => any) {
     this.socket = new WebSocket(`ws://${ROOT_URL}/ws?token=${accessToken}`);
 
+    // Run callback if socket error occurred - authentication failed
     const openErrorListener = () => {
-      // Run callback if socket error occurred - authentication failed
       callback('There is no active game with that code!');
+      this.dispose();
     };
 
     this.socket.addEventListener('open', () => {
@@ -26,12 +27,15 @@ export const connection = new (class ClientSocket {
       });
 
       this.channel.onConnect((error) => {
-        callback(error?.message);
+        if (error) {
+          callback(error.message);
+          this.dispose();
+        }
         this.socket?.removeEventListener('close', openErrorListener);
       });
     });
 
-    // Add a temporary listener to handle onOpen error
+    // Add a temporary listener to handle potential error on socket open
     this.socket.addEventListener('close', openErrorListener);
 
     this.socket.addEventListener('close', (event) => {
@@ -61,14 +65,22 @@ export const connection = new (class ClientSocket {
     });
   }
 
-  public isConnected() {
-    return this.socket !== undefined && this.socket.readyState === WebSocket.OPEN;
+  /**
+   * Returns whether the connection has been opened successfully.
+   */
+  public isOpen(): boolean {
+    return (
+      this.socket !== undefined &&
+      this.socket.readyState === WebSocket.OPEN &&
+      this.channel !== undefined &&
+      'id' in this.channel.userData
+    );
   }
 
   /**
    * Attach a listener to the WebSocket connection.
    */
-  public on(eventName: string, callback: (data: unknown, status: number) => void) {
+  public on(eventName: string, callback: (data: unknown, status: number) => void): void {
     const handlers = this.listeners.get(eventName);
     if (handlers) {
       handlers.push(callback);
@@ -77,17 +89,39 @@ export const connection = new (class ClientSocket {
     }
   }
 
+  /**
+   * Attach a listener to the WebRTC connection.
+   */
+  public onRaw(callback: (data: ArrayBuffer) => void): void {
+    if (!this.channel) {
+      throw new Error('Attempting to add callback before the channel has been opened.');
+    }
+    this.channel.onRaw(callback as (data: RawMessage) => void);
+  }
+
+  /**
+   * Emit JSON event via WebSocket.
+   */
   public emit(eventName: string, payload: any) {
-    if (!this.socket || !this.isConnected()) {
-      throw new Error('Attempting to emit before connection has been established.');
+    if (!this.socket || !this.isOpen()) {
+      throw new Error('Attempting to emit before WebSocket has been opened.');
     }
     const stringified = JSON.stringify([eventName, payload]);
     this.socket.send(stringified);
   }
 
+  /**
+   * Emit raw Buffer event via WebRTC.
+   */
+  public emitRaw(payload: ArrayBuffer) {
+    if (!this.channel) {
+      this.channel;
+    }
+  }
+
   public dispose() {
     if (this.socket) {
-      if (this.isConnected()) {
+      if (this.isOpen()) {
         this.socket.close();
       }
       this.socket = undefined;

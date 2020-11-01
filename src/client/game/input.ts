@@ -5,13 +5,6 @@ import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData, BufferSnapshotData, Direction} from 'src/shared/types';
 
 export class NetworkInputManager {
-  public pendingInputs: BufferInputData[] = [];
-  private input: BufferInputData = {
-    s: 1,
-    h: -1,
-    v: -1,
-  };
-
   public dequeue(snapshot: BufferSnapshotData, playerBody: Box2d.b2Body): void {
     let i = 0;
 
@@ -44,39 +37,24 @@ export class NetworkInputManager {
     }
   }
 
-  public reset() {
-    this.input.h = -1;
-    this.input.v = -1;
-  }
-
   public setMovement(movementType?: Direction): void {
     switch (movementType) {
       case 'up': {
-        this.input.v = Movement.Up;
+        this.currentInput.vertical = Movement.Up;
         return;
       }
       case 'down': {
-        this.input.v = Movement.Down;
+        this.currentInput.vertical = Movement.Down;
         return;
       }
       case 'left': {
-        this.input.h = Movement.Left;
+        this.currentInput.horizontal = Movement.Left;
         return;
       }
       case 'right': {
-        this.input.h = Movement.Right;
+        this.currentInput.horizontal = Movement.Right;
         return;
       }
-    }
-  }
-
-  public emit(): void {
-    this.pendingInputs.push({...this.input});
-    // Only emit if h or v have been assigned values
-    if (this.input.h > -1 || this.input.v > -1) {
-      // connection.raw.emit(inputModel.toBuffer(this.input));
-      this.input.s++;
-      this.reset();
     }
   }
 }

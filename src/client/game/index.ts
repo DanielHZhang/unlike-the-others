@@ -1,13 +1,25 @@
 import * as PIXI from 'pixi.js';
-import {NetworkInputManager} from 'src/client/game/input';
 import {KeyboardManager} from 'src/client/game/keyboard';
+import {connection} from 'src/client/network';
+import {snapshotModel} from 'src/shared/buffer-schema';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 import {Keybindings} from 'src/shared/types';
+
+type InputData = {
+  seqNumber: number;
+  horizontal: number;
+  vertical: number;
+};
 
 export class Game extends PIXI.Application {
   private engine: PhysicsEngine;
   private keyboard: KeyboardManager;
-  private network: NetworkInputManager;
+  public pendingInputs: InputData[] = [];
+  private currentInput = {
+    seqNumber: 1,
+    horizontal: -1,
+    vertical: -1,
+  };
 
   public constructor(view: HTMLCanvasElement, keybindings: Keybindings) {
     super({
@@ -17,7 +29,6 @@ export class Game extends PIXI.Application {
     });
     this.engine = new PhysicsEngine();
     this.keyboard = new KeyboardManager(keybindings);
-    this.network = new NetworkInputManager();
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
     this.ticker.add(this.update.bind(this));
@@ -28,6 +39,10 @@ export class Game extends PIXI.Application {
     const main = new PIXI.Container();
     main.visible = false;
     this.stage.addChild(main);
+
+    if (connection.isOpen()) {
+      connection.onRaw(this.receiveNetwork);
+    }
 
     // const baseTexture = new PIXI.BaseTexture(rawImageHere);
     // app.loader.onProgress.add((loader, resource) => console.log('progress:', loader, resource));
@@ -82,9 +97,63 @@ export class Game extends PIXI.Application {
   }
 
   private processInput() {
-    this.network.reset();
-    this.network.setMovement(this.keyboard.isMovementKeyDown('horizontal'));
-    this.network.setMovement(this.keyboard.isMovementKeyDown('vertical'));
-    this.network.emit();
+    this.currentInput.horizontal = this.keyboard.isMovementKeyDown('horizontal');
+    this.currentInput.vertical = this.keyboard.isMovementKeyDown('vertical');
+
+    // Only emit if horizontal or vertical axes have been assigned values
+    if (this.currentInput.horizontal < 0 && this.currentInput.vertical < 0) {
+      return;
+    }
+
+    this.pendingInputs.push(this.currentInput);
+
+    // const inputData: BufferInputData = {
+    //   s: this.currentInput.seqNumber,
+    //   h: this.currentInput.horizontal,
+    //   v: this.currentInput.vertical,
+    // };
+    // connection.emitRaw(inputModel.toBuffer(inputData));
+
+    // Reset the current input with incremented seqNumber
+    this.currentInput = {
+      seqNumber: this.currentInput.seqNumber++,
+      horizontal: -1,
+      vertical: -1,
+    };
+  }
+
+  private receiveNetwork(data: ArrayBuffer) {
+    const snapshot = snapshotModel.fromBuffer(data);
+    // console.log('Data from update:', snapshot);
+
+    let i = 0;
+
+    // Set authoritative position received by the server
+    const playerPosition = snapshot.players[0];
+    playerBody.SetPositionXY(playerPosition.x, playerPosition.y);
+
+    // Remove all inputs that have already been processed by the server
+    while (i < this.pendingInputs.length) {
+      const input = this.pendingInputs[i];
+      if (input.seqNumber <= snapshot.seq) {
+        this.pendingInputs.splice(i, 1); // Remove input from array
+      } else {
+        // Re-apply input to player
+        const vector = new Box2d.b2Vec2();
+        const movementUnit = 90 / WORLD_SCALE;
+        if (input.horizontal === Movement.Right) {
+          vector.Set(movementUnit, 0);
+        } else if (input.horizontal === Movement.Left) {
+          vector.Set(-movementUnit, 0);
+        }
+        if (input.v === Movement.Down) {
+          vector.y = movementUnit;
+        } else if (input.v === Movement.Up) {
+          vector.y = -movementUnit;
+        }
+        playerBody.SetLinearVelocity(vector);
+        i++;
+      }
+    }
   }
 }

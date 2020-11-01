@@ -22,7 +22,7 @@ export const GamePage = (): JSX.Element => {
   useEffect(() => {
     // Do not run the effect unless the access token is defined
     // and the connection has not yet been initiated.
-    if (user.state === 'loading' || connection.isConnected()) {
+    if (user.state === 'loading' || connection.isOpen()) {
       return;
     }
     if (user.state === 'hasError' || !user.contents.isAuthed) {
