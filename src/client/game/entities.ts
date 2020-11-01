@@ -13,6 +13,7 @@ export class EntityManager {
   private playerBody: Box2d.b2Body;
   private pendingInputs: InputData[] = [];
   private sequenceNumber = 0;
+  public mainPlayer: {body: Box2d.b2Body; sprite: Rectangle};
 
   public constructor(engine: PhysicsEngine, stage: PIXI.Container) {
     this.engine = engine;
@@ -21,7 +22,8 @@ export class EntityManager {
     this.playerBody = this.engine.createPlayer();
     const playerRect = new Rectangle(0, 0, 100, 100);
     this.playerBody.SetUserData(playerRect);
-    stage.addChild(playerRect);
+    // stage.addChild(playerRect);
+    this.mainPlayer = {body: this.playerBody, sprite: playerRect};
   }
 
   public enqueueInput(input: Partial<InputData>): void {

@@ -10,9 +10,6 @@ export const PORT = 8080;
 /** Label of the Geckos.io channel */
 export const GECKOS_LABEL = 'udp';
 
-/** Number of ticks per second the simulation should be updated */
-export const TICK_RATE = 60;
-
 /** Conversion between metres and pixels (e.g. 1 metre = x pixels) */
 export const WORLD_SCALE = 30;
 

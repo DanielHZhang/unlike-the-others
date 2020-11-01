@@ -3,7 +3,7 @@ import {nanoid} from 'nanoid';
 import {Player} from 'src/server/store/player';
 import {AudioChannel} from 'src/server/config/constants';
 import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
-import {Movement, TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
+import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import {snapshotModel} from 'src/shared/buffer-schema';
 import type {BufferInputData, BufferPlayerData, BufferSnapshotData} from 'src/shared/types';
@@ -114,7 +114,7 @@ export class GameRoom {
   }
 
   private loop = () => {
-    this.timeout = setTimeout(this.loop, 1000 / TICK_RATE);
+    this.timeout = setTimeout(this.loop, PhysicsEngine.FIXED_TIMESTEP);
     const now = hrtimeMs();
     const delta = now - this.previous; // Delta update time in milliseconds
     // console.log('Looping delta:', delta);

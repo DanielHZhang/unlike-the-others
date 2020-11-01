@@ -40,7 +40,7 @@ export class KeyboardManager {
     return -1;
   }
 
-  public processKeyDown(code: string, key: string): void {
+  public processKeyDown(code: string, key: string, repeat): void {
     const action = this.keyCodeToAction.get(code);
     if (!action) {
       return;

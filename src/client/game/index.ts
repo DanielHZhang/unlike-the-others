@@ -11,6 +11,7 @@ export class Game extends PIXI.Application {
   private engine: PhysicsEngine;
   private keyboard: KeyboardManager;
   private entities: EntityManager;
+  private camera: PIXI.Container;
 
   public constructor(view: HTMLCanvasElement, keybindings: Keybindings) {
     super({
@@ -19,22 +20,62 @@ export class Game extends PIXI.Application {
       view,
     });
     this.engine = new PhysicsEngine();
-    this.entities = new EntityManager(this.engine, this.stage);
     this.keyboard = new KeyboardManager(keybindings);
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
     this.ticker.add(this.update);
+    this.ticker.maxFPS = 60;
 
-    const lobby = new PIXI.Container();
-    this.stage.addChild(lobby);
+    const camera = new PIXI.Container();
+    camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);
+    // camera.pivot.copyFrom();
+    this.stage.addChild(camera);
+    this.camera = camera;
 
-    const main = new PIXI.Container();
-    main.visible = false;
-    this.stage.addChild(main);
+    this.entities = new EntityManager(this.engine, camera);
 
-    if (connection.isOpen()) {
-      connection.onRaw(this.entities.receiveNetwork);
-    }
+    const floorplan = this.loader
+      .add('floorplan', 'http://localhost:8080/assets/floorplan.jpg')
+      .load(() => {
+        const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
+        this.camera.addChild(background);
+        this.camera.addChild(this.entities.mainPlayer.sprite);
+      });
+
+    // let map = new PIXI.Rectangle();
+    // map.x = camera.pivot.x - this.renderer.screen.width / 2;
+    // map.y = camera.pivot.x - this.renderer.screen.height / 2;
+    // map.width = this.renderer.screen.width;
+    // map.height = this.renderer.screen.height;
+    // map.pad(400, 400);
+
+    // // every time camera changes position
+
+    // const newRect = new PIXI.Rectangle();
+    // newRect.x = camera.pivot.x - this.renderer.screen.width / 2;
+    // newRect.y = camera.pivot.x - this.renderer.screen.height / 2;
+    // newRect.width = this.renderer.screen.width;
+    // newRect.height = this.renderer.screen.height;
+    // if (
+    //   newRect.x < map.x ||
+    //   newRect.right > map.right ||
+    //   newRect.y < map.y ||
+    //   newRect.bottom > map.bottom
+    // ) {
+    //   map = newRect;
+    //   // ADJUST THE BACKGROUND AND STUFF
+    // }
+
+    // const lobby = new PIXI.Container();
+    // this.stage.addChild(lobby);
+
+    // const main = new PIXI.Container();
+    // main.visible = false;
+    // this.stage.addChild(main);
+
+    // if (connection.isOpen()) {
+    //   connection.onRaw(this.entities.receiveNetwork);
+    // }
 
     // const baseTexture = new PIXI.BaseTexture(rawImageHere);
     // app.loader.onProgress.add((loader, resource) => console.log('progress:', loader, resource));
@@ -50,8 +91,8 @@ export class Game extends PIXI.Application {
     // rectangle.y = 170;
     // app.stage.addChild(rectangle);
 
-    const line = new Line([200, 150, 0, 0], undefined, 0xffffff);
-    this.stage.addChild(line);
+    // const line = new Line([200, 150, 0, 0], undefined, 0xffffff);
+    // this.stage.addChild(line);
   }
 
   /**
@@ -65,7 +106,7 @@ export class Game extends PIXI.Application {
    * Keydown event handler.
    */
   public keydown = (event: KeyboardEvent): void => {
-    console.log('Keydown:', event.key);
+    // console.log('Keydown:', event.key);
     this.keyboard.processKeyDown(event.code, event.key);
     // event.preventDefault();
   };
@@ -74,19 +115,47 @@ export class Game extends PIXI.Application {
    * Keyup event handler.
    */
   public keyup = (event: KeyboardEvent): void => {
-    console.log('Keyup:', event.key);
+    // console.log('Keyup:', event.key);
     this.keyboard.processKeyUp(event.code, event.key);
     // event.preventDefault();
   };
 
   /**
    * Update function of the game loop.
-   * @param deltaTime The completion time in ms since the last frame was rendered.
+   * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
    */
   private update = (deltaTime: number): void => {
+    // console.log(
+    //   'Frame time:',
+    //   deltaTime.toFixed(4),
+    //   this.ticker.elapsedMS,
+    //   this.ticker.deltaMS,
+    //   this.ticker.deltaTime
+    // );
+    // Frame time: 0.9993 16.654999999998836 16.654999999998836 0.9992999999999301
+
+    const targetPivot = this.entities.mainPlayer.sprite.position;
+
+    // LERP IT, dt is something between 0 and 1.
+    // i use dt = 1 - Math.exp(-deltaInMillis / 100);
+    // or you can just assign targetpivot to pivot
+    this.camera.pivot.x =
+      targetPivot.x - this.camera.pivot.x /* * deltaTime */ + this.camera.pivot.x;
+    this.camera.pivot.y =
+      targetPivot.y - this.camera.pivot.y /* * deltaTime */ + this.camera.pivot.y;
+    // console.log('target pivot', targetPivot.x, targetPivot.y);
+    // console.log(
+    //   'camera pivot:',
+    //   this.camera.pivot.x,
+    //   this.camera.pivot.y,
+    //   '|',
+    //   targetPivot.x,
+    //   targetPivot.y
+    // );
+
     this.DEBUG_processInput();
     // this.processInput();
-    this.engine.fixedStep(deltaTime);
+    this.engine.fixedStep(this.ticker.elapsedMS);
   };
 
   private DEBUG_processInput() {

@@ -1,7 +1,7 @@
 import Box2d from '@supersede/box2d';
 import type * as PIXI from 'pixi.js';
 import {Rectangle} from 'src/client/game/debug';
-import {TICK_RATE, WORLD_SCALE} from 'src/shared/constants';
+import {WORLD_SCALE} from 'src/shared/constants';
 
 export class PhysicsEngine {
   // private static readonly CATEGORY_TERRAIN = 0x0001;
@@ -9,8 +9,8 @@ export class PhysicsEngine {
   // private static readonly MASK_PLAYER =
   //   PhysicsEngine.CATEGORY_PLAYER | PhysicsEngine.CATEGORY_PLAYER;
   // private static readonly MASK_TERRAIN = -1; // Collide with everything
-  /** Time allotted for a single physics simulation step */
-  private static readonly FIXED_TIMESTEP = 1 / TICK_RATE;
+  /** Time in ms allotted for a single physics simulation step. Corresponds with a tick rate of 60. */
+  public static readonly FIXED_TIMESTEP = 16.66;
   /** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
   private static readonly MAX_STEPS = 5;
   /** Number of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
@@ -81,10 +81,11 @@ export class PhysicsEngine {
 
   /**
    * Attempts to consume time created by the renderer to step the physics world forward
-   * @param deltaTime Time since the last processed frame was processed and the current frame
+   * @param deltaTime Time in milliseconds from the last frame to the current frame
    */
   public fixedStep(deltaTime: number): void {
     this.timestepAccumulator += deltaTime;
+    // console.log('delta time:', deltaTime, this.timestepAccumulator);
 
     const numSteps = Math.floor(this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP);
     if (numSteps > 0) {
@@ -94,6 +95,10 @@ export class PhysicsEngine {
     this.timestepAccumulatorRatio = this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP;
 
     const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
+    if (numStepsClamped > 1) {
+      console.log('num steps:', numStepsClamped);
+    }
+
     for (let i = 0; i < numStepsClamped; ++i) {
       if (this.shouldInterpolate) {
         this.resetSmoothStates(); // Reset position to before interpolation
