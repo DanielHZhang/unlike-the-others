@@ -24,7 +24,7 @@ export class Game extends PIXI.Application {
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
     this.ticker.add(this.update);
-    this.ticker.maxFPS = 60;
+    this.ticker.maxFPS = 30;
 
     const camera = new PIXI.Container();
     camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);

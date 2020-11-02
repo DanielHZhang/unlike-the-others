@@ -12,7 +12,7 @@ export class PhysicsEngine {
   /** Time in ms allotted for a single physics simulation step. Corresponds with a tick rate of 60. */
   public static readonly FIXED_TIMESTEP = 16.66;
   /** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
-  private static readonly MAX_STEPS = 5;
+  private static readonly MAX_STEPS = 6;
   /** Number of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
   private static readonly VELOCITY_ITERATIONS = 8;
   /** Number iterations per increment the position solver should take (more iterations = higher fidelity) */
@@ -99,7 +99,7 @@ export class PhysicsEngine {
       console.log('num steps:', numStepsClamped);
     }
 
-    for (let i = 0; i < numStepsClamped; ++i) {
+    for (let i = 0; i < numStepsClamped; i++) {
       if (this.shouldInterpolate) {
         this.resetSmoothStates(); // Reset position to before interpolation
       }
@@ -152,7 +152,7 @@ export class PhysicsEngine {
   private singleStep(deltaTime: number) {
     // this.updateControllers(deltaTime);
     this.world.Step(
-      PhysicsEngine.FIXED_TIMESTEP,
+      PhysicsEngine.FIXED_TIMESTEP / 1000,
       PhysicsEngine.VELOCITY_ITERATIONS,
       PhysicsEngine.POSITION_ITERATIONS
     );
