@@ -1,5 +1,6 @@
 import Box2d from '@supersede/box2d';
 import * as PIXI from 'pixi.js';
+import {Rectangle} from 'src/client/game/debug';
 import {WORLD_SCALE} from 'src/shared/constants';
 
 export class DynamicEntity extends PIXI.Sprite {
@@ -9,7 +10,10 @@ export class DynamicEntity extends PIXI.Sprite {
 
   public constructor(body: Box2d.b2Body) {
     super();
+
+    // const what = new PIXI.RenderTexture()
     this.body = body;
+    this.body.SetUserData(this);
   }
 
   public getScenePosition(): {sceneX: number; sceneY: number} {

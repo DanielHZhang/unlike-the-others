@@ -22,6 +22,10 @@ export class EntityManager {
   }
 
   public enqueueInput(input: Partial<InputData>): void {
+    // DEBUG:
+    this.applyVelocity(input as InputData);
+    return;
+
     input.sequenceNumber = this.sequenceNumber++;
     this.pendingInputs.push(input as InputData);
   }
@@ -51,22 +55,26 @@ export class EntityManager {
       if (input.sequenceNumber <= snapshot.seq) {
         this.pendingInputs.splice(i, 1); // Remove input from array
       } else {
-        // Re-apply input to player
-        const vector = new Box2d.b2Vec2();
-        const movementUnit = 90 / WORLD_SCALE;
-        if (input.horizontal === Movement.Right) {
-          vector.Set(movementUnit, 0);
-        } else if (input.horizontal === Movement.Left) {
-          vector.Set(-movementUnit, 0);
-        }
-        if (input.vertical === Movement.Down) {
-          vector.y = movementUnit;
-        } else if (input.vertical === Movement.Up) {
-          vector.y = -movementUnit;
-        }
-        this.player.body.SetLinearVelocity(vector);
+        this.applyVelocity(input);
         i++;
       }
     }
+  }
+
+  private applyVelocity(input: InputData) {
+    // Re-apply input to player
+    const vector = new Box2d.b2Vec2();
+    const movementUnit = 90 / WORLD_SCALE;
+    if (input.horizontal === Movement.Right) {
+      vector.Set(movementUnit, 0);
+    } else if (input.horizontal === Movement.Left) {
+      vector.Set(-movementUnit, 0);
+    }
+    if (input.vertical === Movement.Down) {
+      vector.y = movementUnit;
+    } else if (input.vertical === Movement.Up) {
+      vector.y = -movementUnit;
+    }
+    this.player.body.SetLinearVelocity(vector);
   }
 }

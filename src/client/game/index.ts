@@ -25,15 +25,14 @@ export class Game extends PIXI.Application {
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
     this.ticker.add(this.update);
-    this.ticker.maxFPS = 30;
+    // this.ticker.maxFPS = 30;
 
-    const camera = new PIXI.Container();
-    camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);
+    this.camera = new PIXI.Container();
+    this.camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);
     // camera.pivot.copyFrom();
-    this.stage.addChild(camera);
-    this.camera = camera;
+    this.stage.addChild(this.camera);
 
-    this.entities = new EntityManager(this.engine, camera);
+    this.entities = new EntityManager(this.engine, this.camera);
 
     // let map = new PIXI.Rectangle();
     // map.x = camera.pivot.x - this.renderer.screen.width / 2;
@@ -78,14 +77,19 @@ export class Game extends PIXI.Application {
 
   public async loadAssets(): Promise<void> {
     await new Promise((resolve, reject) => {
-      this.loader.add([{name: 'floorplan', url: 'http://localhost:8080/assets/floorplan.jpg'}]);
-      this.loader.onComplete.once(resolve);
+      this.loader.add([
+        {name: 'floorplan', url: '/assets/floorplan.jpg'},
+        {name: 'player', url: '/assets/box.png'},
+      ]);
+      this.loader.load(resolve);
       this.loader.onError.once(reject);
     });
 
     const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
+    this.entities.player.texture = this.loader.resources.player.texture;
+    this.entities.player.scale.set(0.5, 0.5);
     this.camera.addChild(background);
-    this.camera.addChild(this.entities.player.sprite);
+    this.camera.addChild(this.entities.player);
   }
 
   /**
@@ -127,7 +131,7 @@ export class Game extends PIXI.Application {
     // );
     // Frame time: 0.9993 16.654999999998836 16.654999999998836 0.9992999999999301
 
-    const targetPivot = this.entities.player.sprite.position;
+    const targetPivot = this.entities.player.position;
     this.camera.pivot.x = targetPivot.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
     this.camera.pivot.y = targetPivot.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
 

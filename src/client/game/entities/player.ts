@@ -5,12 +5,12 @@ import {DynamicEntity} from 'src/client/game/entities/base';
 
 export class PlayerEntity extends DynamicEntity {
   // public body: Box2d.b2Body;
-  public sprite: Rectangle;
+  // public sprite: Rectangle;
 
   public constructor(body: Box2d.b2Body) {
     super(body);
     // this.body = body;
-    this.sprite = new Rectangle(0, 0, 100, 100);
-    this.body.SetUserData(this.sprite);
+
+    // this.sprite = new Rectangle(0, 0, 100, 100);
   }
 }
