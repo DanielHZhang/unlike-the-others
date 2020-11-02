@@ -6,7 +6,7 @@ export class Rectangle extends PIXI.Graphics {
   public constructor(x: number, y: number, width: number, height: number, color = 0x66ccff) {
     super();
     this.beginFill(color);
-    // this.lineStyle(4, 0xFF3300, 1);
+    this.lineStyle(4, 0xff3300, 1);
     this.drawRect(x, y, width, height);
     this.endFill();
   }

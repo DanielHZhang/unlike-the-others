@@ -19,6 +19,7 @@ export const GameWindow = (): JSX.Element => {
 
     const app = new Game(canvasRef.current, keybindings);
     gameRef.current = app;
+    app.loadAssets();
 
     // Add keyboard listeners
     document.addEventListener('keydown', app.keydown);

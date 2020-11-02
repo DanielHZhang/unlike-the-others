@@ -1,14 +1,16 @@
 import Box2d from '@supersede/box2d';
 import type * as PIXI from 'pixi.js';
 import {Rectangle} from 'src/client/game/debug';
+import {DynamicEntity} from 'src/client/game/entities/base';
 import {WORLD_SCALE} from 'src/shared/constants';
 
+// private static readonly CATEGORY_TERRAIN = 0x0001;
+// private static readonly CATEGORY_PLAYER = 0x0002;
+// private static readonly MASK_PLAYER =
+//   PhysicsEngine.CATEGORY_PLAYER | PhysicsEngine.CATEGORY_PLAYER;
+// private static readonly MASK_TERRAIN = -1; // Collide with everything
+
 export class PhysicsEngine {
-  // private static readonly CATEGORY_TERRAIN = 0x0001;
-  // private static readonly CATEGORY_PLAYER = 0x0002;
-  // private static readonly MASK_PLAYER =
-  //   PhysicsEngine.CATEGORY_PLAYER | PhysicsEngine.CATEGORY_PLAYER;
-  // private static readonly MASK_TERRAIN = -1; // Collide with everything
   /** Time in ms allotted for a single physics simulation step. Corresponds with a tick rate of 60. */
   public static readonly FIXED_TIMESTEP = 16.66;
   /** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
@@ -23,18 +25,19 @@ export class PhysicsEngine {
   public readonly world: Box2d.b2World;
   public readonly entities: Box2d.b2Body[] = []; // CURRENTLY UNUSED
   public shouldInterpolate = true;
+  public currentStep = 0;
+  private readonly updateControllers: () => void;
   private timestepAccumulator = 0;
   private timestepAccumulatorRatio = 0;
-  private processInputFn;
 
-  public constructor(processInputFn: any) {
+  public constructor(updateControllers: () => void) {
+    this.updateControllers = updateControllers;
     const gravity = new Box2d.b2Vec2(0, 0);
     this.world = new Box2d.b2World(gravity);
     this.world.SetAutoClearForces(false);
-    this.processInputFn = processInputFn;
   }
 
-  public createPlayer(): Box2d.b2Body {
+  public createPlayerBody(): Box2d.b2Body {
     // Shape definition
     const TEMP_WIDTH = 100;
     const TEMP_HEIGHT = 100;
@@ -81,58 +84,29 @@ export class PhysicsEngine {
     return body;
   }
 
-  public fixedFixedStep(frameTime: number): void {
-    // console.log(frameTime.toFixed(7));
-    if (frameTime > 0.25) {
-      frameTime = 0.25;
+  /**
+   * Attempts to consume time created by the renderer to step the physics world forward.
+   * @param deltaTime Time in milliseconds from the last frame to the current frame.
+   */
+  public fixedStep(deltaTime: number): void {
+    this.timestepAccumulator += deltaTime;
+
+    const numSteps = Math.floor(this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP);
+    if (numSteps > 0) {
+      // Avoid rounding errors by only touching the accumulator when needed
+      this.timestepAccumulator -= numSteps * PhysicsEngine.FIXED_TIMESTEP;
     }
-    this.timestepAccumulator += frameTime;
-    // let t = 0.0;
+    if (this.timestepAccumulator >= PhysicsEngine.FIXED_TIMESTEP + Number.EPSILON) {
+      console.warn('Accumulator must have value lesser than the fixed time step.');
+    }
+
+    this.timestepAccumulatorRatio = this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP;
+    const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
 
     if (this.shouldInterpolate) {
       this.resetSmoothStates(); // Reset position to before interpolation
     }
-    while (this.timestepAccumulator >= this.timestep) {
-      this.processInputFn();
-      this.singleStep();
-      // t += this.timestep;
-      this.timestepAccumulator -= this.timestep;
-    }
-    this.world.ClearForces();
-    if (this.shouldInterpolate) {
-      this.smoothStates(); // Perform linear interpolation
-    }
-  }
-
-  private timestep = 1 / 60;
-
-  /**
-   * Attempts to consume time created by the renderer to step the physics world forward
-   * @param deltaTime Time in seconds from the last frame to the current frame
-   */
-  public fixedStep(deltaTime: number): void {
-    this.timestepAccumulator += deltaTime;
-    // console.log('delta time:', deltaTime, this.timestepAccumulator);
-
-    const numSteps = Math.floor(this.timestepAccumulator / this.timestep);
-    if (numSteps > 0) {
-      // Avoid rounding errors by only touching the accumulator when needed
-      this.timestepAccumulator -= numSteps * this.timestep;
-    }
-    if (this.timestepAccumulator >= this.timestep + Number.EPSILON) {
-      throw new Error('Accumulator must have value lesser than the fixed time step.');
-    }
-    this.timestepAccumulatorRatio = this.timestepAccumulator / this.timestep;
-
-    const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
-    if (numStepsClamped > 1) {
-      console.log('num steps:', numStepsClamped);
-    }
-
     for (let i = 0; i < numStepsClamped; i++) {
-      if (this.shouldInterpolate) {
-        this.resetSmoothStates(); // Reset position to before interpolation
-      }
       this.singleStep();
     }
     // this.world.ClearForces();
@@ -142,54 +116,47 @@ export class PhysicsEngine {
   }
 
   /**
-   * Store the previous known state in the game object
+   * Activates physics controllers, calls the world update, and processes collisions.
+   */
+  private singleStep() {
+    this.updateControllers();
+    this.world.Step(
+      PhysicsEngine.FIXED_TIMESTEP / 1000,
+      PhysicsEngine.VELOCITY_ITERATIONS,
+      PhysicsEngine.POSITION_ITERATIONS
+    );
+    this.currentStep++;
+    // this.consumeContacts();
+  }
+
+  /**
+   * Store the previous known state in the game object.
    */
   private resetSmoothStates() {
     for (let b = this.world.GetBodyList(); b !== null; b = b.GetNext()) {
       if (b.GetType() === Box2d.b2BodyType.b2_staticBody) {
-        continue;
+        continue; // Ignore static bodies
       }
-      const {x, y} = b.GetPosition();
-      const graphics = b.GetUserData() as Rectangle;
-      graphics.x = x * WORLD_SCALE;
-      graphics.y = y * WORLD_SCALE;
-      graphics.setPrevious(graphics.x, graphics.y);
+      const entity = b.GetUserData() as DynamicEntity;
+      const {sceneX, sceneY} = entity.getScenePosition();
+      entity.x = sceneX;
+      entity.y = sceneY;
+      entity.setPrevPosition(sceneX, sceneY);
     }
   }
 
   /**
-   * Compute a linearly-interpolated state from the last two known states
-   * Note: inputs will always be lagged one sub-step of `FIXED_TIMESTEP`
+   * Compute a linearly-interpolated state from the last two known states.
+   * Note: inputs will always be lagged one sub-step of `FIXED_TIMESTEP`.
    */
   private smoothStates() {
-    const complement = 1 - this.timestepAccumulatorRatio;
     for (let b = this.world.GetBodyList(); b !== null; b = b.GetNext()) {
       if (b.GetType() === Box2d.b2BodyType.b2_staticBody) {
         continue; // Ignore static bodies
       }
-      const {x, y} = b.GetPosition();
-      const gameObject = b.GetUserData() as Rectangle;
-      gameObject.x =
-        this.timestepAccumulatorRatio * x * WORLD_SCALE + complement * gameObject.previous.x;
-      gameObject.y =
-        this.timestepAccumulatorRatio * y * WORLD_SCALE + complement * gameObject.previous.y;
+      const entity = b.GetUserData() as DynamicEntity;
+      entity.lerp(this.timestepAccumulatorRatio);
     }
-  }
-
-  public numSteps = 0;
-
-  /**
-   * Activates physics controllers, calls the world update, and processes collisions
-   */
-  private singleStep() {
-    // this.updateControllers(deltaTime);
-    this.world.Step(
-      this.timestep,
-      PhysicsEngine.VELOCITY_ITERATIONS,
-      PhysicsEngine.POSITION_ITERATIONS
-    );
-    this.numSteps++;
-    // this.consumeContacts();
   }
 }
 
@@ -199,90 +166,3 @@ export function TEMP_createWorldBoundaries(engine: PhysicsEngine) {
   const right = engine.TEMP_createBoundary([600, 5], [600, 600]);
   const left = engine.TEMP_createBoundary([5, 5], [5, 600]);
 }
-
-// {
-//   const bodyDef = new Box2d.b2BodyDef();
-//   const topSide = this.engine.world.CreateBody(bodyDef);
-//   const shape = new Box2d.b2EdgeShape();
-//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-//   shape.SetTwoSided(
-//     new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-//     new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE)
-//   );
-//   const fixture = topSide.CreateFixture(shape, 0);
-//   const filter = new Box2d.b2Filter();
-//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
-//   fixture.SetFilterData(filter);
-//   const color = new Phaser.Display.Color();
-//   color.random().brighten(50).saturate(100);
-//   const userData = this.add.graphics();
-//   userData.fillStyle(color.color, 1);
-//   userData.fillRect(5, 5, 600, 2);
-//   topSide.SetUserData(userData);
-// }
-
-// // create the left edge
-// {
-//   const bodyDef = new Box2d.b2BodyDef();
-//   const leftSide = this.engine.world.CreateBody(bodyDef);
-//   const shape = new Box2d.b2EdgeShape();
-//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-//   shape.SetTwoSided(
-//     new Box2d.b2Vec2(5 / WORLD_SCALE, 5 / WORLD_SCALE),
-//     new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE)
-//   );
-//   const fixture = leftSide.CreateFixture(shape, 0);
-//   const filter = new Box2d.b2Filter();
-//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
-//   fixture.SetFilterData(filter);
-//   const color = new Phaser.Display.Color();
-//   color.random().brighten(50).saturate(100);
-//   const userData = this.add.graphics();
-//   userData.fillStyle(color.color, 1);
-//   userData.fillRect(5, 5, 2, 600);
-//   leftSide.SetUserData(userData);
-// }
-
-// // create the bottom edge
-// {
-//   const bodyDef = new Box2d.b2BodyDef();
-//   const bottom = this.engine.world.CreateBody(bodyDef);
-//   const shape = new Box2d.b2EdgeShape();
-//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-//   shape.SetTwoSided(
-//     new Box2d.b2Vec2(5 / WORLD_SCALE, 600 / WORLD_SCALE),
-//     new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-//   );
-//   const fixture = bottom.CreateFixture(shape, 0);
-//   const filter = new Box2d.b2Filter();
-//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
-//   fixture.SetFilterData(filter);
-//   const color = new Phaser.Display.Color();
-//   color.random().brighten(50).saturate(100);
-//   const userData = this.add.graphics();
-//   userData.fillStyle(color.color, 1);
-//   userData.fillRect(5, 600, 600, 2);
-//   bottom.SetUserData(userData);
-// }
-
-// // create the right edge
-// {
-//   const bodyDef = new Box2d.b2BodyDef();
-//   const rightSide = this.engine.world.CreateBody(bodyDef);
-//   const shape = new Box2d.b2EdgeShape();
-//   bodyDef.type = Box2d.b2BodyType.b2_staticBody;
-//   shape.SetTwoSided(
-//     new Box2d.b2Vec2(600 / WORLD_SCALE, 5 / WORLD_SCALE),
-//     new Box2d.b2Vec2(600 / WORLD_SCALE, 600 / WORLD_SCALE)
-//   );
-//   const fixture = rightSide.CreateFixture(shape, 0);
-//   const filter = new Box2d.b2Filter();
-//   filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
-//   fixture.SetFilterData(filter);
-//   const color = new Phaser.Display.Color();
-//   color.random().brighten(50).saturate(100);
-//   const userData = this.add.graphics();
-//   userData.fillStyle(color.color, 1);
-//   userData.fillRect(600, 5, 2, 600);
-//   rightSide.SetUserData(userData);
-// }

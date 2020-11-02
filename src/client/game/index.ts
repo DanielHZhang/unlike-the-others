@@ -9,10 +9,10 @@ import {PhysicsEngine} from 'src/shared/physics-engine';
 import {InputData, Keybindings} from 'src/shared/types';
 
 export class Game extends PIXI.Application {
-  private engine: PhysicsEngine;
-  private keyboard: KeyboardManager;
-  private entities: EntityManager;
-  private camera: PIXI.Container;
+  protected engine: PhysicsEngine;
+  protected keyboard: KeyboardManager;
+  protected entities: EntityManager;
+  protected camera: PIXI.Container;
 
   public constructor(view: HTMLCanvasElement, keybindings: Keybindings) {
     super({
@@ -20,7 +20,7 @@ export class Game extends PIXI.Application {
       resolution: 1,
       view,
     });
-    this.engine = new PhysicsEngine(this.TEST_processInput.bind(this));
+    this.engine = new PhysicsEngine(this.processInput);
     this.keyboard = new KeyboardManager(keybindings);
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
@@ -34,14 +34,6 @@ export class Game extends PIXI.Application {
     this.camera = camera;
 
     this.entities = new EntityManager(this.engine, camera);
-
-    const floorplan = this.loader
-      .add('floorplan', 'http://localhost:8080/assets/floorplan.jpg')
-      .load(() => {
-        const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
-        this.camera.addChild(background);
-        this.camera.addChild(this.entities.mainPlayer.sprite);
-      });
 
     // let map = new PIXI.Rectangle();
     // map.x = camera.pivot.x - this.renderer.screen.width / 2;
@@ -82,18 +74,18 @@ export class Game extends PIXI.Application {
     // app.loader.onProgress.add((loader, resource) => console.log('progress:', loader, resource));
     // app.loader.add(['wow']).load(() => null); // load via blob/encrypted type here
     // const sprite = app.loader.resources['wow'].texture;
+  }
 
-    // const rectangle = new PIXI.Graphics();
-    // rectangle.lineStyle(4, 0xff3300, 1);
-    // rectangle.beginFill(0x66ccff);
-    // rectangle.drawRect(0, 0, 64, 64);
-    // rectangle.endFill();
-    // rectangle.x = 170;
-    // rectangle.y = 170;
-    // app.stage.addChild(rectangle);
+  public async loadAssets(): Promise<void> {
+    await new Promise((resolve, reject) => {
+      this.loader.add([{name: 'floorplan', url: 'http://localhost:8080/assets/floorplan.jpg'}]);
+      this.loader.onComplete.once(resolve);
+      this.loader.onError.once(reject);
+    });
 
-    // const line = new Line([200, 150, 0, 0], undefined, 0xffffff);
-    // this.stage.addChild(line);
+    const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
+    this.camera.addChild(background);
+    this.camera.addChild(this.entities.player.sprite);
   }
 
   /**
@@ -121,13 +113,11 @@ export class Game extends PIXI.Application {
     // event.preventDefault();
   };
 
-  private startTime = Date.now();
-
   /**
    * Update function of the game loop.
    * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
    */
-  private update = (deltaTime: number): void => {
+  protected update = (deltaTime: number): void => {
     // console.log(
     //   'Frame time:',
     //   deltaTime.toFixed(4),
@@ -137,64 +127,14 @@ export class Game extends PIXI.Application {
     // );
     // Frame time: 0.9993 16.654999999998836 16.654999999998836 0.9992999999999301
 
-    const targetPivot = this.entities.mainPlayer.sprite.position;
+    const targetPivot = this.entities.player.sprite.position;
+    this.camera.pivot.x = targetPivot.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
+    this.camera.pivot.y = targetPivot.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
 
-    this.camera.pivot.x = targetPivot.x - this.camera.pivot.x + this.camera.pivot.x;
-    this.camera.pivot.y = targetPivot.y - this.camera.pivot.y + this.camera.pivot.y;
-
-    /**
-     * Test how long you travel/how many steps occur in a certain amount of time
-     */
-
-    if (Date.now() >= this.startTime + 10000) {
-      this.ticker.stop();
-      console.log('Num steps taken:', this.engine.numSteps);
-      const pos = this.entities.mainPlayer.body.GetPosition();
-      console.log('Player position:', pos.x, pos.y);
-      return;
-    }
-
-    /**
-     * Test how long it takes/how many steps to reach a certain position
-     */
-
-    // // console.log(this.entities.mainPlayer.body.GetPosition().x);
-    // if (this.entities.mainPlayer.body.GetPosition().x > 50) {
-    //   const endTime = Date.now();
-    //   this.ticker.stop();
-    //   console.log('elapsed time:', endTime - this.startTime);
-    //   console.log('num steps taken:', this.engine.numSteps);
-    //   return;
-    // }
-
-    // this.TEST_processInput();
-    // this.DEBUG_processInput();
-    // this.processInput();
-    this.engine.fixedFixedStep(this.ticker.elapsedMS / 1000);
-    // this.engine.fixedStep(this.ticker.elapsedMS / 1000);
+    this.engine.fixedStep(this.ticker.elapsedMS);
   };
 
-  private TEST_processInput() {
-    const input: InputData = {
-      horizontal: Movement.Right,
-      vertical: -1,
-      seqNumber: 0,
-    };
-    // console.log('input:', input);
-    this.entities.DEBUG_processInput(input);
-  }
-
-  private DEBUG_processInput() {
-    const input: InputData = {
-      horizontal: this.keyboard.isMovementKeyDown('horizontal'),
-      vertical: this.keyboard.isMovementKeyDown('vertical'),
-      seqNumber: 0,
-    };
-    // console.log('input:', input);
-    this.entities.DEBUG_processInput(input);
-  }
-
-  private processInput() {
+  private processInput = () => {
     const input: Pick<InputData, 'horizontal' | 'vertical'> = {
       horizontal: this.keyboard.isMovementKeyDown('horizontal'),
       vertical: this.keyboard.isMovementKeyDown('vertical'),
@@ -205,5 +145,5 @@ export class Game extends PIXI.Application {
       return;
     }
     this.entities.enqueueInput(input);
-  }
+  };
 }

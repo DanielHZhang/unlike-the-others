@@ -17,7 +17,7 @@ export type Keybindings = {
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
 export type InputData = {
-  seqNumber: number;
+  sequenceNumber: number;
   horizontal: number;
   vertical: number;
 };

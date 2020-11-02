@@ -67,7 +67,7 @@ export class Lobby extends Phaser.Scene {
     coordToBoundaryPhaserGraphic(this, left, [5, 5], [5, 600], false);
 
     // player
-    const playerBody = this.engine.createPlayer();
+    const playerBody = this.engine.createPlayerBody();
     const color = new Phaser.Display.Color();
     color.random().brighten(50).saturate(100);
     const userData = this.add.graphics();

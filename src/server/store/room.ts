@@ -232,7 +232,7 @@ export class GameRoom {
     }
     this.players.push(newPlayer);
     newPlayer.uiid = findSmallestMissingInt(this.players.map((player) => player.uiid!));
-    newPlayer.body = this.engine.createPlayer();
+    newPlayer.body = this.engine.createPlayerBody();
     newPlayer.joinRoom(this.id);
   }
 
