@@ -25,11 +25,13 @@ export class PhysicsEngine {
   public shouldInterpolate = true;
   private timestepAccumulator = 0;
   private timestepAccumulatorRatio = 0;
+  private processInputFn;
 
-  public constructor() {
+  public constructor(processInputFn: any) {
     const gravity = new Box2d.b2Vec2(0, 0);
     this.world = new Box2d.b2World(gravity);
     this.world.SetAutoClearForces(false);
+    this.processInputFn = processInputFn;
   }
 
   public createPlayer(): Box2d.b2Body {
@@ -79,20 +81,48 @@ export class PhysicsEngine {
     return body;
   }
 
+  public fixedFixedStep(frameTime: number): void {
+    // console.log(frameTime.toFixed(7));
+    if (frameTime > 0.25) {
+      frameTime = 0.25;
+    }
+    this.timestepAccumulator += frameTime;
+    // let t = 0.0;
+
+    if (this.shouldInterpolate) {
+      this.resetSmoothStates(); // Reset position to before interpolation
+    }
+    while (this.timestepAccumulator >= this.timestep) {
+      this.processInputFn();
+      this.singleStep();
+      // t += this.timestep;
+      this.timestepAccumulator -= this.timestep;
+    }
+    this.world.ClearForces();
+    if (this.shouldInterpolate) {
+      this.smoothStates(); // Perform linear interpolation
+    }
+  }
+
+  private timestep = 1 / 60;
+
   /**
    * Attempts to consume time created by the renderer to step the physics world forward
-   * @param deltaTime Time in milliseconds from the last frame to the current frame
+   * @param deltaTime Time in seconds from the last frame to the current frame
    */
   public fixedStep(deltaTime: number): void {
     this.timestepAccumulator += deltaTime;
     // console.log('delta time:', deltaTime, this.timestepAccumulator);
 
-    const numSteps = Math.floor(this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP);
+    const numSteps = Math.floor(this.timestepAccumulator / this.timestep);
     if (numSteps > 0) {
       // Avoid rounding errors by only touching the accumulator when needed
-      this.timestepAccumulator -= numSteps * PhysicsEngine.FIXED_TIMESTEP;
+      this.timestepAccumulator -= numSteps * this.timestep;
     }
-    this.timestepAccumulatorRatio = this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP;
+    if (this.timestepAccumulator >= this.timestep + Number.EPSILON) {
+      throw new Error('Accumulator must have value lesser than the fixed time step.');
+    }
+    this.timestepAccumulatorRatio = this.timestepAccumulator / this.timestep;
 
     const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
     if (numStepsClamped > 1) {
@@ -103,9 +133,9 @@ export class PhysicsEngine {
       if (this.shouldInterpolate) {
         this.resetSmoothStates(); // Reset position to before interpolation
       }
-      this.singleStep(deltaTime);
+      this.singleStep();
     }
-    this.world.ClearForces();
+    // this.world.ClearForces();
     if (this.shouldInterpolate) {
       this.smoothStates(); // Perform linear interpolation
     }
@@ -146,16 +176,19 @@ export class PhysicsEngine {
     }
   }
 
+  public numSteps = 0;
+
   /**
    * Activates physics controllers, calls the world update, and processes collisions
    */
-  private singleStep(deltaTime: number) {
+  private singleStep() {
     // this.updateControllers(deltaTime);
     this.world.Step(
-      PhysicsEngine.FIXED_TIMESTEP / 1000,
+      this.timestep,
       PhysicsEngine.VELOCITY_ITERATIONS,
       PhysicsEngine.POSITION_ITERATIONS
     );
+    this.numSteps++;
     // this.consumeContacts();
   }
 }

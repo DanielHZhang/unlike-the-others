@@ -4,6 +4,7 @@ import {EntityManager} from 'src/client/game/entities';
 import {KeyboardManager} from 'src/client/game/keyboard';
 import {connection} from 'src/client/network';
 import {snapshotModel} from 'src/shared/buffer-schema';
+import {Movement} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 import {InputData, Keybindings} from 'src/shared/types';
 
@@ -19,7 +20,7 @@ export class Game extends PIXI.Application {
       resolution: 1,
       view,
     });
-    this.engine = new PhysicsEngine();
+    this.engine = new PhysicsEngine(this.TEST_processInput.bind(this));
     this.keyboard = new KeyboardManager(keybindings);
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
@@ -120,6 +121,8 @@ export class Game extends PIXI.Application {
     // event.preventDefault();
   };
 
+  private startTime = Date.now();
+
   /**
    * Update function of the game loop.
    * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
@@ -136,27 +139,50 @@ export class Game extends PIXI.Application {
 
     const targetPivot = this.entities.mainPlayer.sprite.position;
 
-    // LERP IT, dt is something between 0 and 1.
-    // i use dt = 1 - Math.exp(-deltaInMillis / 100);
-    // or you can just assign targetpivot to pivot
-    this.camera.pivot.x =
-      targetPivot.x - this.camera.pivot.x /* * deltaTime */ + this.camera.pivot.x;
-    this.camera.pivot.y =
-      targetPivot.y - this.camera.pivot.y /* * deltaTime */ + this.camera.pivot.y;
-    // console.log('target pivot', targetPivot.x, targetPivot.y);
-    // console.log(
-    //   'camera pivot:',
-    //   this.camera.pivot.x,
-    //   this.camera.pivot.y,
-    //   '|',
-    //   targetPivot.x,
-    //   targetPivot.y
-    // );
+    this.camera.pivot.x = targetPivot.x - this.camera.pivot.x + this.camera.pivot.x;
+    this.camera.pivot.y = targetPivot.y - this.camera.pivot.y + this.camera.pivot.y;
 
-    this.DEBUG_processInput();
+    /**
+     * Test how long you travel/how many steps occur in a certain amount of time
+     */
+
+    if (Date.now() >= this.startTime + 10000) {
+      this.ticker.stop();
+      console.log('Num steps taken:', this.engine.numSteps);
+      const pos = this.entities.mainPlayer.body.GetPosition();
+      console.log('Player position:', pos.x, pos.y);
+      return;
+    }
+
+    /**
+     * Test how long it takes/how many steps to reach a certain position
+     */
+
+    // // console.log(this.entities.mainPlayer.body.GetPosition().x);
+    // if (this.entities.mainPlayer.body.GetPosition().x > 50) {
+    //   const endTime = Date.now();
+    //   this.ticker.stop();
+    //   console.log('elapsed time:', endTime - this.startTime);
+    //   console.log('num steps taken:', this.engine.numSteps);
+    //   return;
+    // }
+
+    // this.TEST_processInput();
+    // this.DEBUG_processInput();
     // this.processInput();
-    this.engine.fixedStep(this.ticker.elapsedMS);
+    this.engine.fixedFixedStep(this.ticker.elapsedMS / 1000);
+    // this.engine.fixedStep(this.ticker.elapsedMS / 1000);
   };
+
+  private TEST_processInput() {
+    const input: InputData = {
+      horizontal: Movement.Right,
+      vertical: -1,
+      seqNumber: 0,
+    };
+    // console.log('input:', input);
+    this.entities.DEBUG_processInput(input);
+  }
 
   private DEBUG_processInput() {
     const input: InputData = {

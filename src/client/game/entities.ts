@@ -57,6 +57,8 @@ export class EntityManager {
       vector.y = -movementUnit;
     }
     this.playerBody.SetLinearVelocity(vector);
+    const velocity = this.playerBody.GetLinearVelocity();
+    console.log('Linear velocity:', velocity.x, velocity.y);
     // console.log('playerbody:', this.playerBody.GetPosition().x, this.playerBody.GetPosition().y);
   }
 
