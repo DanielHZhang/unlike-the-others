@@ -12,16 +12,38 @@ import {WORLD_SCALE} from 'src/shared/constants';
 // private static readonly MASK_TERRAIN = -1; // Collide with everything
 
 export class PhysicsEngine {
-  /** Time in ms allotted for a single physics simulation step. Corresponds with a tick rate of 60. */
+  /**
+   * Time in ms allotted for a single physics simulation step.
+   * Corresponds with a tick rate of 60.
+   */
   public static readonly FIXED_TIMESTEP = 16.66;
-  /** Maximum number of steps the physics engine will take in order to avoid the spiral of death. */
+
+  /**
+   * Maximum number of steps the physics engine will take in order to avoid the spiral of death.
+   */
   private static readonly MAX_STEPS = 6;
-  /** Number of iterations per increment the velocity solver should take (more iterations = higher fidelity) */
+
+  /**
+   * Number of iterations per increment the velocity solver should take.
+   * (more iterations = higher fidelity)
+   */
   private static readonly VELOCITY_ITERATIONS = 8;
-  /** Number iterations per increment the position solver should take (more iterations = higher fidelity) */
+
+  /**
+   * Number iterations per increment the position solver should take.
+   * (more iterations = higher fidelity)
+   */
   private static readonly POSITION_ITERATIONS = 3;
-  private static readonly GROUP_PLAYER = -1; // Do not collide with others of same group
-  private static readonly GROUP_TERRAIN = 1; // Always collide with everything else
+
+  /**
+   * Group that does not collide with others of the same group.
+   */
+  private static readonly GROUP_PLAYER = -1;
+
+  /**
+   * Group that always collides with everything.
+   */
+  private static readonly GROUP_TERRAIN = 1;
   private static readonly LINEAR_DAMPING = 10;
   public readonly world: Box2D.b2World;
   public readonly entities: Box2D.b2Body[] = []; // CURRENTLY UNUSED
@@ -103,14 +125,14 @@ export class PhysicsEngine {
 
     this.timestepAccumulatorRatio = this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP;
     const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
-    if (numStepsClamped > 2) {
-      console.log('Num steps:', numStepsClamped);
-    }
+    // if (numStepsClamped > 1) {
+    //   console.log('Num steps:', numStepsClamped);
+    // }
 
-    if (this.shouldInterpolate) {
-      this.resetSmoothStates(); // Reset position to before interpolation
-    }
     for (let i = 0; i < numStepsClamped; i++) {
+      if (this.shouldInterpolate) {
+        this.resetSmoothStates(); // Reset position to before interpolation
+      }
       this.singleStep();
     }
     this.world.ClearForces();

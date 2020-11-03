@@ -17,7 +17,7 @@ export const GameWindow = (): JSX.Element => {
       throw new Error('Canvas ref was not initialized.');
     }
 
-    const app = new Game({view: canvasRef.current, keybindings, debug: true});
+    const app = new Game({view: canvasRef.current, keybindings, debug: false});
     gameRef.current = app;
 
     // Add keyboard listeners

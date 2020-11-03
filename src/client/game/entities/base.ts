@@ -4,8 +4,8 @@ import {WORLD_SCALE} from 'src/shared/constants';
 
 export class DynamicEntity extends PIXI.Sprite {
   public body: Box2D.b2Body;
-  protected prevX: number = 0;
-  protected prevY: number = 0;
+  public prevX: number = 0;
+  public prevY: number = 0;
 
   public constructor(body: Box2D.b2Body) {
     super();

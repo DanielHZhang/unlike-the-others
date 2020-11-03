@@ -19,6 +19,7 @@ export class Game extends PIXI.Application {
   protected engine: PhysicsEngine;
   protected keyboard: KeyboardManager;
   protected camera: PIXI.Container;
+  protected minimap: PIXI.Rectangle;
   protected player: PlayerEntity;
   protected otherPlayers: PlayerEntity[] = [];
   protected pendingInputs: InputData[] = [];
@@ -46,31 +47,13 @@ export class Game extends PIXI.Application {
     this.stage.addChild(this.camera);
 
     this.player = new PlayerEntity(this.engine.createPlayerBody());
-    // this.entities = new EntityManager(this.engine, this.camera);
-
-    // let map = new PIXI.Rectangle();
-    // map.x = camera.pivot.x - this.renderer.screen.width / 2;
-    // map.y = camera.pivot.x - this.renderer.screen.height / 2;
-    // map.width = this.renderer.screen.width;
-    // map.height = this.renderer.screen.height;
-    // map.pad(400, 400);
-
-    // // every time camera changes position
-
-    // const newRect = new PIXI.Rectangle();
-    // newRect.x = camera.pivot.x - this.renderer.screen.width / 2;
-    // newRect.y = camera.pivot.x - this.renderer.screen.height / 2;
-    // newRect.width = this.renderer.screen.width;
-    // newRect.height = this.renderer.screen.height;
-    // if (
-    //   newRect.x < map.x ||
-    //   newRect.right > map.right ||
-    //   newRect.y < map.y ||
-    //   newRect.bottom > map.bottom
-    // ) {
-    //   map = newRect;
-    //   // ADJUST THE BACKGROUND AND STUFF
-    // }
+    this.minimap = new PIXI.Rectangle(
+      this.camera.pivot.x - this.renderer.screen.width / 2,
+      this.camera.pivot.x - this.renderer.screen.height / 2,
+      this.renderer.screen.width,
+      this.renderer.screen.height
+    );
+    this.minimap.pad(400, 400);
 
     // const lobby = new PIXI.Container();
     // this.stage.addChild(lobby);
@@ -79,14 +62,10 @@ export class Game extends PIXI.Application {
     // main.visible = false;
     // this.stage.addChild(main);
 
-    // if (connection.isOpen()) {
-    //   connection.onRaw(this.entities.receiveNetwork);
-    // }
+    if (connection.isOpen()) {
+      connection.onRaw(this.receiveNetwork);
+    }
 
-    // const baseTexture = new PIXI.BaseTexture(rawImageHere);
-    // app.loader.onProgress.add((loader, resource) => console.log('progress:', loader, resource));
-    // app.loader.add(['wow']).load(() => null); // load via blob/encrypted type here
-    // const sprite = app.loader.resources['wow'].texture;
     this.loadAssets();
   }
 
@@ -102,7 +81,7 @@ export class Game extends PIXI.Application {
 
     const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
     this.player.texture = this.loader.resources.player.texture;
-    this.player.scale.set(0.5, 0.5);
+    this.player.scale.set(0.4, 0.4);
     this.camera.addChild(background);
     this.camera.addChild(this.player);
   }
@@ -150,7 +129,7 @@ export class Game extends PIXI.Application {
   private applyVelocity(input: InputData) {
     // Re-apply input to player
     const vector = {x: 0, y: 0};
-    const movementUnit = 90 / WORLD_SCALE;
+    const movementUnit = 150 / WORLD_SCALE;
     if (input.horizontal === Movement.Right) {
       vector.x = movementUnit;
     } else if (input.horizontal === Movement.Left) {
@@ -195,9 +174,38 @@ export class Game extends PIXI.Application {
    */
   protected update = (deltaTime: number): void => {
     // Follow player position with camera
-    const targetPivot = this.player.position;
-    this.camera.pivot.x = targetPivot.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
-    this.camera.pivot.y = targetPivot.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
+    this.camera.pivot.copyFrom(this.player.position);
+    // console.log(
+    //   'Player position:',
+    //   this.player.position.x.toFixed(4),
+    //   this.player.position.y.toFixed(4)
+    // );
+    // if (this.player.position.x < this.player.prevX) {
+    //   console.log(
+    //     'SHOULD BE MONOTONICALLY INCREASING, but got:',
+    //     this.player.position.x,
+    //     this.player.prevX
+    //   );
+    // }
+    // this.camera.pivot.x = this.player.position.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
+    // this.camera.pivot.y = this.player.position.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
+
+    // // every time camera changes position
+
+    // const newRect = new PIXI.Rectangle();
+    // newRect.x = camera.pivot.x - this.renderer.screen.width / 2;
+    // newRect.y = camera.pivot.x - this.renderer.screen.height / 2;
+    // newRect.width = this.renderer.screen.width;
+    // newRect.height = this.renderer.screen.height;
+    // if (
+    //   newRect.x < map.x ||
+    //   newRect.right > map.right ||
+    //   newRect.y < map.y ||
+    //   newRect.bottom > map.bottom
+    // ) {
+    //   map = newRect;
+    //   // ADJUST THE BACKGROUND AND STUFF
+    // }
 
     // console.log(
     //   'Frame time:',
