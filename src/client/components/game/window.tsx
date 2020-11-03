@@ -20,7 +20,7 @@ export const GameWindow = (): JSX.Element => {
     const app = new Game({view: canvasRef.current, keybindings, debug: false});
     gameRef.current = app;
 
-    // Add keyboard listeners
+    // Keyboard listeners
     document.addEventListener('keydown', app.keydown);
     document.addEventListener('keyup', app.keyup);
 
@@ -30,12 +30,12 @@ export const GameWindow = (): JSX.Element => {
     };
     document.addEventListener('contextmenu', contextMenuListener);
 
-    // Add window resize listener
-    const windowResizeListener = debounce(() => {
-      app.resizeViewAndObjects(window.innerWidth, window.innerHeight);
-      // app.renderer.resize(window.innerWidth, window.innerHeight);
-    }, 300);
+    // Window resize listener
+    const windowResizeListener = debounce(app.resizeCameraView, 300);
     window.addEventListener('resize', windowResizeListener);
+
+    // Window blur listener
+    window.addEventListener('blur', app.blur);
 
     // Tear down listeners and end the game
     return () => {
@@ -43,6 +43,7 @@ export const GameWindow = (): JSX.Element => {
       document.removeEventListener('keyup', app.keyup);
       document.removeEventListener('contextmenu', contextMenuListener);
       window.removeEventListener('resize', windowResizeListener);
+      window.removeEventListener('blur', app.blur);
     };
   });
 

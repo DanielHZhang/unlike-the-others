@@ -131,18 +131,6 @@ export class Game extends PIXI.Application {
     this.camera.addChild(this.player);
   }
 
-  public resizeViewAndObjects(screenWidth: number, screenHeight: number): void {
-    this.renderer.resize(screenWidth, screenHeight);
-    // this.player.position.set(screenWidth, screenHeight);
-    // this.background.position.set(
-    //   screenWidth / 2 - this.initialScreenSize.x,
-    //   screenHeight / 2 - this.initialScreenSize.y
-    // );
-    this.camera.position.set(screenWidth / 2, screenHeight / 2);
-    // this.background.position.set(screenWidth / 2, screenHeight / 2);
-    console.log(this.background.position.x, this.background.position.y);
-  }
-
   public enqueueInput(input: Partial<InputData>): void {
     // DEBUG:
     this.applyVelocity(input as InputData);
@@ -206,6 +194,23 @@ export class Game extends PIXI.Application {
   public updateKeybindings(newBindings: Keybindings): void {
     this.keyboard.setBindings(newBindings);
   }
+
+  /**
+   * Resize the renderer and set the camera based on the current window size.
+   */
+  public resizeCameraView(): void {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    this.renderer.resize(screenWidth, screenHeight);
+    this.camera.position.set(screenWidth / 2, screenHeight / 2);
+  }
+
+  /**
+   * Window blur event handler.
+   */
+  public blur = (): void => {
+    this.keyboard.reset();
+  };
 
   /**
    * Keydown event handler.

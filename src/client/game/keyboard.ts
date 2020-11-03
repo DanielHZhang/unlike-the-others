@@ -20,6 +20,13 @@ export class KeyboardManager {
   //   return !!this.actionToState.get(key);
   // }
 
+  /**
+   * Sets all keyboard action states to false.
+   */
+  public reset(): void {
+    this.actionToState.clear();
+  }
+
   public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Movement | -1 {
     // Check vertical
     if (axis === 'vertical') {
