@@ -1,12 +1,11 @@
 import * as PIXI from 'pixi.js';
-import {Line} from 'src/client/game/debug';
-import {EntityManager} from 'src/client/game/entities';
+import {PlayerEntity} from 'src/client/game/entities/player';
 import {KeyboardManager} from 'src/client/game/keyboard';
 import {connection} from 'src/client/network';
 import {snapshotModel} from 'src/shared/buffer-schema';
-import {Movement} from 'src/shared/constants';
+import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
-import {InputData, Keybindings} from 'src/shared/types';
+import {BufferSnapshotData, InputData, Keybindings} from 'src/shared/types';
 
 type GameOptions = {
   view: HTMLCanvasElement;
@@ -19,8 +18,11 @@ export class Game extends PIXI.Application {
   protected readonly startTime: number;
   protected engine: PhysicsEngine;
   protected keyboard: KeyboardManager;
-  protected entities: EntityManager;
   protected camera: PIXI.Container;
+  protected player: PlayerEntity;
+  protected otherPlayers: PlayerEntity[] = [];
+  protected pendingInputs: InputData[] = [];
+  protected sequenceNumber = 0;
 
   public constructor(options: GameOptions) {
     super({
@@ -43,7 +45,8 @@ export class Game extends PIXI.Application {
     // camera.pivot.copyFrom();
     this.stage.addChild(this.camera);
 
-    this.entities = new EntityManager(this.engine, this.camera);
+    this.player = new PlayerEntity(this.engine.createPlayerBody());
+    // this.entities = new EntityManager(this.engine, this.camera);
 
     // let map = new PIXI.Rectangle();
     // map.x = camera.pivot.x - this.renderer.screen.width / 2;
@@ -98,10 +101,67 @@ export class Game extends PIXI.Application {
     });
 
     const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
-    this.entities.player.texture = this.loader.resources.player.texture;
-    this.entities.player.scale.set(0.5, 0.5);
+    this.player.texture = this.loader.resources.player.texture;
+    this.player.scale.set(0.5, 0.5);
     this.camera.addChild(background);
-    this.camera.addChild(this.entities.player);
+    this.camera.addChild(this.player);
+  }
+
+  public enqueueInput(input: Partial<InputData>): void {
+    // DEBUG:
+    this.applyVelocity(input as InputData);
+    return;
+
+    input.sequenceNumber = this.sequenceNumber++;
+    this.pendingInputs.push(input as InputData);
+  }
+
+  public emit(): void {
+    // const inputData: BufferInputData = {
+    //   s: this.currentInput.seqNumber,
+    //   h: this.currentInput.horizontal,
+    //   v: this.currentInput.vertical,
+    // };
+    // connection.emitRaw(inputModel.toBuffer(inputData));
+  }
+
+  public receiveNetwork(data: ArrayBuffer): void {
+    const snapshot = snapshotModel.fromBuffer(data) as BufferSnapshotData;
+    // console.log('Data from update:', snapshot);
+
+    let i = 0;
+
+    // Set authoritative position received by the server
+    const playerPosition = snapshot.players[0];
+    this.player.body.SetPositionXY(playerPosition.x, playerPosition.y);
+
+    // Remove all inputs that have already been processed by the server
+    while (i < this.pendingInputs.length) {
+      const input = this.pendingInputs[i];
+      if (input.sequenceNumber <= snapshot.seq) {
+        this.pendingInputs.splice(i, 1); // Remove input from array
+      } else {
+        this.applyVelocity(input);
+        i++;
+      }
+    }
+  }
+
+  private applyVelocity(input: InputData) {
+    // Re-apply input to player
+    const vector = {x: 0, y: 0};
+    const movementUnit = 90 / WORLD_SCALE;
+    if (input.horizontal === Movement.Right) {
+      vector.x = movementUnit;
+    } else if (input.horizontal === Movement.Left) {
+      vector.x = -movementUnit;
+    }
+    if (input.vertical === Movement.Down) {
+      vector.y = movementUnit;
+    } else if (input.vertical === Movement.Up) {
+      vector.y = -movementUnit;
+    }
+    this.player.body.SetLinearVelocity(vector);
   }
 
   /**
@@ -135,7 +195,7 @@ export class Game extends PIXI.Application {
    */
   protected update = (deltaTime: number): void => {
     // Follow player position with camera
-    const targetPivot = this.entities.player.position;
+    const targetPivot = this.player.position;
     this.camera.pivot.x = targetPivot.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
     this.camera.pivot.y = targetPivot.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
 
@@ -151,9 +211,9 @@ export class Game extends PIXI.Application {
     if (this.debug) {
       if (Date.now() >= this.startTime + 10000) {
         this.ticker.stop();
-        console.log('Num steps taken:', this.engine.currentStep);
-        const pos = this.entities.player.body.GetPosition();
-        console.log('Player position:', pos.x, pos.y);
+        console.log('# steps taken:', this.engine.currentStep);
+        const pos = this.player.body.GetPosition();
+        console.log('Player position:', pos.x, ',', pos.y);
         return;
       }
     }
@@ -171,6 +231,6 @@ export class Game extends PIXI.Application {
     if (input.horizontal < 0 && input.vertical < 0) {
       return;
     }
-    this.entities.enqueueInput(input);
+    this.enqueueInput(input);
   };
 }
