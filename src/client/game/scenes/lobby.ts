@@ -1,4 +1,4 @@
-import * as box2d from '@supersede/box2d';
+import * as box2d from '@plane2d/core';
 import type {Keybindings} from 'src/shared/types';
 import {Player} from 'src/client/game/scenes/player';
 import {RaycastPolygon} from 'src/client/game/scenes/raycasting';

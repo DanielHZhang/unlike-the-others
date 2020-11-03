@@ -24,6 +24,7 @@
     "@geckos.io/client": "^1.7.0",
     "@geckos.io/server": "^1.7.0",
     "@geckos.io/typed-array-buffer-schema": "^1.0.2",
+    "@plane2d/core": "^0.7.9",
     "@prisma/client": "^2.9.0",
     "@supersede/box2d": "^2.3.3",
     "axios": "^0.20.0",

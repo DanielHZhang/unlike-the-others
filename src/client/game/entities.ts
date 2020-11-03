@@ -1,4 +1,3 @@
-import Box2d from '@supersede/box2d';
 import type * as PIXI from 'pixi.js';
 import {Rectangle} from 'src/client/game/debug';
 import {PlayerEntity} from 'src/client/game/entities/player';
@@ -63,12 +62,12 @@ export class EntityManager {
 
   private applyVelocity(input: InputData) {
     // Re-apply input to player
-    const vector = new Box2d.b2Vec2();
+    const vector = {x: 0, y: 0};
     const movementUnit = 90 / WORLD_SCALE;
     if (input.horizontal === Movement.Right) {
-      vector.Set(movementUnit, 0);
+      vector.x = movementUnit;
     } else if (input.horizontal === Movement.Left) {
-      vector.Set(-movementUnit, 0);
+      vector.x = -movementUnit;
     }
     if (input.vertical === Movement.Down) {
       vector.y = movementUnit;

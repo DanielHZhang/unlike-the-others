@@ -1,4 +1,5 @@
-import Box2d from '@supersede/box2d';
+// import Box2D from '@supersede/Box2D';
+import Box2D from '@plane2d/core';
 import type * as PIXI from 'pixi.js';
 import {Rectangle} from 'src/client/game/debug';
 import {DynamicEntity} from 'src/client/game/entities/base';
@@ -22,8 +23,8 @@ export class PhysicsEngine {
   private static readonly GROUP_PLAYER = -1; // Do not collide with others of same group
   private static readonly GROUP_TERRAIN = 1; // Always collide with everything else
   private static readonly LINEAR_DAMPING = 10;
-  public readonly world: Box2d.b2World;
-  public readonly entities: Box2d.b2Body[] = []; // CURRENTLY UNUSED
+  public readonly world: Box2D.b2World;
+  public readonly entities: Box2D.b2Body[] = []; // CURRENTLY UNUSED
   public shouldInterpolate = true;
   public currentStep = 0;
   private readonly updateControllers: () => void;
@@ -32,55 +33,55 @@ export class PhysicsEngine {
 
   public constructor(updateControllers: () => void) {
     this.updateControllers = updateControllers;
-    const gravity = new Box2d.b2Vec2(0, 0);
-    this.world = new Box2d.b2World(gravity);
+    this.world = Box2D.b2World.Create({x: 0, y: 0});
     this.world.SetAutoClearForces(false);
   }
 
-  public createPlayerBody(): Box2d.b2Body {
+  // public createBody(): Box2D.b2Body {
+  // }
+
+  public createPlayerBody(): Box2D.b2Body {
     // Shape definition
     const TEMP_WIDTH = 100;
     const TEMP_HEIGHT = 100;
-    const shape = new Box2d.b2PolygonShape();
+    const shape = new Box2D.b2PolygonShape();
     shape.SetAsBox(TEMP_WIDTH / 2 / WORLD_SCALE, TEMP_HEIGHT / 2 / WORLD_SCALE);
 
-    // Fixture definition
-    const fixture = new Box2d.b2FixtureDef();
-    fixture.density = 20.0; // MIGHT NOT BE NECESSARY, GIVEN 0 GRAVITY
-    fixture.friction = 1.0;
-    fixture.shape = shape;
-    fixture.filter.groupIndex = PhysicsEngine.GROUP_PLAYER;
-
     // Body definition
-    const body = this.world.CreateBody();
-    body.SetType(Box2d.b2BodyType.b2_dynamicBody);
-    body.SetLinearDamping(PhysicsEngine.LINEAR_DAMPING);
-    body.SetFixedRotation(true); // Prevent angular rotation of bodies
+    const body = this.world.CreateBody({
+      type: Box2D.b2BodyType.b2_dynamicBody,
+      linearDamping: PhysicsEngine.LINEAR_DAMPING,
+      fixedRotation: true, // Prevent angular rotation of bodies
+    });
+
     const TEMP_POSX = 300;
     const TEMP_POSY = 300;
-    body.SetPosition(new Box2d.b2Vec2(TEMP_POSX / WORLD_SCALE, TEMP_POSY / WORLD_SCALE));
-    body.CreateFixture(fixture);
+    body.SetPosition({x: TEMP_POSX / WORLD_SCALE, y: TEMP_POSY / WORLD_SCALE});
+    body.CreateFixture({
+      shape,
+      density: 20.0, // MIGHT NOT BE NECESSARY, GIVEN 0 GRAVITY
+      friction: 1.0,
+      filter: {groupIndex: PhysicsEngine.GROUP_PLAYER},
+    });
     return body;
   }
 
-  public TEMP_createBoundary(x1: [number, number], x2: [number, number]): Box2d.b2Body {
+  public TEMP_createBoundary(x1: [number, number], x2: [number, number]): Box2D.b2Body {
     // Shape definition
-    const shape = new Box2d.b2EdgeShape();
+    const shape = new Box2D.b2EdgeShape();
     shape.SetTwoSided(
-      new Box2d.b2Vec2(x1[0] / WORLD_SCALE, x1[1] / WORLD_SCALE),
-      new Box2d.b2Vec2(x2[0] / WORLD_SCALE, x2[1] / WORLD_SCALE)
+      new Box2D.b2Vec2(x1[0] / WORLD_SCALE, x1[1] / WORLD_SCALE),
+      new Box2D.b2Vec2(x2[0] / WORLD_SCALE, x2[1] / WORLD_SCALE)
     );
-
-    // Fixture definition
-    const fixture = new Box2d.b2FixtureDef();
-    fixture.density = 0;
-    fixture.shape = shape;
-    fixture.filter.groupIndex = PhysicsEngine.GROUP_TERRAIN;
 
     // Body definition
     const body = this.world.CreateBody();
-    body.SetType(Box2d.b2BodyType.b2_staticBody);
-    body.CreateFixture(fixture);
+    body.SetType(Box2D.b2BodyType.b2_staticBody);
+    body.CreateFixture({
+      density: 0,
+      shape,
+      filter: {groupIndex: PhysicsEngine.GROUP_TERRAIN},
+    });
     return body;
   }
 
@@ -102,6 +103,9 @@ export class PhysicsEngine {
 
     this.timestepAccumulatorRatio = this.timestepAccumulator / PhysicsEngine.FIXED_TIMESTEP;
     const numStepsClamped = Math.min(numSteps, PhysicsEngine.MAX_STEPS);
+    if (numStepsClamped > 2) {
+      console.log('Num steps:', numStepsClamped);
+    }
 
     if (this.shouldInterpolate) {
       this.resetSmoothStates(); // Reset position to before interpolation
@@ -109,7 +113,7 @@ export class PhysicsEngine {
     for (let i = 0; i < numStepsClamped; i++) {
       this.singleStep();
     }
-    // this.world.ClearForces();
+    this.world.ClearForces();
     if (this.shouldInterpolate) {
       this.smoothStates(); // Perform linear interpolation
     }
@@ -120,11 +124,10 @@ export class PhysicsEngine {
    */
   private singleStep() {
     this.updateControllers();
-    this.world.Step(
-      PhysicsEngine.FIXED_TIMESTEP / 1000,
-      PhysicsEngine.VELOCITY_ITERATIONS,
-      PhysicsEngine.POSITION_ITERATIONS
-    );
+    this.world.Step(PhysicsEngine.FIXED_TIMESTEP / 1000, {
+      velocityIterations: PhysicsEngine.VELOCITY_ITERATIONS,
+      positionIterations: PhysicsEngine.POSITION_ITERATIONS,
+    });
     this.currentStep++;
     // this.consumeContacts();
   }
@@ -134,7 +137,7 @@ export class PhysicsEngine {
    */
   private resetSmoothStates() {
     for (let b = this.world.GetBodyList(); b !== null; b = b.GetNext()) {
-      if (b.GetType() === Box2d.b2BodyType.b2_staticBody) {
+      if (b.GetType() === Box2D.b2BodyType.b2_staticBody) {
         continue; // Ignore static bodies
       }
       const entity = b.GetUserData() as DynamicEntity;
@@ -151,7 +154,7 @@ export class PhysicsEngine {
    */
   private smoothStates() {
     for (let b = this.world.GetBodyList(); b !== null; b = b.GetNext()) {
-      if (b.GetType() === Box2d.b2BodyType.b2_staticBody) {
+      if (b.GetType() === Box2D.b2BodyType.b2_staticBody) {
         continue; // Ignore static bodies
       }
       const entity = b.GetUserData() as DynamicEntity;

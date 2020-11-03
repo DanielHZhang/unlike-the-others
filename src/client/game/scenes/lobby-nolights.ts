@@ -1,4 +1,4 @@
-import Box2d from '@supersede/box2d';
+import Box2D from '@plane2d/core';
 import type {BufferInputData, Keybindings} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
@@ -9,7 +9,7 @@ import {InputHandler} from 'src/client/game/input';
 
 function coordToBoundaryPhaserGraphic(
   scene: Phaser.Scene,
-  body: Box2d.b2Body,
+  body: Box2D.b2Body,
   x1: [number, number],
   x2: [number, number],
   horizontal: boolean
@@ -26,7 +26,7 @@ function coordToBoundaryPhaserGraphic(
 export class Lobby extends Phaser.Scene {
   public controls: Keybindings;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  private player: [Box2d.b2Body, Phaser.GameObjects.Graphics];
+  private player: [Box2D.b2Body, Phaser.GameObjects.Graphics];
   private grid: Phaser.GameObjects.Grid;
   private engine: PhysicsEngine;
 
@@ -103,7 +103,7 @@ export class Lobby extends Phaser.Scene {
   }
 
   setPlayerVelocity() {
-    const vector = new Box2d.b2Vec2();
+    const vector = new Box2D.b2Vec2();
     const movementUnit = 90 / WORLD_SCALE;
 
     // Determine horizontal velocity

@@ -1,11 +1,11 @@
-import Box2d from '@supersede/box2d';
+import Box2D from '@plane2d/core';
 import {connection} from 'src/client/network';
 import {inputModel} from 'src/shared/buffer-schema';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData, BufferSnapshotData, Direction} from 'src/shared/types';
 
 export class NetworkInputManager {
-  public dequeue(snapshot: BufferSnapshotData, playerBody: Box2d.b2Body): void {
+  public dequeue(snapshot: BufferSnapshotData, playerBody: Box2D.b2Body): void {
     let i = 0;
 
     // Set authoritative position received by the server
@@ -19,7 +19,7 @@ export class NetworkInputManager {
         this.pendingInputs.splice(i, 1); // Remove input from array
       } else {
         // Re-apply input to player
-        const vector = new Box2d.b2Vec2();
+        const vector = new Box2D.b2Vec2();
         const movementUnit = 90 / WORLD_SCALE;
         if (input.h === Movement.Right) {
           vector.Set(movementUnit, 0);

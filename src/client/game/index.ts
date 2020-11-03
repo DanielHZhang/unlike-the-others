@@ -8,24 +8,35 @@ import {Movement} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
 import {InputData, Keybindings} from 'src/shared/types';
 
+type GameOptions = {
+  view: HTMLCanvasElement;
+  keybindings: Keybindings;
+  debug?: boolean;
+};
+
 export class Game extends PIXI.Application {
+  protected readonly debug: boolean;
+  protected readonly startTime: number;
   protected engine: PhysicsEngine;
   protected keyboard: KeyboardManager;
   protected entities: EntityManager;
   protected camera: PIXI.Container;
 
-  public constructor(view: HTMLCanvasElement, keybindings: Keybindings) {
+  public constructor(options: GameOptions) {
     super({
       antialias: true,
       resolution: 1,
-      view,
+      view: options.view,
     });
+    this.debug = options.debug ?? false;
+
     this.engine = new PhysicsEngine(this.processInput);
-    this.keyboard = new KeyboardManager(keybindings);
+    this.keyboard = new KeyboardManager(options.keybindings);
 
     this.renderer.resize(window.innerWidth, window.innerHeight);
     this.ticker.add(this.update);
-    // this.ticker.maxFPS = 30;
+    // this.ticker.maxFPS = 15;
+    this.startTime = Date.now();
 
     this.camera = new PIXI.Container();
     this.camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);
@@ -73,6 +84,7 @@ export class Game extends PIXI.Application {
     // app.loader.onProgress.add((loader, resource) => console.log('progress:', loader, resource));
     // app.loader.add(['wow']).load(() => null); // load via blob/encrypted type here
     // const sprite = app.loader.resources['wow'].texture;
+    this.loadAssets();
   }
 
   public async loadAssets(): Promise<void> {
@@ -122,6 +134,11 @@ export class Game extends PIXI.Application {
    * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
    */
   protected update = (deltaTime: number): void => {
+    // Follow player position with camera
+    const targetPivot = this.entities.player.position;
+    this.camera.pivot.x = targetPivot.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
+    this.camera.pivot.y = targetPivot.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
+
     // console.log(
     //   'Frame time:',
     //   deltaTime.toFixed(4),
@@ -131,9 +148,15 @@ export class Game extends PIXI.Application {
     // );
     // Frame time: 0.9993 16.654999999998836 16.654999999998836 0.9992999999999301
 
-    const targetPivot = this.entities.player.position;
-    this.camera.pivot.x = targetPivot.x; /* - this.camera.pivot.x + this.camera.pivot.x; */
-    this.camera.pivot.y = targetPivot.y; /* - this.camera.pivot.y + this.camera.pivot.y; */
+    if (this.debug) {
+      if (Date.now() >= this.startTime + 10000) {
+        this.ticker.stop();
+        console.log('Num steps taken:', this.engine.currentStep);
+        const pos = this.entities.player.body.GetPosition();
+        console.log('Player position:', pos.x, pos.y);
+        return;
+      }
+    }
 
     this.engine.fixedStep(this.ticker.elapsedMS);
   };

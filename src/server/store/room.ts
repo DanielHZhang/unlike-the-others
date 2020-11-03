@@ -1,4 +1,4 @@
-import Box2d from '@supersede/box2d';
+import Box2D from '@plane2d/core';
 import {nanoid} from 'nanoid';
 import {Player} from 'src/server/store/player';
 import {AudioChannel} from 'src/server/config/constants';
@@ -135,7 +135,7 @@ export class GameRoom {
       while ((input = player.dequeueInput()) !== undefined) {
         // Check if input contained movement
         if (input.h > 0 || input.v > 0) {
-          const vector = new Box2d.b2Vec2();
+          const vector = new Box2D.b2Vec2();
           const movementUnit = 90 / WORLD_SCALE;
           if (input.h === Movement.Right) {
             vector.Set(movementUnit, 0);

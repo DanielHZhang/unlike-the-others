@@ -1,17 +1,14 @@
-import Box2d from '@supersede/box2d';
 import * as PIXI from 'pixi.js';
-import {Rectangle} from 'src/client/game/debug';
+import Box2D from '@plane2d/core';
 import {WORLD_SCALE} from 'src/shared/constants';
 
 export class DynamicEntity extends PIXI.Sprite {
-  public body: Box2d.b2Body;
+  public body: Box2D.b2Body;
   protected prevX: number = 0;
   protected prevY: number = 0;
 
-  public constructor(body: Box2d.b2Body) {
+  public constructor(body: Box2D.b2Body) {
     super();
-
-    // const what = new PIXI.RenderTexture()
     this.body = body;
     this.body.SetUserData(this);
   }
