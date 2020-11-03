@@ -21,7 +21,7 @@ export class DynamicEntity extends PIXI.Sprite {
     };
   }
 
-  public setPrevPosition(x: number, y: number): void {
+  public setPrevScenePosition(x: number, y: number): void {
     this.prevX = x;
     this.prevY = y;
   }

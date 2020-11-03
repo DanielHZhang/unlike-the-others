@@ -32,7 +32,8 @@ export const GameWindow = (): JSX.Element => {
 
     // Add window resize listener
     const windowResizeListener = debounce(() => {
-      app.renderer.resize(window.innerWidth, window.innerHeight);
+      app.resizeViewAndObjects(window.innerWidth, window.innerHeight);
+      // app.renderer.resize(window.innerWidth, window.innerHeight);
     }, 300);
     window.addEventListener('resize', windowResizeListener);
 

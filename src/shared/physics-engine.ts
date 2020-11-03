@@ -76,9 +76,6 @@ export class PhysicsEngine {
       fixedRotation: true, // Prevent angular rotation of bodies
     });
 
-    const TEMP_POSX = 300;
-    const TEMP_POSY = 300;
-    body.SetPosition({x: TEMP_POSX / WORLD_SCALE, y: TEMP_POSY / WORLD_SCALE});
     body.CreateFixture({
       shape,
       density: 20.0, // MIGHT NOT BE NECESSARY, GIVEN 0 GRAVITY
@@ -164,9 +161,10 @@ export class PhysicsEngine {
       }
       const entity = b.GetUserData() as DynamicEntity;
       const {sceneX, sceneY} = entity.getScenePosition();
-      entity.x = sceneX;
-      entity.y = sceneY;
-      entity.setPrevPosition(sceneX, sceneY);
+      entity.position.copyFrom({x: sceneX, y: sceneY});
+      // entity.x = sceneX;
+      // entity.y = sceneY;
+      entity.setPrevScenePosition(sceneX, sceneY);
     }
   }
 
@@ -183,11 +181,4 @@ export class PhysicsEngine {
       entity.lerp(this.timestepAccumulatorRatio);
     }
   }
-}
-
-export function TEMP_createWorldBoundaries(engine: PhysicsEngine) {
-  const top = engine.TEMP_createBoundary([5, 5], [600, 5]);
-  const bottom = engine.TEMP_createBoundary([5, 600], [600, 600]);
-  const right = engine.TEMP_createBoundary([600, 5], [600, 600]);
-  const left = engine.TEMP_createBoundary([5, 5], [5, 600]);
 }

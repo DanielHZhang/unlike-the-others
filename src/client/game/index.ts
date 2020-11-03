@@ -1,3 +1,4 @@
+import {XY} from '@plane2d/core';
 import * as PIXI from 'pixi.js';
 import {PlayerEntity} from 'src/client/game/entities/player';
 import {KeyboardManager} from 'src/client/game/keyboard';
@@ -14,12 +15,16 @@ type GameOptions = {
 };
 
 export class Game extends PIXI.Application {
+  protected readonly initialScreenSize: XY;
   protected readonly debug: boolean;
   protected readonly startTime: number;
   protected engine: PhysicsEngine;
   protected keyboard: KeyboardManager;
   protected camera: PIXI.Container;
-  protected minimap: PIXI.Rectangle;
+  protected scene: PIXI.Container;
+  protected minimap: PIXI.Sprite;
+  protected background: PIXI.Sprite;
+  protected minimapTexture: PIXI.RenderTexture;
   protected player: PlayerEntity;
   protected otherPlayers: PlayerEntity[] = [];
   protected pendingInputs: InputData[] = [];
@@ -29,31 +34,71 @@ export class Game extends PIXI.Application {
     super({
       antialias: true,
       resolution: 1,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      transparent: true,
       view: options.view,
     });
     this.debug = options.debug ?? false;
-
+    this.initialScreenSize = {x: window.innerWidth, y: window.innerHeight};
     this.engine = new PhysicsEngine(this.processInput);
     this.keyboard = new KeyboardManager(options.keybindings);
 
-    this.renderer.resize(window.innerWidth, window.innerHeight);
-    this.ticker.add(this.update);
+    // this.renderer.resize(window.innerWidth, window.innerHeight);
+    // console.log('original size:', this.renderer.screen.width, this.renderer.screen.height);
+    // console.log('original size:', window.innerWidth, window.innerHeight);
+    this.ticker.add(this.update, this);
     // this.ticker.maxFPS = 15;
     this.startTime = Date.now();
 
     this.camera = new PIXI.Container();
     this.camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);
     // camera.pivot.copyFrom();
-    this.stage.addChild(this.camera);
 
     this.player = new PlayerEntity(this.engine.createPlayerBody());
-    this.minimap = new PIXI.Rectangle(
-      this.camera.pivot.x - this.renderer.screen.width / 2,
-      this.camera.pivot.x - this.renderer.screen.height / 2,
-      this.renderer.screen.width,
-      this.renderer.screen.height
-    );
-    this.minimap.pad(400, 400);
+    this.player.setBodyPosition(0, 0);
+    console.log(this.player.position);
+
+    this.scene = new PIXI.Container();
+
+    const minimapTexture = PIXI.RenderTexture.create({width: 300, height: 300});
+    this.minimapTexture = minimapTexture;
+
+    const map = new PIXI.Sprite(minimapTexture);
+    map.position.x = this.renderer.screen.width - 316;
+    map.position.y = 16;
+    // map.scale.x = 0.5;
+    // map.scale.y = 0.5;
+    // map.anchor.copyFrom({x: 0.5, y: 0.5});
+    // this.scene.addChild(map);
+    // this.stage.addChild(map);
+
+    // Add direct children to main stage
+    this.stage.addChild(this.camera);
+    this.stage.addChild(this.scene);
+    this.minimap = map;
+    this.background = new PIXI.Sprite();
+    this.background.initialScreenPosition = {
+      x: this.renderer.screen.width / 2,
+      y: this.renderer.screen.height / 2,
+    };
+
+    // this.background.anchor.copyFrom({x: 0.5, y: 0.5});
+    // // MASK (clip things outside the background border)
+    // const mask = new PIXI.Graphics();
+    // mask.beginFill(0xffffff);
+    // mask.drawRect(0, 0, 1000, 1000);
+    // mask.endFill();
+    // this.stage.addChild(mask);
+    // this.stage.mask = mask;
+
+    // this.minimap = new PIXI.Rectangle(
+    //   this.camera.pivot.x - this.renderer.screen.width / 2,
+    //   this.camera.pivot.x - this.renderer.screen.height / 2,
+    //   this.renderer.screen.width,
+    //   this.renderer.screen.height
+    // );
+    // this.minimap.pad(400, 400);
 
     // const lobby = new PIXI.Container();
     // this.stage.addChild(lobby);
@@ -78,12 +123,24 @@ export class Game extends PIXI.Application {
       this.loader.load(resolve);
       this.loader.onError.once(reject);
     });
-
-    const background = new PIXI.Sprite(this.loader.resources.floorplan.texture);
+    this.background.texture = this.loader.resources.floorplan.texture;
     this.player.texture = this.loader.resources.player.texture;
     this.player.scale.set(0.4, 0.4);
-    this.camera.addChild(background);
+    // this.scene.addChild(background);
+    this.camera.addChild(this.background);
     this.camera.addChild(this.player);
+  }
+
+  public resizeViewAndObjects(screenWidth: number, screenHeight: number): void {
+    this.renderer.resize(screenWidth, screenHeight);
+    // this.player.position.set(screenWidth, screenHeight);
+    // this.background.position.set(
+    //   screenWidth / 2 - this.initialScreenSize.x,
+    //   screenHeight / 2 - this.initialScreenSize.y
+    // );
+    this.camera.position.set(screenWidth / 2, screenHeight / 2);
+    // this.background.position.set(screenWidth / 2, screenHeight / 2);
+    console.log(this.background.position.x, this.background.position.y);
   }
 
   public enqueueInput(input: Partial<InputData>): void {
@@ -172,7 +229,13 @@ export class Game extends PIXI.Application {
    * Update function of the game loop.
    * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
    */
-  protected update = (deltaTime: number): void => {
+  protected update(deltaTime: number): void {
+    // console.log(this.player.position.x, this.player.body.GetPosition().x);
+    // this.camera.scale.x = this.camera.scale.y = 0.15;
+    this.renderer.render(this.scene, this.minimapTexture);
+    // this.camera.scale.x = this.camera.scale.y = 1;
+    // console.log(this.camera.x);
+
     // Follow player position with camera
     this.camera.pivot.copyFrom(this.player.position);
     // console.log(
@@ -227,7 +290,7 @@ export class Game extends PIXI.Application {
     }
 
     this.engine.fixedStep(this.ticker.elapsedMS);
-  };
+  }
 
   private processInput = () => {
     const input: Pick<InputData, 'horizontal' | 'vertical'> = {
