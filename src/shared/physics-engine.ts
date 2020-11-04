@@ -44,7 +44,7 @@ export class PhysicsEngine {
    * Group that always collides with everything.
    */
   private static readonly GROUP_TERRAIN = 1;
-  private static readonly LINEAR_DAMPING = 10;
+  private static readonly LINEAR_DAMPING = 20;
   public readonly world: Box2D.b2World;
   public readonly entities: Box2D.b2Body[] = []; // CURRENTLY UNUSED
   public shouldInterpolate = true;

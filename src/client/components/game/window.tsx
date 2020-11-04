@@ -44,6 +44,8 @@ export const GameWindow = (): JSX.Element => {
       document.removeEventListener('contextmenu', contextMenuListener);
       window.removeEventListener('resize', windowResizeListener);
       window.removeEventListener('blur', app.blur);
+      app.destroy(false, {children: true, texture: true, baseTexture: true});
+      gameRef.current = null;
     };
   });
 

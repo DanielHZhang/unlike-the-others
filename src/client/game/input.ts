@@ -36,25 +36,4 @@ export class NetworkInputManager {
       }
     }
   }
-
-  public setMovement(movementType?: Direction): void {
-    switch (movementType) {
-      case 'up': {
-        this.currentInput.vertical = Movement.Up;
-        return;
-      }
-      case 'down': {
-        this.currentInput.vertical = Movement.Down;
-        return;
-      }
-      case 'left': {
-        this.currentInput.horizontal = Movement.Left;
-        return;
-      }
-      case 'right': {
-        this.currentInput.horizontal = Movement.Right;
-        return;
-      }
-    }
-  }
 }

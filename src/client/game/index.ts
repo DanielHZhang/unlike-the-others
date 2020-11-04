@@ -78,10 +78,6 @@ export class Game extends PIXI.Application {
     this.stage.addChild(this.scene);
     this.minimap = map;
     this.background = new PIXI.Sprite();
-    this.background.initialScreenPosition = {
-      x: this.renderer.screen.width / 2,
-      y: this.renderer.screen.height / 2,
-    };
 
     // this.background.anchor.copyFrom({x: 0.5, y: 0.5});
     // // MASK (clip things outside the background border)
@@ -131,9 +127,17 @@ export class Game extends PIXI.Application {
     this.camera.addChild(this.player);
   }
 
+  // public dispose(): void {
+  //   const options = {children: true, texture: true, baseTexture: true};
+  //   this.stage.destroy(options);
+  //   // this.background.destroy(options);
+  //   this.player.destroy(options);
+  //   // this.camera.destroy(options);
+  // }
+
   public enqueueInput(input: Partial<InputData>): void {
     // DEBUG:
-    this.applyVelocity(input as InputData);
+    this.player.applyLinearImpulse(input as InputData);
     return;
 
     input.sequenceNumber = this.sequenceNumber++;
@@ -165,27 +169,11 @@ export class Game extends PIXI.Application {
       if (input.sequenceNumber <= snapshot.seq) {
         this.pendingInputs.splice(i, 1); // Remove input from array
       } else {
-        this.applyVelocity(input);
+        // Re-apply input to player
+        this.player.applyLinearImpulse(input);
         i++;
       }
     }
-  }
-
-  private applyVelocity(input: InputData) {
-    // Re-apply input to player
-    const vector = {x: 0, y: 0};
-    const movementUnit = 150 / WORLD_SCALE;
-    if (input.horizontal === Movement.Right) {
-      vector.x = movementUnit;
-    } else if (input.horizontal === Movement.Left) {
-      vector.x = -movementUnit;
-    }
-    if (input.vertical === Movement.Down) {
-      vector.y = movementUnit;
-    } else if (input.vertical === Movement.Up) {
-      vector.y = -movementUnit;
-    }
-    this.player.body.SetLinearVelocity(vector);
   }
 
   /**
