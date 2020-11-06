@@ -82,6 +82,8 @@ export const Modal = (props: Props): JSX.Element => {
                   padding: 32px;
                   width: 100%;
                   color: #fff;
+                  overflow-wrap: break-word;
+                  word-wrap: break-word;
                 `}
               >
                 {title && (

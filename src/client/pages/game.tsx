@@ -10,6 +10,9 @@ import {GameWindow} from 'src/client/components/game/window';
 import {Flex, Icon} from 'src/client/components/base';
 import {Title} from 'src/client/components/title';
 import {HomepageLink} from 'src/client/components/home/link';
+import {BufferInputData} from 'src/shared/types';
+import {BufferEventType} from 'src/shared/constants';
+import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
 
 export const GamePage = (): JSX.Element => {
   const [, setLocation] = useLocation();
@@ -17,7 +20,16 @@ export const GamePage = (): JSX.Element => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  return <GameWindow />;
+  // const serialize: BufferInputData = {
+  //   _e: BufferEventType.Movement,
+  //   s: 1,
+  //   h: 1,
+  //   v: 1,
+  // };
+  // const serialized = inputModel.toBuffer(serialize);
+  // const what = snapshotModel.fromBuffer(serialized);
+  // console.log('what happened:', what);
+  // console.log('this happened:', inputModel.fromBuffer(serialized));
 
   useEffect(() => {
     // Do not run the effect unless the access token is defined

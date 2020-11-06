@@ -6,6 +6,7 @@ import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/hooks';
 import {debounce} from 'src/client/utils';
 import {Game} from 'src/client/game';
+import {connection} from 'src/client/network';
 
 export const GameWindow = (): JSX.Element => {
   const gameRef = useRef<Game | null>(null);
@@ -19,6 +20,11 @@ export const GameWindow = (): JSX.Element => {
 
     const app = new Game({view: canvasRef.current, keybindings, debug: false});
     gameRef.current = app;
+
+    if (connection.isOpen()) {
+      connection.on('state', app.receiveNetwork);
+      // connection.onRaw(app.receiveNetwork);
+    }
 
     // Keyboard listeners
     document.addEventListener('keydown', app.keydown);

@@ -9,13 +9,13 @@ export class NetworkInputManager {
     let i = 0;
 
     // Set authoritative position received by the server
-    const playerPosition = snapshot.players[0];
+    const playerPosition = snapshot.p[0];
     playerBody.SetPositionXY(playerPosition.x, playerPosition.y);
 
     // Remove all inputs that have already been processed by the server
     while (i < this.pendingInputs.length) {
       const input = this.pendingInputs[i];
-      if (input.s <= snapshot.seq) {
+      if (input.s <= snapshot.s) {
         this.pendingInputs.splice(i, 1); // Remove input from array
       } else {
         // Re-apply input to player

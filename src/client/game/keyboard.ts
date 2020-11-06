@@ -32,7 +32,8 @@ export class KeyboardManager {
   }
 
   /**
-   * Check if any of the keys controlling movement are down.
+   * Check if any of the keys controlling movement are down. Ensure that only one
+   * direction per axis can be moved at the same time.
    */
   public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Movement | -1 {
     // Check vertical
@@ -71,16 +72,6 @@ export class KeyboardManager {
     if (!action) {
       return;
     }
-    // Ensure that only one movement key in an axis can be pressed at a time
-    // if (action === 'right' && this.actionToState.get('left')) {
-    //   this.actionToState.set('left', false);
-    // } else if (action === 'left' && this.actionToState.get('right')) {
-    //   this.actionToState.set('right', false);
-    // } else if (action === 'up' && this.actionToState.get('down')) {
-    //   this.actionToState.set('down', false);
-    // } else if (action === 'down' && this.actionToState.get('up')) {
-    //   this.actionToState.set('up', false);
-    // }
     const state = this.actionToState.get(action);
     if (!state) {
       this.actionToState.set(action, true);

@@ -57,7 +57,7 @@ export async function main(argv: string[]): Promise<void> {
     app.register(cookiePlugin);
     app.register(csrfPlugin, {secret: process.env.CSRF_SECRET!});
     app.register(websocketPlugin, {path: '/ws', heartbeatInterval: 30});
-    app.register(webrtcPlugin);
+    // app.register(webrtcPlugin);
     app.register(jwtAuthPlugin);
     app.register(apiRoutes, {prefix: '/api'});
     app.get('*', (_, reply) => {

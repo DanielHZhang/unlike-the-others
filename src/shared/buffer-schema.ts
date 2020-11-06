@@ -11,6 +11,7 @@ const player: Record<keyof BufferPlayerData, TypedArray> = {
 const playerSchema = BufferSchema.schema('player', player);
 
 const input: Record<keyof BufferInputData, TypedArray> = {
+  _e: uint8,
   s: uint32,
   h: uint8,
   v: uint8,
@@ -18,9 +19,10 @@ const input: Record<keyof BufferInputData, TypedArray> = {
 const inputSchema = BufferSchema.schema('input', input);
 
 const snapshot: Record<keyof BufferSnapshotData, TypedArray> = {
-  seq: uint32,
-  tick: uint32,
-  players: [playerSchema],
+  _e: uint8,
+  s: uint32,
+  t: uint32,
+  p: [playerSchema],
 };
 const snapshotSchema = BufferSchema.schema('snapshot', snapshot);
 

@@ -1,5 +1,7 @@
 // Shared/agnostic types
 
+import {BufferEventType} from 'src/shared/constants';
+
 export type AnyFunction = (...args: any[]) => any;
 
 export type Keybindings = {
@@ -42,15 +44,17 @@ export type BufferPlayerData = {
 };
 
 export type BufferInputData = {
+  _e: BufferEventType; // Event type
   s: number; // Sequence number
-  h: number;
-  v: number;
+  h: number; // Horizontal movement
+  v: number; // Vertical movement
 };
 
 export type BufferSnapshotData = {
-  seq: number;
-  tick: number;
-  players: BufferPlayerData[];
+  _e: BufferEventType; // Event type
+  s: number; // Sequence number
+  t: number; // Tick number
+  p: BufferPlayerData[]; // Players data array
 };
 
 // Server-side types

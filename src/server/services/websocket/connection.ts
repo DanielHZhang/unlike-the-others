@@ -2,9 +2,10 @@ import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
-import {ServerSocket} from 'src/server/services/websocket';
+import {bufferEventName, ServerSocket} from 'src/server/services/websocket';
 import {AudioChannel} from 'src/server/config/constants';
-import {JwtClaims} from 'src/shared/types';
+import {BufferInputData, JwtClaims} from 'src/shared/types';
+import {BufferEventType} from 'src/shared/constants';
 
 const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
   if (typeof value !== 'object') {
@@ -64,6 +65,14 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
     }
 
     fastify.log.info(`Websocket client ${player.id} closed, code: ${code}, reason: ${reason}`);
+  });
+
+  /**
+   * Handle movement data buffer.
+   */
+  socket.on(bufferEventName(BufferEventType.Movement), (input: BufferInputData) => {
+    console.log('received:', input);
+    player.enqueueInput(input);
   });
 
   /**

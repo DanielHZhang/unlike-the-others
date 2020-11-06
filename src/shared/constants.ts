@@ -44,3 +44,9 @@ export enum ActionInput {
   Sabotage,
   CallMeeting,
 }
+
+export enum BufferEventType {
+  Movement,
+  Snapshot,
+  Action,
+}

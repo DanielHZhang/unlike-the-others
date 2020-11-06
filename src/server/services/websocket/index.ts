@@ -1,5 +1,11 @@
 import WebSocket from 'ws';
-import type {AnyFunction} from 'src/shared/types';
+import type {AnyFunction, BufferInputData} from 'src/shared/types';
+import {inputModel} from 'src/shared/buffer-schema';
+import {BufferEventType} from 'src/shared/constants';
+
+export function bufferEventName(eventType: BufferEventType): string {
+  return `buffer_${eventType}`;
+}
 
 export class ServerSocket {
   /**
@@ -23,20 +29,32 @@ export class ServerSocket {
 
     // Handle messages received from the client
     this.connection.on('message', (data) => {
-      // Only process string data messages
+      console.log('what is the data', data);
       if (typeof data === 'string' && data.length < ServerSocket.MAX_MESSAGE_SIZE) {
         const json = JSON.parse(data);
         if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
           throw new Error('Improperly formatted socket message.');
         }
         this.dispatch(json[0], json[1]);
+      } else if (data instanceof Buffer && data.byteLength < ServerSocket.MAX_MESSAGE_SIZE) {
+        const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        console.log('server received message:', data.buffer, arrayBuffer);
+        let dataObject = inputModel.fromBuffer(arrayBuffer);
+        if (!('_e' in dataObject)) {
+          // Handle action type here
+          // const action =
+          dataObject = undefined;
+        }
+        if (dataObject) {
+          this.dispatch(bufferEventName(dataObject._e), dataObject);
+        }
       }
     });
   }
 
   public on(eventName: 'close', callback: (code: number, reason: string) => void): void;
   public on(eventName: 'error', callback: (error: Error) => void): void;
-  public on(eventName: string, callback: (data: unknown) => any): void;
+  public on(eventName: string, callback: (data: any) => any): void;
   public on(eventName: string, callback: (...args: any[]) => any): void {
     switch (eventName) {
       case 'close': {

@@ -2,7 +2,7 @@ import Box2D from '@plane2d/core';
 import {nanoid} from 'nanoid';
 import {Player} from 'src/server/store/player';
 import {AudioChannel} from 'src/server/config/constants';
-import {PhysicsEngine, TEMP_createWorldBoundaries} from 'src/shared/physics-engine';
+import {PhysicsEngine} from 'src/shared/physics-engine';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import {snapshotModel} from 'src/shared/buffer-schema';
@@ -83,9 +83,9 @@ export class GameRoom {
     this.createdAt = new Date();
     this.creatorId = creatorId;
     this.id = nanoid();
-    this.engine = new PhysicsEngine();
+    this.engine = new PhysicsEngine(this.processInput);
     this.engine.shouldInterpolate = false; // Do not interpolate on the server
-    TEMP_createWorldBoundaries(this.engine);
+    // TEMP_createWorldBoundaries(this.engine);
   }
 
   /**
@@ -124,37 +124,36 @@ export class GameRoom {
   };
 
   private update(deltaTime: number) {
-    this.processInputs();
     this.engine.fixedStep(deltaTime);
     this.emitWorldState();
   }
 
-  private processInputs() {
+  private processInput = () => {
     for (const player of this.players) {
       let input: BufferInputData | undefined;
       while ((input = player.dequeueInput()) !== undefined) {
         // Check if input contained movement
-        if (input.h > 0 || input.v > 0) {
-          const vector = new Box2D.b2Vec2();
-          const movementUnit = 90 / WORLD_SCALE;
-          if (input.h === Movement.Right) {
-            vector.Set(movementUnit, 0);
-          } else if (input.h === Movement.Left) {
-            vector.Set(-movementUnit, 0);
-          }
-          if (input.v === Movement.Down) {
-            vector.y = movementUnit;
-          } else if (input.v === Movement.Up) {
-            vector.y = -movementUnit;
-          }
-          player.body!.SetLinearVelocity(vector);
-          const vel = player.body!.GetLinearVelocity();
-          // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
-          player.lastProcessedInput = input.s;
+        if (input.h < 0 && input.v < 0) {
+          continue;
         }
+        const vector = {x: 0, y: 0};
+        const movementUnit = 150 / WORLD_SCALE;
+        if (input.h === Movement.Right) {
+          vector.x = movementUnit;
+        } else if (input.h === Movement.Left) {
+          vector.x = -movementUnit;
+        }
+        if (input.v === Movement.Down) {
+          vector.y = movementUnit;
+        } else if (input.v === Movement.Up) {
+          vector.y = -movementUnit;
+        }
+        player.body!.SetLinearVelocity(vector);
+        // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
+        player.lastProcessedInput = input.s;
       }
     }
-  }
+  };
 
   // Naive implementation returns positions of all players within rectangle
   // Ideal implementation only returns positions of viewable players in raycast
@@ -163,7 +162,7 @@ export class GameRoom {
     const VIEW_DISTANCE_Y = 720;
 
     for (const player of this.players) {
-      if (!player.channel) {
+      if (!player.socket) {
         continue; // Player has disconnected or left the room
       }
       const playerEntities: BufferPlayerData[] = [];
@@ -198,13 +197,13 @@ export class GameRoom {
         }
       }
       const state: BufferSnapshotData = {
-        seq: player.lastProcessedInput,
-        tick: this.tick,
-        players: playerEntities,
+        s: player.lastProcessedInput,
+        t: this.tick,
+        p: playerEntities,
       };
       console.log('State:', state);
       const buffer = snapshotModel.toBuffer(state);
-      player.channel.raw.emit(buffer);
+      player.socket.emit('state', buffer);
     }
   }
 
