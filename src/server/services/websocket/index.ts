@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import type {AnyFunction, BufferInputData} from 'src/shared/types';
 import {inputModel} from 'src/shared/buffer-schema';
 import {BufferEventType} from 'src/shared/constants';
+import {isObjectEmpty} from 'src/server/utils/object';
 
 export function bufferEventName(eventType: BufferEventType): string {
   return `buffer_${eventType}`;
@@ -37,15 +38,15 @@ export class ServerSocket {
         }
         this.dispatch(json[0], json[1]);
       } else if (data instanceof Buffer && data.byteLength < ServerSocket.MAX_MESSAGE_SIZE) {
+        // Create ArrayBuffer from raw buffer
         const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-        console.log('server received message:', data.buffer, arrayBuffer);
-        let dataObject = inputModel.fromBuffer(arrayBuffer);
-        if (!('_e' in dataObject)) {
-          // Handle action type here
-          // const action =
-          dataObject = undefined;
-        }
-        if (dataObject) {
+        const dataObject = inputModel.fromBuffer(arrayBuffer);
+        // if (!('_e' in dataObject)) {
+        //   // Handle action type here
+        //   // const action =
+        //   dataObject = undefined;
+        // }
+        if (isObjectEmpty(dataObject)) {
           this.dispatch(bufferEventName(dataObject._e), dataObject);
         }
       }

@@ -1,6 +1,6 @@
 import {createFastifyPlugin} from 'src/server/plugins';
 import {verifyJwt} from 'src/server/config/keys';
-import {isRecord} from 'src/server/utils/object';
+import {isObject} from 'src/server/utils/object';
 import {CookieKeys} from 'src/server/config/constants';
 
 export const jwtAuthPlugin = createFastifyPlugin('jwt-auth', (fastify) => {
@@ -11,7 +11,7 @@ export const jwtAuthPlugin = createFastifyPlugin('jwt-auth', (fastify) => {
     const {config} = reply.context;
 
     // Only check for JWTs on protected routes
-    if (isRecord(config) && config.protected) {
+    if (isObject(config) && config.protected) {
       if (!request.cookies[CookieKeys.Refresh]) {
         reply.status(400);
         throw new Error('No refresh token.');
