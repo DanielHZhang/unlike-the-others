@@ -2,7 +2,7 @@
 import {jsx} from '@emotion/react';
 import {motion} from 'framer-motion';
 import {childVariants} from 'src/client/components/animation/route';
-import {Flex, Icon} from 'src/client/components/base';
+import {Icon, MotionFlex, Stack} from 'src/client/components/base';
 import {HomepageLink} from 'src/client/components/home/link';
 
 type Link = {
@@ -17,16 +17,16 @@ type Props = {
 
 export const AuthNav = ({upper, lower}: Props): JSX.Element => {
   return (
-    <Flex flow='column' crossAxis='center' css={{marginBottom: '2rem'}}>
+    <Stack flow='column' crossAxis='center' css={{marginBottom: '2rem', letterSpacing: '2px'}}>
       <motion.div key={upper.url} variants={childVariants}>
         <HomepageLink to={upper.url}>{upper.text}</HomepageLink>
       </motion.div>
-      <motion.div key='divider' variants={childVariants}>
+      <MotionFlex key='divider' variants={childVariants} crossAxis='center'>
         <Icon.Scale />
-      </motion.div>
+      </MotionFlex>
       <motion.div key={lower.url} variants={childVariants}>
         <HomepageLink to={lower.url}>{lower.text}</HomepageLink>
       </motion.div>
-    </Flex>
+    </Stack>
   );
 };

@@ -26,7 +26,7 @@ export namespace Icon {
   );
 
   export const Scale = ({size = 20, color = '#3B3D3D'}: Props): JSX.Element => (
-    <svg width={size} height={size} viewBox='0 0 24 24' style={{margin: '8px 0 4px 0'}}>
+    <svg width={size} height={size} viewBox='0 0 24 24'>
       <path
         fill={color}
         d='M23 13.8a1 1 0 000-.2l-2.4-6A3 3 0 0022 5a1 1 0 00-2 0 1 1 0 01-1.9.5A2.9 2.9 0 0015.5 4H13V3a1 1 0 00-2 0v1H8.5a2.9 2.9 0 00-2.6 1.5A1 1 0 014 5a1 1 0 00-2 0 3 3 0 001.4 2.5L1 13.6a1 1 0 000 .2 1 1 0 00-.1.2 4 4 0 008 0 1 1 0 000-.2 1 1 0 000-.2L6.5 7.5a3 3 0 001-1 1 1 0 01.9-.5H11v14H8a1 1 0 000 2h8a1 1 0 000-2h-3V6h2.5a1 1 0 01.9.4 3 3 0 001 1.1L15 13.6a1 1 0 000 .2 1 1 0 00-.1.2 4 4 0 008 0 1 1 0 000-.2zm-18-5L6.6 13H3.4zM6.7 15A2 2 0 015 16a2 2 0 01-1.7-1zM19 8.9l1.6 4.1h-3.2zm0 7.1a2 2 0 01-1.7-1h3.4a2 2 0 01-1.7 1z'

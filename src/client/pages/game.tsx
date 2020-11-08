@@ -7,7 +7,7 @@ import {useAsyncAtomLoadable} from 'src/client/hooks';
 import {connection} from 'src/client/network';
 import {GameLoading} from 'src/client/components/game/loading';
 import {GameWindow} from 'src/client/components/game/window';
-import {Flex, Icon} from 'src/client/components/base';
+import {Flex, Icon, Stack} from 'src/client/components/base';
 import {Title} from 'src/client/components/title';
 import {HomepageLink} from 'src/client/components/home/link';
 import {BufferInputData} from 'src/shared/types';
@@ -31,33 +31,33 @@ export const GamePage = (): JSX.Element => {
   // console.log('what happened:', what);
   // console.log('this happened:', inputModel.fromBuffer(serialized));
 
-  useEffect(() => {
-    // Do not run the effect unless the access token is defined
-    // and the connection has not yet been initiated.
-    if (user.state === 'loading' || connection.isOpen()) {
-      return;
-    }
-    if (user.state === 'hasError' || !user.contents.isAuthed) {
-      return setLocation('/');
-    }
-    if (!user.contents.accessToken) {
-      return;
-    }
-    connection.onConnect(user.contents.accessToken, (error) => {
-      if (error) {
-        setError(error);
-      } else {
-        setLoading(false);
-      }
-    });
-    return () => {
-      connection.dispose(); // Dispose of the socket on page unmount
-    };
-  }, [user]);
+  // useEffect(() => {
+  //   // Do not run the effect unless the access token is defined
+  //   // and the connection has not yet been initiated.
+  //   if (user.state === 'loading' || connection.isOpen()) {
+  //     return;
+  //   }
+  //   if (user.state === 'hasError' || !user.contents.isAuthed) {
+  //     return setLocation('/');
+  //   }
+  //   if (!user.contents.accessToken) {
+  //     return;
+  //   }
+  //   connection.onConnect(user.contents.accessToken, (error) => {
+  //     if (error) {
+  //       setError(error);
+  //     } else {
+  //       setLoading(false);
+  //     }
+  //   });
+  //   return () => {
+  //     connection.dispose(); // Dispose of the socket on page unmount
+  //   };
+  // }, [user]);
 
-  if (error) {
+  if (true || error) {
     return (
-      <Flex flow='column' css={{height: '100%', paddingBottom: '6rem'}}>
+      <Flex flow='column' css={{height: '100%', paddingBottom: '5rem'}}>
         <div css={{margin: '3rem 0'}}>
           <Title animate={false} fontSize={48} />
         </div>
@@ -67,11 +67,18 @@ export const GamePage = (): JSX.Element => {
           </div>
           <div css={{marginTop: 8, letterSpacing: 4, fontSize: 32}}>ERROR</div>
           <div css={{marginTop: 8}}>{error}</div>
-          <div css={{marginTop: '3rem'}}>
-            <HomepageLink to='/' css={{letterSpacing: '0.15em'}}>
-              HOME
+          <Stack crossAxis='center' flow='column' css={{marginTop: '5rem', letterSpacing: '2px'}}>
+            <HomepageLink
+              to='/game'
+              onClick={() => window.location.reload()} /* css={{letterSpacing: '0.15em'}} */
+            >
+              Reload
             </HomepageLink>
-          </div>
+            <div>
+              <Icon.Scale />
+            </div>
+            <HomepageLink to='/' /* css={{letterSpacing: '0.15em'}} */>Home</HomepageLink>
+          </Stack>
         </Flex>
       </Flex>
     );
