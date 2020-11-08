@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import {Rectangle} from 'src/client/game/debug';
 import {PlayerEntity} from 'src/client/game/entities/player';
 import {KeyboardManager} from 'src/client/game/keyboard';
 import {connection} from 'src/client/network';
@@ -20,6 +21,7 @@ export class Game extends PIXI.Application {
   protected keyboard: KeyboardManager;
   protected camera: PIXI.Container;
   protected scene: PIXI.Container;
+  protected transition: PIXI.Container;
   protected background: PIXI.Sprite;
   protected player: PlayerEntity;
   protected otherPlayers: PlayerEntity[] = [];
@@ -57,12 +59,27 @@ export class Game extends PIXI.Application {
 
     // Configure main scene
     this.scene = new PIXI.Container();
+    this.transition = new PIXI.Container();
+
+    const mask = new PIXI.Graphics();
+    this.mask = mask;
+    mask.beginFill(0xff3300);
+    mask.lineStyle(0);
+    mask.drawCircle(0, 0, 100);
+    mask.endFill();
+    this.camera.mask = mask;
+    // this.transition.mask = mask;
+    // this.camera.addChild(mask);
 
     // Add direct children to main stage
-    this.stage.addChild(this.camera, this.scene);
+    this.stage.addChild(this.camera, this.transition /* this.scene, */);
+    // this.stage.addChild(this.camera, /* this.scene, */ this.transition);
 
     // Temp, clean up later
     this.background = new PIXI.Sprite();
+    this.camera.addChild(mask);
+    // this.stage.addChild(mask);
+    // this.stage.addChild(new Rectangle(0, 0, 200, 200));
 
     // this.background.anchor.copyFrom({x: 0.5, y: 0.5});
     // // MASK (clip things outside the background border)
@@ -91,6 +108,10 @@ export class Game extends PIXI.Application {
     this.player.scale.set(0.4, 0.4);
     this.camera.addChild(this.background);
     this.camera.addChild(this.player);
+
+    setTimeout(() => {
+      this.ticker.start();
+    }, 3000);
   }
 
   // public dispose(): void {
@@ -166,6 +187,8 @@ export class Game extends PIXI.Application {
     // event.preventDefault();
   };
 
+  mask: PIXI.Graphics;
+
   /**
    * Update function of the game loop.
    * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
@@ -173,6 +196,17 @@ export class Game extends PIXI.Application {
   protected update(deltaTime: number): void {
     // Follow player position with camera
     this.camera.pivot.copyFrom(this.player.position);
+
+    if (this.mask) {
+      if (this.mask.scale.x < 20) {
+        this.mask.scale.set(this.mask.scale.x + 0.1 * deltaTime);
+        console.log('setting mask scale');
+      } else {
+        this.camera.mask = null;
+        this.mask.visible = false;
+        this.mask = undefined;
+      }
+    }
 
     // console.log(
     //   'Frame time:',
@@ -225,6 +259,6 @@ export class Game extends PIXI.Application {
       h: input.horizontal,
       v: input.vertical,
     };
-    connection.emitRaw(inputModel.toBuffer(serialize));
+    // connection.emitRaw(inputModel.toBuffer(serialize));
   }
 }

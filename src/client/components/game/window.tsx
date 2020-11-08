@@ -1,14 +1,15 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
 import {useEffect, useRef, useState} from 'react';
+import {AnimatePresence} from 'framer-motion';
 import {useRecoilValue} from 'recoil';
 import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/hooks';
 import {debounce} from 'src/client/utils';
 import {Game} from 'src/client/game';
+import {Flex} from 'src/client/components/base';
 import {connection} from 'src/client/network';
 import {GameLoading} from 'src/client/components/game/loading';
-import {Flex} from 'src/client/components/base';
 
 export const GameWindow = (): JSX.Element => {
   const gameRef = useRef<Game | null>(null);
@@ -17,6 +18,9 @@ export const GameWindow = (): JSX.Element => {
   const [loading, setLoading] = useState(true);
 
   useDidMount(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
     if (!canvasRef.current) {
       throw new Error('Canvas ref was not initialized.');
     }
@@ -66,9 +70,12 @@ export const GameWindow = (): JSX.Element => {
   }, [keybindings]);
 
   return (
-    <Flex crossAxis='stretch' css={{minHeight: '100%'}}>
-      {loading && <GameLoading />}
-      <canvas ref={canvasRef} css={{position: 'absolute', display: loading ? 'none' : 'block'}} />
+    <Flex crossAxis='stretch' css={{minHeight: '100%', overflow: 'hidden', position: 'relative'}}>
+      <canvas
+        ref={canvasRef}
+        css={{position: 'absolute', display: loading ? 'none' : 'block', zIndex: 1}}
+      />
+      <AnimatePresence>{loading && <GameLoading />}</AnimatePresence>
     </Flex>
   );
 };

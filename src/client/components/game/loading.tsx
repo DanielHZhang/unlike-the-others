@@ -1,9 +1,10 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {motion, useAnimation} from 'framer-motion';
-import {Flex} from 'src/client/components/base';
+import {motion, useAnimation, useIsPresent, usePresence} from 'framer-motion';
+import {Flex, MotionFlex} from 'src/client/components/base';
 import {Title} from 'src/client/components/title';
 import {FingerprintSpinner} from 'src/client/components/spinner/fingerprint';
+import {useEffect} from 'react';
 
 const loadingText = Array.from('Loading . . .');
 const initial = {
@@ -12,7 +13,16 @@ const initial = {
 };
 
 export const GameLoading = (): JSX.Element => {
+  // const [isPresent, safeToRemove] = usePresence();
   const letterAnimation = useAnimation();
+  // const transitionAnimation = useAnimation();
+
+  // console.log(isPresent, safeToRemove);
+  // useEffect(() => {
+  //   if (!isPresent) {
+  //     letterAnimation.stop();
+  //   }
+  // }, [isPresent]);
 
   async function animateLoop() {
     for (;;) {
@@ -44,19 +54,19 @@ export const GameLoading = (): JSX.Element => {
   animateLoop();
 
   return (
-    <Flex flow='column' css={{width: '100%', paddingBottom: '10rem'}}>
-      <div css={{margin: '3rem 0'}}>
+    <Flex flow='column' css={{width: '100%', paddingBottom: '10rem', zIndex: 2}}>
+      <motion.div key='anim-title' exit={{opacity: 0}} css={{margin: '3rem 0'}}>
         <Title animate={false} fontSize={48} />
-      </div>
-      <Flex flow='column' mainAxis='center' crossAxis='center' grow={1}>
+      </motion.div>
+      <MotionFlex flow='column' mainAxis='center' crossAxis='center' grow={1} exit={{opacity: 0}}>
         <FingerprintSpinner color='#fff' duration={2500} />
         <Flex
           mainAxis='center'
           css={{
             marginTop: 32,
             letterSpacing: '0.5rem',
-            // fontFamily: 'Simplifica',
             fontSize: 20,
+            // fontFamily: 'Simplifica',
             // fontWeight: 500,
           }}
         >
@@ -72,7 +82,7 @@ export const GameLoading = (): JSX.Element => {
             </motion.div>
           ))}
         </Flex>
-      </Flex>
+      </MotionFlex>
     </Flex>
   );
 };

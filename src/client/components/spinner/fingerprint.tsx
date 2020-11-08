@@ -9,6 +9,7 @@ const containerPadding = 2;
 type RingProps = {
   ringBase: number;
   duration: number;
+  animate?: boolean;
 };
 
 const Ring = styled(
@@ -28,6 +29,7 @@ const Ring = styled(
     right: 0;
     top: 0;
     color: ${props.color};
+    animation-play-state: ${props.animate ? 'running' : 'paused'};
 
     &:nth-of-type(1) {
       height: ${props.ringBase + 0 * props.ringBase}px;
@@ -102,16 +104,17 @@ type Props = {
   size?: number;
   color?: string;
   duration?: number;
+  animate?: boolean;
 };
 
 export const FingerprintSpinner = (props: Props): JSX.Element => {
-  const {size = 120, color = '#fff', duration = 1500} = props;
+  const {size = 120, color = '#fff', duration = 1500, animate = true} = props;
   const outerRingSize = size - containerPadding * 2;
   const ringBase = outerRingSize / numRings;
   return (
     <SpinnerWrapper size={size}>
       {Array.from({length: numRings}).map((_, index) => (
-        <Ring key={index} color={color} ringBase={ringBase} duration={duration} />
+        <Ring key={index} color={color} ringBase={ringBase} duration={duration} animate={animate} />
       ))}
     </SpinnerWrapper>
   );
