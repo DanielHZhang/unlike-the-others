@@ -44,7 +44,7 @@ export const GameLoading = (): JSX.Element => {
   animateLoop();
 
   return (
-    <Flex flow='column' css={{height: '100%', paddingBottom: '10rem'}}>
+    <Flex flow='column' css={{width: '100%', paddingBottom: '10rem'}}>
       <div css={{margin: '3rem 0'}}>
         <Title animate={false} fontSize={48} />
       </div>

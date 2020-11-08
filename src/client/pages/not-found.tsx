@@ -15,7 +15,7 @@ export const NotFoundPage = (): JSX.Element => {
   });
 
   return (
-    <Flex flow='column'>
+    <Flex flow='column' css={{minHeight: '100%'}}>
       <div css={{margin: '3rem 0'}}>
         <Title fontSize={48} />
       </div>

@@ -42,7 +42,9 @@ export class Game extends PIXI.Application {
     this.startTime = Date.now();
 
     // Configure ticker
+    this.ticker.autoStart = false;
     this.ticker.add(this.update, this);
+    this.ticker.stop();
     // this.ticker.maxFPS = 15;
 
     // Configure camera scene
@@ -75,6 +77,7 @@ export class Game extends PIXI.Application {
   }
 
   public async loadAssets(): Promise<void> {
+    // await socket should be in good state here;
     await new Promise((resolve, reject) => {
       this.loader.add([
         {name: 'floorplan', url: '/assets/floorplan.jpg'},
@@ -131,12 +134,12 @@ export class Game extends PIXI.Application {
   /**
    * Resize the renderer and set the camera based on the current window size.
    */
-  public resizeCameraView(): void {
+  public resizeCameraView = (): void => {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     this.renderer.resize(screenWidth, screenHeight);
     this.camera.position.set(screenWidth / 2, screenHeight / 2);
-  }
+  };
 
   /**
    * Window blur event handler.

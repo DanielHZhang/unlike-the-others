@@ -1,17 +1,20 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/react';
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useRecoilValue} from 'recoil';
 import {atoms} from 'src/client/store';
 import {useDidMount} from 'src/client/hooks';
 import {debounce} from 'src/client/utils';
 import {Game} from 'src/client/game';
 import {connection} from 'src/client/network';
+import {GameLoading} from 'src/client/components/game/loading';
+import {Flex} from 'src/client/components/base';
 
 export const GameWindow = (): JSX.Element => {
   const gameRef = useRef<Game | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keybindings = useRecoilValue(atoms.game.keybindings);
+  const [loading, setLoading] = useState(true);
 
   useDidMount(() => {
     if (!canvasRef.current) {
@@ -62,5 +65,10 @@ export const GameWindow = (): JSX.Element => {
     }
   }, [keybindings]);
 
-  return <canvas ref={canvasRef} css={{position: 'absolute', display: 'block'}} />;
+  return (
+    <Flex crossAxis='stretch' css={{minHeight: '100%'}}>
+      {loading && <GameLoading />}
+      <canvas ref={canvasRef} css={{position: 'absolute', display: loading ? 'none' : 'block'}} />
+    </Flex>
+  );
 };
