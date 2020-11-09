@@ -100,5 +100,18 @@ export const authRoutes: FastifyPluginCallback = (fastify, options, next) => {
     },
   });
 
+  // fastify.route({
+  //   method: 'POST',
+  //   url: '/ticket',
+  //   config: {
+  //     protected: true,
+  //   },
+  //   handler: async (req, reply) => {
+  //     // this would require all guests to make user accounts
+  //     const make = await prisma.ticket.create({data: {id: ''}});
+  //     // const same =
+  //   },
+  // });
+
   next();
 };

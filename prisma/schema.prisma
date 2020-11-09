@@ -12,11 +12,11 @@ model User {
   email    String @unique
   username String @unique
   password String
-  ticket   Ticket @relation(fields: [ticketId], references: [id])
-  ticketId String
+  // ticket   Ticket @relation(fields: [ticketId], references: [id])
+  // ticketId String
 }
 
-model Ticket {
-  id   String @id
-  User User
-}
+// model Ticket {
+//   id   String @id
+//   User User
+// }
