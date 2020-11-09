@@ -33,8 +33,9 @@ export class ClientSocket {
 
     this.isConnected = new Promise((resolve, reject) => {
       const onOpenError = (event: CloseEvent) => {
-        console.log('ON OPEN ERROR CLOSE:', event, event.reason);
-        reject(event.reason);
+        const message =
+          event.code === 1006 ? 'There is no active game with that code!' : 'Something went wrong.';
+        reject(message);
         this.dispose();
       };
       socket.addEventListener('open', () => {
@@ -43,12 +44,11 @@ export class ClientSocket {
         resolve(true);
       });
       socket.addEventListener('close', onOpenError);
-      socket.addEventListener('error', this.handleError);
     });
 
     await this.isConnected;
     socket.addEventListener('message', this.handleMessage);
-    // socket.addEventListener('close', this.handleClose);
+    socket.addEventListener('close', this.handleClose);
     socket.addEventListener('error', this.handleError);
     this.socket = socket;
   }

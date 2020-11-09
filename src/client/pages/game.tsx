@@ -44,7 +44,6 @@ export const GamePage = (): JSX.Element => {
         socket.on('state', app.receiveNetwork);
         setMounted(true);
       } catch (error) {
-        console.error('Error occurred:', error);
         setErrorMessage(typeof error === 'string' ? error : 'Something went wrong.');
       }
     })();
@@ -92,8 +91,11 @@ export const GamePage = (): JSX.Element => {
         ref={canvasRef}
         css={{position: 'absolute', display: mounted ? 'block' : 'none', zIndex: 1}}
       />
-      {errorMessage && <GameError message={errorMessage} />}
-      <AnimatePresence>{!mounted && <GameLoading />}</AnimatePresence>
+      {errorMessage ? (
+        <GameError message={errorMessage} />
+      ) : (
+        <AnimatePresence>{!mounted && <GameLoading />}</AnimatePresence>
+      )}
     </Flex>
   );
 };

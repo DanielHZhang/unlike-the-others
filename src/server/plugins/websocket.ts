@@ -39,7 +39,7 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
       // Ensure player and room exists (/room/:id/join called)
       const player = Player.getById(claims.id);
       if (!player || !player.roomId || !GameRoom.getById(player.roomId)) {
-        throw new Error('There is no active game with that code!');
+        throw new Error('No active player or room found.');
       }
 
       wss.handleUpgrade(request, socket, head, (socket) => {
@@ -47,8 +47,6 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
       });
     } catch (error) {
       fastify.log.info(`Websocket destroyed before upgrade. Reason: ${error.message}`);
-      // socket.
-      socket.emit('close', 'wow');
       socket.destroy();
     }
   });
