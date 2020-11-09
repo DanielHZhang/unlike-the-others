@@ -6,6 +6,7 @@ import {createFastifyPlugin} from 'src/server/plugins';
 import {websocketConnectionHandler} from 'src/server/services/websocket';
 import {verifyJwt} from 'src/server/config/keys';
 import {GameRoom, Player} from 'src/server/store';
+import {BASE_URL, HOST} from 'src/shared/constants';
 
 type Options = {
   /** Number of seconds between ping-pong messages. */
@@ -29,8 +30,12 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
 
   fastify.server.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
     try {
-      // Ensure access token is valid
-      const {query} = url.parse(request.url ?? '', true);
+      if (request.headers.origin !== BASE_URL || !request.url) {
+        throw new Error('Bad origin.');
+      }
+
+      // Ensure ticket is valid
+      const {query} = url.parse(request.url, true);
       if (typeof query.token !== 'string') {
         throw new Error('Bad token.');
       }

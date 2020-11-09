@@ -1,11 +1,11 @@
 import Axios, {AxiosError} from 'axios';
-import {ROOT_URL} from 'src/shared/constants';
+import {BASE_URL} from 'src/shared/constants';
 import type {AccessTokenData, FastifyReplyError} from 'src/shared/types';
 
 export const axios = Axios.create();
 
 // Ensure base URL is set depending on environment
-axios.defaults.baseURL = `http://${ROOT_URL}`;
+axios.defaults.baseURL = BASE_URL;
 
 // Attach interceptor to add CSRF token before each request
 const tokenRegex = /(?:^|;\s*)csrfToken=([^;]+)/;

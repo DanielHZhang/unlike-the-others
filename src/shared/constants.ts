@@ -1,16 +1,19 @@
-/** Boolean indicating whether the program is running in a production or development environment */
+/** Boolean indicating whether the program is running in a production or development environment. */
 export const IS_PRODUCTION_ENV = process.env.NODE_ENV === 'production';
 
-/** Base URL of the website */
-export const ROOT_URL = IS_PRODUCTION_ENV ? '' : 'localhost:8080';
+/** Host domain of the website. */
+export const HOST = IS_PRODUCTION_ENV ? '' : 'localhost:8080';
 
-/** Port to connect to the TCP server */
+/** Base url of the website. */
+export const BASE_URL = `http${IS_PRODUCTION_ENV ? 's' : ''}://${HOST}`;
+
+/** Port to connect to the TCP server. */
 export const PORT = 8080;
 
-/** Label of the Geckos.io channel */
+/** Label of the Geckos.io channel. */
 export const GECKOS_LABEL = 'udp';
 
-/** Conversion between metres and pixels (e.g. 1 metre = x pixels) */
+/** Conversion between metres and pixels (e.g. 1 metre = x pixels). */
 export const WORLD_SCALE = 30;
 
 /** Maximum number of characters for player usernames. */

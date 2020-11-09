@@ -1,5 +1,5 @@
 // import geckos, {ClientChannel, RawMessage} from '@geckos.io/client';
-import {GECKOS_LABEL, ROOT_URL, PORT} from 'src/shared/constants';
+import {GECKOS_LABEL, HOST, PORT} from 'src/shared/constants';
 import type {AnyFunction} from 'src/shared/types';
 
 // Connect to UDP channel only after successful TCP socket authentication
@@ -28,7 +28,7 @@ export class ClientSocket {
   }
 
   public async connect(endpoint: string): Promise<void> {
-    const socket = new WebSocket(`ws://${ROOT_URL}/${endpoint}`);
+    const socket = new WebSocket(`ws://${HOST}/${endpoint}`);
     socket.binaryType = 'arraybuffer';
 
     this.isConnected = new Promise((resolve, reject) => {
