@@ -5,6 +5,7 @@ import type {IncomingMessage} from 'http';
 import {createFastifyPlugin} from 'src/server/plugins';
 import {websocketConnectionHandler} from 'src/server/services/websocket';
 import {verifyJwt} from 'src/server/config/keys';
+import {GameRoom, Player} from 'src/server/store';
 
 type Options = {
   /** Number of seconds between ping-pong messages. */
@@ -28,15 +29,26 @@ export const websocketPlugin = createFastifyPlugin<Options>('websocket', (fastif
 
   fastify.server.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
     try {
+      // Ensure access token is valid
       const {query} = url.parse(request.url ?? '', true);
       if (typeof query.token !== 'string') {
         throw new Error('Bad token.');
       }
       const claims = verifyJwt('access', query.token);
+
+      // Ensure player and room exists (/room/:id/join called)
+      const player = Player.getById(claims.id);
+      if (!player || !player.roomId || !GameRoom.getById(player.roomId)) {
+        throw new Error('There is no active game with that code!');
+      }
+
       wss.handleUpgrade(request, socket, head, (socket) => {
         wss.emit('connection', socket, request, claims);
       });
     } catch (error) {
+      fastify.log.info(`Websocket destroyed before upgrade. Reason: ${error.message}`);
+      // socket.
+      socket.emit('close', 'wow');
       socket.destroy();
     }
   });

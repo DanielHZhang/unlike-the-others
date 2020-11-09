@@ -35,7 +35,9 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   // Ensure player or room exists (/room/:id/join called)
   const player = Player.getById(claims.id);
   if (!player || !player.roomId || !GameRoom.getById(player.roomId)) {
-    return raw.close();
+    const code = 4000;
+    fastify.log.info(`Websocket closed before initialization. Code: ${code}`);
+    return raw.close(code, 'There is no active game with that code!');
   }
 
   const socket = new ServerSocket(raw);
@@ -46,6 +48,8 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
    * Handle client websocket disconnect.
    */
   socket.on('close', (code, reason) => {
+    fastify.log.info(`Websocket client ${player.id} closed. Code: ${code} Reason: ${reason}`);
+
     const room = GameRoom.getById(player.roomId);
     if (!room) {
       throw new Error(`No room with id '${player.roomId}' found!`);
@@ -63,8 +67,6 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
         GameRoom.deleteById(room.id);
       }
     }
-
-    fastify.log.info(`Websocket client ${player.id} closed, code: ${code}, reason: ${reason}`);
   });
 
   /**

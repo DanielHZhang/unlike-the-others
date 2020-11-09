@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js';
-import {Rectangle} from 'src/client/game/debug';
+import {Ease} from 'src/client/game/ease';
 import {PlayerEntity} from 'src/client/game/entities/player';
 import {KeyboardManager} from 'src/client/game/keyboard';
-import {connection} from 'src/client/network';
+import {ClientSocket} from 'src/client/network';
 import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
 import {BufferEventType, Movement, WORLD_SCALE} from 'src/shared/constants';
 import {PhysicsEngine} from 'src/shared/physics-engine';
@@ -12,17 +12,20 @@ type GameOptions = {
   view: HTMLCanvasElement;
   keybindings: Keybindings;
   debug?: boolean;
+  socket: ClientSocket;
 };
 
 export class Game extends PIXI.Application {
   protected readonly debug: boolean;
   protected readonly startTime: number;
-  protected engine: PhysicsEngine;
-  protected keyboard: KeyboardManager;
+  protected readonly socket: ClientSocket;
+  protected readonly engine: PhysicsEngine;
+  protected readonly keyboard: KeyboardManager;
   protected camera: PIXI.Container;
   protected scene: PIXI.Container;
   protected transition: PIXI.Container;
   protected background: PIXI.Sprite;
+  protected mask: PIXI.Graphics;
   protected player: PlayerEntity;
   protected otherPlayers: PlayerEntity[] = [];
   protected pendingInputs: InputData[] = [];
@@ -41,6 +44,7 @@ export class Game extends PIXI.Application {
     this.debug = options.debug ?? false;
     this.engine = new PhysicsEngine(this.processInput);
     this.keyboard = new KeyboardManager(options.keybindings);
+    this.socket = options.socket;
     this.startTime = Date.now();
 
     // Configure ticker
@@ -49,9 +53,12 @@ export class Game extends PIXI.Application {
     this.ticker.stop();
     // this.ticker.maxFPS = 15;
 
+    const {width: screenWidth, height: screenHeight} = this.renderer.screen;
+    const largerDimension = screenWidth > screenHeight ? screenWidth : screenHeight;
+
     // Configure camera scene
     this.camera = new PIXI.Container();
-    this.camera.position.set(this.renderer.screen.width / 2, this.renderer.screen.height / 2);
+    this.camera.position.set(screenWidth / 2, screenHeight / 2);
 
     // Configure main player entity
     this.player = new PlayerEntity(this.engine.createPlayerBody());
@@ -61,23 +68,22 @@ export class Game extends PIXI.Application {
     this.scene = new PIXI.Container();
     this.transition = new PIXI.Container();
 
-    const mask = new PIXI.Graphics();
-    this.mask = mask;
-    mask.beginFill(0xff3300);
-    mask.lineStyle(0);
-    mask.drawCircle(0, 0, 100);
-    mask.endFill();
-    this.camera.mask = mask;
-    // this.transition.mask = mask;
-    // this.camera.addChild(mask);
+    // Mask for transition
+    this.mask = new PIXI.Graphics();
+    this.mask.beginFill(0x111111);
+    this.mask.lineStyle(0);
+    this.mask.drawCircle(0, 0, largerDimension);
+    this.mask.endFill();
+    this.mask.scale.set(0.01);
+    this.camera.mask = this.mask;
 
     // Add direct children to main stage
-    this.stage.addChild(this.camera, this.transition /* this.scene, */);
-    // this.stage.addChild(this.camera, /* this.scene, */ this.transition);
+    this.stage.addChild(this.camera);
 
     // Temp, clean up later
     this.background = new PIXI.Sprite();
-    this.camera.addChild(mask);
+    this.background.anchor.set(0.5, 0.5);
+    this.camera.addChild(this.mask);
     // this.stage.addChild(mask);
     // this.stage.addChild(new Rectangle(0, 0, 200, 200));
 
@@ -89,8 +95,6 @@ export class Game extends PIXI.Application {
     // mask.endFill();
     // this.stage.addChild(mask);
     // this.stage.mask = mask;
-
-    this.loadAssets();
   }
 
   public async loadAssets(): Promise<void> {
@@ -103,15 +107,12 @@ export class Game extends PIXI.Application {
       this.loader.load(resolve);
       this.loader.onError.once(reject);
     });
+
     this.background.texture = this.loader.resources.floorplan.texture;
     this.player.texture = this.loader.resources.player.texture;
     this.player.scale.set(0.4, 0.4);
-    this.camera.addChild(this.background);
-    this.camera.addChild(this.player);
-
-    setTimeout(() => {
-      this.ticker.start();
-    }, 3000);
+    this.camera.addChild(this.background, this.player);
+    this.ticker.start();
   }
 
   // public dispose(): void {
@@ -187,8 +188,6 @@ export class Game extends PIXI.Application {
     // event.preventDefault();
   };
 
-  mask: PIXI.Graphics;
-
   /**
    * Update function of the game loop.
    * @param deltaTime `ticker.deltaTime` Scalar time value from last frame to this frame.
@@ -197,14 +196,13 @@ export class Game extends PIXI.Application {
     // Follow player position with camera
     this.camera.pivot.copyFrom(this.player.position);
 
-    if (this.mask) {
-      if (this.mask.scale.x < 20) {
-        this.mask.scale.set(this.mask.scale.x + 0.1 * deltaTime);
-        console.log('setting mask scale');
+    if (this.mask.visible) {
+      if (this.mask.scale.x <= 1) {
+        this.mask.scale.set(this.mask.scale.x + 0.05 * Ease.out(this.mask.scale.x, 2) * deltaTime);
       } else {
         this.camera.mask = null;
         this.mask.visible = false;
-        this.mask = undefined;
+        this.camera.removeChild(this.mask);
       }
     }
 
@@ -241,10 +239,6 @@ export class Game extends PIXI.Application {
     if (input.horizontal < 0 && input.vertical < 0) {
       return;
     }
-    this.enqueueInput(input);
-  };
-
-  private enqueueInput(input: InputData): void {
     input.sequenceNumber = this.sequenceNumber++;
 
     // DEBUG:
@@ -259,6 +253,10 @@ export class Game extends PIXI.Application {
       h: input.horizontal,
       v: input.vertical,
     };
-    // connection.emitRaw(inputModel.toBuffer(serialize));
-  }
+    // this.socket.emitRaw(inputModel.toBuffer(serialize));
+    // this.enqueueInput(input);
+  };
+
+  // private enqueueInput(input: InputData): void {
+  // }
 }

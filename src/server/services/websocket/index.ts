@@ -30,14 +30,27 @@ export class ServerSocket {
 
     // Handle messages received from the client
     this.connection.on('message', (data) => {
-      console.log('what is the data', data);
-      if (typeof data === 'string' && data.length < ServerSocket.MAX_MESSAGE_SIZE) {
-        const json = JSON.parse(data);
-        if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
-          throw new Error('Improperly formatted socket message.');
+      if (typeof data === 'string') {
+        if (data.length > ServerSocket.MAX_MESSAGE_SIZE) {
+          // Close connection due to large message size.
+          // Should never occur unless client is forcefully injecting data.
+          return this.connection.close(1009, 'MAX_MESSAGE_SIZE exceeded.');
         }
-        this.dispatch(json[0], json[1]);
-      } else if (data instanceof Buffer && data.byteLength < ServerSocket.MAX_MESSAGE_SIZE) {
+        try {
+          const json = JSON.parse(data);
+          if (!Array.isArray(json) || json.length > 2 || typeof json[0] !== 'string') {
+            throw new Error('Improperly formatted socket message.');
+          }
+          this.dispatch(json[0], json[1]);
+        } catch (error) {
+          // Bad JSON formatting or bad message
+        }
+      } else if (data instanceof Buffer) {
+        if (data.byteLength > ServerSocket.MAX_MESSAGE_SIZE) {
+          // Close connection due to large message size.
+          // Should never occur unless client is forcefully injecting data.
+          return this.connection.close(1009, 'MAX_MESSAGE_SIZE exceeded.');
+        }
         // Create ArrayBuffer from raw buffer
         const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
         const dataObject = inputModel.fromBuffer(arrayBuffer);
