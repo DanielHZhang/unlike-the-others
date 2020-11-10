@@ -248,14 +248,15 @@ export class Game extends PIXI.Application {
     this.pendingInputs.push(input);
 
     const serialize: BufferInputData = {
-      _e: BufferEventType.Movement,
       s: input.sequenceNumber,
       h: input.horizontal,
       v: input.vertical,
     };
-    // this.socket.emitRaw(inputModel.toBuffer(serialize));
+    this.socket.emitRaw(inputModel.toBuffer(serialize));
     // this.enqueueInput(input);
   };
+
+  private serializeInput() {}
 
   // private enqueueInput(input: InputData): void {
   // }

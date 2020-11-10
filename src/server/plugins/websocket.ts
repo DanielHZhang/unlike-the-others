@@ -6,7 +6,7 @@ import {createFastifyPlugin} from 'src/server/plugins';
 import {websocketConnectionHandler} from 'src/server/services/websocket';
 import {verifyJwt} from 'src/server/config/keys';
 import {GameRoom, Player} from 'src/server/store';
-import {BASE_URL, HOST} from 'src/shared/constants';
+import {BASE_URL} from 'src/shared/constants';
 
 type Options = {
   /** Number of seconds between ping-pong messages. */

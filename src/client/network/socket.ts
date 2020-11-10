@@ -75,6 +75,8 @@ export class ClientSocket {
     }
   }
 
+  public onRaw() {}
+
   // /**
   //  * Attach a listener to the WebRTC connection.
   //  */
@@ -117,6 +119,7 @@ export class ClientSocket {
   public dispose(): void {
     if (this.socket) {
       if (this.isOpen()) {
+        console.log('Websocket connection closed.');
         this.socket.close(1000, 'Disconnected');
       }
       this.socket.removeEventListener('message', this.handleMessage);
@@ -151,11 +154,11 @@ export class ClientSocket {
 
   private handleClose = (event: CloseEvent) => {
     console.log('Websocket connection closed.', event);
-    this.dispose();
+    this.dispatch('close', event);
   };
 
   private handleError = (event: Event) => {
-    console.error('Websocket error occured.', event);
+    console.log('Websocket error occured.', event);
   };
 
   private dispatch(eventName: string, ...dataArgs: any[]) {

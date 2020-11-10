@@ -23,5 +23,5 @@ export function createFastifyPlugin<T extends FastifyPluginOptions>(
 }
 
 export * from './auth';
-export * from './webrtc';
+// export * from './webrtc';
 export * from './websocket';

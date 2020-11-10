@@ -1,12 +1,9 @@
 import WebSocket from 'ws';
-import type {AnyFunction, BufferInputData} from 'src/shared/types';
-import {inputModel} from 'src/shared/buffer-schema';
+import {BufferSchema} from '@supersede/buffer-schema';
+import {inputModel, INPUT_SCHEMA_ID} from 'src/shared/buffer-schema';
 import {BufferEventType} from 'src/shared/constants';
 import {isObjectEmpty} from 'src/server/utils/object';
-
-export function bufferEventName(eventType: BufferEventType): string {
-  return `buffer_${eventType}`;
-}
+import type {AnyFunction} from 'src/shared/types';
 
 export class ServerSocket {
   /**
@@ -16,7 +13,7 @@ export class ServerSocket {
    */
   private static readonly MAX_MESSAGE_SIZE = 5e5;
   private connection: WebSocket;
-  private listeners = new Map<string, AnyFunction[]>();
+  private listeners = new Map<string | number, AnyFunction[]>();
   private isDisposed = false;
   public isAlive = true;
 
@@ -34,7 +31,7 @@ export class ServerSocket {
         if (data.length > ServerSocket.MAX_MESSAGE_SIZE) {
           // Close connection due to large message size.
           // Should never occur unless client is forcefully injecting data.
-          return this.connection.close(1009, 'MAX_MESSAGE_SIZE exceeded.');
+          return this.connection.close(1009, 'Max message size exceeded.');
         }
         try {
           const json = JSON.parse(data);
@@ -49,18 +46,19 @@ export class ServerSocket {
         if (data.byteLength > ServerSocket.MAX_MESSAGE_SIZE) {
           // Close connection due to large message size.
           // Should never occur unless client is forcefully injecting data.
-          return this.connection.close(1009, 'MAX_MESSAGE_SIZE exceeded.');
+          return this.connection.close(1009, 'Max message size exceeded.');
         }
         // Create ArrayBuffer from raw buffer
         const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-        const dataObject = inputModel.fromBuffer(arrayBuffer);
-        // if (!('_e' in dataObject)) {
-        //   // Handle action type here
-        //   // const action =
-        //   dataObject = undefined;
-        // }
-        if (isObjectEmpty(dataObject)) {
-          this.dispatch(bufferEventName(dataObject._e), dataObject);
+        const bufferId = BufferSchema.getIdFromBuffer(arrayBuffer);
+
+        let dataObject;
+        if (bufferId === INPUT_SCHEMA_ID) {
+          dataObject = inputModel.fromBuffer(arrayBuffer);
+        }
+
+        if (dataObject) {
+          this.dispatch(bufferId, dataObject);
         }
       }
     });
@@ -68,8 +66,8 @@ export class ServerSocket {
 
   public on(eventName: 'close', callback: (code: number, reason: string) => void): void;
   public on(eventName: 'error', callback: (error: Error) => void): void;
-  public on(eventName: string, callback: (data: any) => any): void;
-  public on(eventName: string, callback: (...args: any[]) => any): void {
+  public on(eventName: string | number, callback: (data: any) => any): void;
+  public on(eventName: string | number, callback: (...args: any[]) => any): void {
     switch (eventName) {
       case 'close': {
         this.connection.on('close', callback);

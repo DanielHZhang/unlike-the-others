@@ -5,7 +5,7 @@ import serveStaticPlugin from 'fastify-static';
 import csrfPlugin from 'fastify-xsurf';
 import {apiRoutes} from 'src/server/routes';
 import {prisma} from 'src/server/prisma';
-import {jwtAuthPlugin, webrtcPlugin, websocketPlugin} from 'src/server/plugins';
+import {jwtAuthPlugin, websocketPlugin} from 'src/server/plugins';
 import {ASSETS_FOLDER_PATH, SHUTDOWN_WAIT_TIME} from 'src/server/config/constants';
 import {IS_PRODUCTION_ENV, PORT} from 'src/shared/constants';
 import {BUILD_FOLDER_PATH} from 'src/webpack/constants';

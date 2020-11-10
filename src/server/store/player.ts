@@ -1,5 +1,4 @@
 import Box2D from '@plane2d/core';
-import {ServerChannel} from '@geckos.io/server';
 import {ServerSocket} from 'src/server/services/websocket';
 import type {BufferInputData} from 'src/shared/types';
 
@@ -12,7 +11,6 @@ export class Player {
   public uiid?: number; // Unsigned integer id
   public audioId?: string;
   public body?: Box2D.b2Body;
-  public channel?: ServerChannel;
   public roomId?: string;
   public socket?: ServerSocket;
   private active = false;

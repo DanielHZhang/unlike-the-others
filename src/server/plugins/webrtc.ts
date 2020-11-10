@@ -1,4 +1,4 @@
-import geckos, {iceServers} from '@geckos.io/server';
+// import geckos, {iceServers} from '@geckos.io/server';
 import {createFastifyPlugin} from 'src/server/plugins';
 import {Player} from 'src/server/store';
 import {GECKOS_LABEL, IS_PRODUCTION_ENV} from 'src/shared/constants';

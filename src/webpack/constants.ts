@@ -19,7 +19,7 @@ export const TEMPLATE_HTML_PATH = path.join(process.cwd(), 'src', 'client', 'tem
 export const vendors = [
   '@emotion/react',
   '@emotion/styled',
-  '@geckos.io/client',
+  '@plane2d/core',
   'framer-motion',
   'react',
   'react-dom',

@@ -44,14 +44,12 @@ export type BufferPlayerData = {
 };
 
 export type BufferInputData = {
-  _e: BufferEventType; // Event type
   s: number; // Sequence number
   h: number; // Horizontal movement
   v: number; // Vertical movement
 };
 
 export type BufferSnapshotData = {
-  _e: BufferEventType; // Event type
   s: number; // Sequence number
   t: number; // Tick number
   p: BufferPlayerData[]; // Players data array

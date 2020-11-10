@@ -115,6 +115,9 @@ export class GameRoom {
 
   private loop = () => {
     this.timeout = setTimeout(this.loop, PhysicsEngine.FIXED_TIMESTEP);
+
+
+
     const now = hrtimeMs();
     const delta = now - this.previous; // Delta update time in milliseconds
     // console.log('Looping delta:', delta);

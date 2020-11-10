@@ -6,6 +6,7 @@ import {bufferEventName, ServerSocket} from 'src/server/services/websocket';
 import {AudioChannel} from 'src/server/config/constants';
 import {BufferInputData, JwtClaims} from 'src/shared/types';
 import {BufferEventType} from 'src/shared/constants';
+import {INPUT_SCHEMA_ID} from 'src/shared/buffer-schema';
 
 const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
   if (typeof value !== 'object') {
@@ -32,13 +33,14 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
     return;
   }
 
+  // Player should exist, otherwise websocket would be destroyed before upgrade.
+  const player = Player.getById(claims.id)!;
   // Ensure player or room exists (/room/:id/join called)
-  const player = Player.getById(claims.id);
-  if (!player || !player.roomId || !GameRoom.getById(player.roomId)) {
-    const code = 4000;
-    fastify.log.info(`Websocket closed before initialization. Code: ${code}`);
-    return raw.close(code, 'There is no active game with that code!');
-  }
+  // if (!player || !player.roomId || !GameRoom.getById(player.roomId)) {
+  //   const code = 4000;
+  //   fastify.log.info(`Websocket closed before initialization. Code: ${code}`);
+  //   return raw.close(code, 'There is no active game with that code!');
+  // }
 
   const socket = new ServerSocket(raw);
   fastify.websocket.clients.push(socket);
@@ -70,10 +72,9 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   });
 
   /**
-   * Handle movement data buffer.
+   * Handle player movement input data buffer.
    */
-  socket.on(bufferEventName(BufferEventType.Movement), (input: BufferInputData) => {
-    console.log('received:', input);
+  socket.on(INPUT_SCHEMA_ID, (input: BufferInputData) => {
     player.enqueueInput(input);
   });
 

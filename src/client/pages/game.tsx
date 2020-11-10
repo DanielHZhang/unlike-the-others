@@ -42,6 +42,9 @@ export const GamePage = (): JSX.Element => {
         await socket.connect(`ws?token=${user.contents.accessToken}`);
         await app.loadAssets();
         socket.on('state', app.receiveNetwork);
+        socket.on('close', () => {
+          setErrorMessage('The server encountered an error and closed the connection.');
+        });
         setMounted(true);
       } catch (error) {
         setErrorMessage(typeof error === 'string' ? error : 'Something went wrong.');
