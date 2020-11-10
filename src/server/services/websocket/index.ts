@@ -1,6 +1,5 @@
 import WebSocket from 'ws';
 import {BufferSchema} from '@supersede/buffer-schema';
-import {inputModel, INPUT_SCHEMA_ID} from 'src/shared/game';
 import type {AnyFunction} from 'src/shared/types';
 
 export class ServerSocket {
@@ -57,14 +56,8 @@ export class ServerSocket {
         // Create ArrayBuffer from raw buffer
         const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
         const bufferId = BufferSchema.getIdFromBuffer(arrayBuffer);
-
-        let dataObject;
-        if (bufferId === INPUT_SCHEMA_ID) {
-          dataObject = inputModel.fromBuffer(arrayBuffer);
-        }
-
-        if (dataObject) {
-          this.dispatch(bufferId, dataObject);
+        if (bufferId) {
+          this.dispatch(bufferId, arrayBuffer);
         }
       }
     });

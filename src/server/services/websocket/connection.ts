@@ -72,7 +72,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
   });
 
   /**
-   * Handle player movement input data buffer.
+   * Handle player movement input buffer to be processed.
    */
   socket.on(INPUT_SCHEMA_ID, (input: BufferInputData) => {
     player.enqueueInput(input);
