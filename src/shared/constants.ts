@@ -34,6 +34,10 @@ export const MAX_PASSWORD_LENGTH = 50;
 /** Minimum number of characters for account passwords. */
 export const MIN_PASSWORD_LENGTH = 8;
 
+/** Linear velocity to be applied to the player body. */
+export const MOVEMENT_MAGNITUDE = 150 / WORLD_SCALE;
+
+/** Enum for direction of movement. */
 export enum Movement {
   Up,
   Down,

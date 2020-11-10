@@ -61,16 +61,16 @@ export * from './line';
 //     //   // this.playerBody.SetPositionXY(playerPosition.x, playerPosition.y);
 //     //   // Re-apply input to player
 //     //   const vector = new Box2d.b2Vec2();
-//     //   const movementUnit = 90 / WORLD_SCALE;
+//     //   const MOVEMENT_MAGNITUDE = 90 / WORLD_SCALE;
 //     //   if (input.horizontal === Movement.Right) {
-//     //     vector.Set(movementUnit, 0);
+//     //     vector.Set(MOVEMENT_MAGNITUDE, 0);
 //     //   } else if (input.horizontal === Movement.Left) {
-//     //     vector.Set(-movementUnit, 0);
+//     //     vector.Set(-MOVEMENT_MAGNITUDE, 0);
 //     //   }
 //     //   if (input.vertical === Movement.Down) {
-//     //     vector.y = movementUnit;
+//     //     vector.y = MOVEMENT_MAGNITUDE;
 //     //   } else if (input.vertical === Movement.Up) {
-//     //     vector.y = -movementUnit;
+//     //     vector.y = -MOVEMENT_MAGNITUDE;
 //     //   }
 //     //   this.playerBody.SetLinearVelocity(vector);
 //     //   const velocity = this.playerBody.GetLinearVelocity();

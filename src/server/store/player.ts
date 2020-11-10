@@ -1,5 +1,6 @@
 import Box2D from '@plane2d/core';
 import {ServerSocket} from 'src/server/services/websocket';
+import {Movement, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData} from 'src/shared/types';
 
 type PlayerOptions = {
@@ -46,6 +47,7 @@ export class Player {
     this.userId = options.userId;
     this.username = options.username;
     this.body = options.body;
+    this.body.SetUserData(this); // Set circular reference
     this.roomId = options.roomId;
   }
 
@@ -95,6 +97,9 @@ export class Player {
     this.active = false;
   }
 
+  /**
+   * Enqueue inputs to be processed in a single world step update.
+   */
   public enqueueInput(input: BufferInputData): void {
     this.inputQueue.push(input);
     if (this.inputQueue.length > Player.MAX_QUEUE_SIZE) {
@@ -104,10 +109,6 @@ export class Player {
 
   public dequeueInput(): BufferInputData | undefined {
     return this.inputQueue.shift();
-  }
-
-  public processInputs(): void {
-    // POTENTIALLY HANDLE PLAYER INPUTS HERE
   }
 
   // public joinRoom(roomId: string): void {

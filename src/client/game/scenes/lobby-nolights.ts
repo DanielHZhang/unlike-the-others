@@ -104,19 +104,19 @@ export class Lobby extends Phaser.Scene {
 
   setPlayerVelocity() {
     const vector = new Box2D.b2Vec2();
-    const movementUnit = 90 / WORLD_SCALE;
+    const MOVEMENT_MAGNITUDE = 90 / WORLD_SCALE;
 
     // Determine horizontal velocity
     if (this.cursors.right!.isDown) {
-      vector.Set(movementUnit, 0);
+      vector.Set(MOVEMENT_MAGNITUDE, 0);
     } else if (this.cursors.left!.isDown) {
-      vector.Set(-movementUnit, 0);
+      vector.Set(-MOVEMENT_MAGNITUDE, 0);
     }
     // Determine vertical velocity
     if (this.cursors.down!.isDown) {
-      vector.y = movementUnit;
+      vector.y = MOVEMENT_MAGNITUDE;
     } else if (this.cursors.up!.isDown) {
-      vector.y = -movementUnit;
+      vector.y = -MOVEMENT_MAGNITUDE;
     }
 
     this.player[0].SetLinearVelocity(vector);

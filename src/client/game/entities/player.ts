@@ -2,7 +2,7 @@ import Box2D from '@plane2d/core';
 // import * as PIXI from 'pixi.js';
 import {Rectangle} from 'src/client/game/debug';
 import {DynamicEntity} from 'src/client/game/entities/base';
-import {Movement, WORLD_SCALE} from 'src/shared/constants';
+import {Movement, MOVEMENT_MAGNITUDE, WORLD_SCALE} from 'src/shared/constants';
 import {InputData} from 'src/shared/types';
 
 export class PlayerEntity extends DynamicEntity {
@@ -20,18 +20,17 @@ export class PlayerEntity extends DynamicEntity {
 
   public applyLinearImpulse(input: InputData): void {
     const vector = {x: 0, y: 0};
-    const movementUnit = 150 / WORLD_SCALE;
     if (input.horizontal === Movement.Right) {
-      vector.x = movementUnit;
+      vector.x = MOVEMENT_MAGNITUDE;
     }
     if (input.horizontal === Movement.Left) {
-      vector.x = -movementUnit;
+      vector.x = -MOVEMENT_MAGNITUDE;
     }
     if (input.vertical === Movement.Down) {
-      vector.y = movementUnit;
+      vector.y = MOVEMENT_MAGNITUDE;
     }
     if (input.vertical === Movement.Up) {
-      vector.y = -movementUnit;
+      vector.y = -MOVEMENT_MAGNITUDE;
     }
     this.body.SetLinearVelocity(vector);
   }

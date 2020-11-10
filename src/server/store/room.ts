@@ -2,7 +2,7 @@ import {nanoid} from 'nanoid';
 import {Player} from 'src/server/store/player';
 import {AudioChannel} from 'src/server/config/constants';
 import {PhysicsEngine, snapshotModel} from 'src/shared/game';
-import {Movement, WORLD_SCALE} from 'src/shared/constants';
+import {Movement, MOVEMENT_MAGNITUDE} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
 import type {
   BufferInputData,
@@ -260,20 +260,20 @@ export class GameRoom {
           continue;
         }
         const vector = {x: 0, y: 0};
-        const movementUnit = 150 / WORLD_SCALE;
+
         if (input.h === Movement.Right) {
-          vector.x = movementUnit;
+          vector.x = MOVEMENT_MAGNITUDE;
         } else if (input.h === Movement.Left) {
-          vector.x = -movementUnit;
+          vector.x = -MOVEMENT_MAGNITUDE;
         }
         if (input.v === Movement.Down) {
-          vector.y = movementUnit;
+          vector.y = MOVEMENT_MAGNITUDE;
         } else if (input.v === Movement.Up) {
-          vector.y = -movementUnit;
+          vector.y = -MOVEMENT_MAGNITUDE;
         }
         player.body.SetLinearVelocity(vector);
-        // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
         player.lastProcessedInput = input.s;
+        // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
       }
     }
   };
