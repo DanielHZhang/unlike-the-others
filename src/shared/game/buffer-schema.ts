@@ -19,7 +19,7 @@ export const INPUT_SCHEMA_ID = BufferSchema.getIdFromSchema(inputSchema);
  * Individual player world state.
  */
 const player: Record<keyof BufferPlayerData, TypedArray> = {
-  uiid: uint8,
+  id: uint8,
   x: float32,
   y: float32,
 };

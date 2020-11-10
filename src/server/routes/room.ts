@@ -48,9 +48,7 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
         throw new Error('This match has already started!');
       }
 
-      const {id, isGuest, username, hashtag} = req.claims;
-      const derivedUsername = isGuest ? `${username}#${hashtag}` : username;
-      if (room.hasPlayerWithId(id)) {
+      if (room.hasPlayerWithId(req.claims.id)) {
         // Player connected previously
         // TODO: might need to do some stuff here?
       } else {
@@ -59,9 +57,8 @@ export const roomRoutes: FastifyPluginCallback = (fastify, options, next) => {
           reply.status(400);
           throw new Error('This match has already reached full capacity!');
         }
-        const player = Player.create(id, derivedUsername);
-        room.addPlayer(player);
-        fastify.log.info(`Client ${player.id} joined room ${room.id}`);
+        const player = room.addPlayer(req.claims);
+        fastify.log.info(`Client ${player.userId} joined room ${room.id}`);
       }
 
       return {success: true};

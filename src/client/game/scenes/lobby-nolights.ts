@@ -1,8 +1,8 @@
 import Box2D from '@plane2d/core';
 import type {BufferInputData, Keybindings} from 'src/shared/types';
 import {WORLD_SCALE} from 'src/shared/constants';
-import {PhysicsEngine} from 'src/shared/physics-engine';
-import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
+import {PhysicsEngine} from 'src/shared/game/physics-engine';
+import {inputModel, snapshotModel} from 'src/shared/game/buffer-schema';
 import {InputHandler} from 'src/client/game/input';
 
 /* eslint-disable  */

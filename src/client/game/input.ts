@@ -1,8 +1,7 @@
 import Box2D from '@plane2d/core';
-import {connection} from 'src/client/network';
-import {inputModel} from 'src/shared/buffer-schema';
+import {inputModel} from 'src/shared/game';
 import {Movement, WORLD_SCALE} from 'src/shared/constants';
-import type {BufferInputData, BufferSnapshotData, Direction} from 'src/shared/types';
+import type {BufferInputData, BufferSnapshotData} from 'src/shared/types';
 
 export class NetworkInputManager {
   public dequeue(snapshot: BufferSnapshotData, playerBody: Box2D.b2Body): void {

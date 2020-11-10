@@ -2,11 +2,11 @@ import WebSocket from 'ws';
 import {FastifyInstance} from 'fastify';
 import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
-import {bufferEventName, ServerSocket} from 'src/server/services/websocket';
+import {ServerSocket} from 'src/server/services/websocket';
 import {AudioChannel} from 'src/server/config/constants';
 import {BufferInputData, JwtClaims} from 'src/shared/types';
 import {BufferEventType} from 'src/shared/constants';
-import {INPUT_SCHEMA_ID} from 'src/shared/buffer-schema';
+import {INPUT_SCHEMA_ID} from 'src/shared/game/buffer-schema';
 
 const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
   if (typeof value !== 'object') {
@@ -44,13 +44,13 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
 
   const socket = new ServerSocket(raw);
   fastify.websocket.clients.push(socket);
-  fastify.log.info(`Websocket client '${player.id}' connected.`);
+  fastify.log.info(`Websocket client '${player.userId}' connected.`);
 
   /**
    * Handle client websocket disconnect.
    */
   socket.on('close', (code, reason) => {
-    fastify.log.info(`Websocket client ${player.id} closed. Code: ${code} Reason: ${reason}`);
+    fastify.log.info(`Websocket client ${player.userId} closed. Code: ${code} Reason: ${reason}`);
 
     const room = GameRoom.getById(player.roomId);
     if (!room) {
@@ -62,7 +62,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
     if (room.isMatchStarted) {
       player.deactivate();
     } else {
-      Player.deleteById(player.id);
+      Player.deleteById(player.userId);
       room.removePlayer(player);
       if (room.isEmpty()) {
         room.endGame(); // TODO: account for endLobby
@@ -91,7 +91,7 @@ export const websocketConnectionHandler = (fastify: FastifyInstance) => (
       const audioIds = room.getAudioIdsInChannel(AudioChannel.Lobby);
       socket.emit('connectAudioIds', audioIds);
     }
-    fastify.log.info(`Client ${player.id} registered with audioId ${audioId}`);
+    fastify.log.info(`Client ${player.userId} registered with audioId ${audioId}`);
   });
 
   /**

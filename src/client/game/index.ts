@@ -1,12 +1,10 @@
 import * as PIXI from 'pixi.js';
 import {Ease} from 'src/client/game/ease';
-import {PlayerEntity} from 'src/client/game/entities/player';
 import {KeyboardManager} from 'src/client/game/keyboard';
-import {ClientSocket} from 'src/client/network';
-import {inputModel, snapshotModel} from 'src/shared/buffer-schema';
-import {BufferEventType, Movement, WORLD_SCALE} from 'src/shared/constants';
-import {PhysicsEngine} from 'src/shared/physics-engine';
-import {BufferInputData, BufferSnapshotData, InputData, Keybindings} from 'src/shared/types';
+import {PlayerEntity} from 'src/client/game/entities/player';
+import {PhysicsEngine, inputModel, snapshotModel} from 'src/shared/game';
+import type {ClientSocket} from 'src/client/network';
+import type {BufferInputData, BufferSnapshotData, InputData, Keybindings} from 'src/shared/types';
 
 type GameOptions = {
   view: HTMLCanvasElement;

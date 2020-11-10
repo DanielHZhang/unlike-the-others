@@ -1,7 +1,7 @@
 // import {ServerChannel} from '@geckos.io/server';
 import {FastifyInstance} from 'fastify';
 import {GameRoom, Player} from 'src/server/store';
-import {inputModel} from 'src/shared/buffer-schema';
+import {inputModel} from 'src/shared/game';
 
 export const webrtcConnectionHandler = (fastify: FastifyInstance) => (
   channel: ServerChannel
@@ -20,13 +20,13 @@ export const webrtcConnectionHandler = (fastify: FastifyInstance) => (
 
   player.channel = channel;
 
-  fastify.log.info(`WebRTC client '${player.id}' connected.`);
+  fastify.log.info(`WebRTC client '${player.userId}' connected.`);
 
   /**
    * Handle client webRTC disconnect.
    */
   channel.onDisconnect((reason) => {
-    fastify.log.info(`WebRTC client '${player.id}' ${reason}`);
+    fastify.log.info(`WebRTC client '${player.userId}' ${reason}`);
     player.channel = undefined; // Remove reference to this channel
   });
 

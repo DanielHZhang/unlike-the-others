@@ -1,7 +1,5 @@
 // Shared/agnostic types
 
-import {BufferEventType} from 'src/shared/constants';
-
 export type AnyFunction = (...args: any[]) => any;
 
 export type Keybindings = {
@@ -38,9 +36,9 @@ export type AccessTokenData = {accessToken: string; claims: JwtClaims};
 // };
 
 export type BufferPlayerData = {
-  uiid: number;
-  x: number;
-  y: number;
+  id: number; // Temp game id of the player
+  x: number; // X position
+  y: number; // Y position
 };
 
 export type BufferInputData = {

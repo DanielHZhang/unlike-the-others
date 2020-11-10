@@ -20,7 +20,7 @@ export const webrtcPlugin = createFastifyPlugin('geckos-webrtc', (fastify) => {
         if (!player) {
           return false;
         }
-        return Promise.resolve({id: player.id});
+        return Promise.resolve({id: player.userId});
       } catch (error) {
         return false;
       }

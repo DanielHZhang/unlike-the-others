@@ -1,8 +1,6 @@
 import WebSocket from 'ws';
 import {BufferSchema} from '@supersede/buffer-schema';
-import {inputModel, INPUT_SCHEMA_ID} from 'src/shared/buffer-schema';
-import {BufferEventType} from 'src/shared/constants';
-import {isObjectEmpty} from 'src/server/utils/object';
+import {inputModel, INPUT_SCHEMA_ID} from 'src/shared/game';
 import type {AnyFunction} from 'src/shared/types';
 
 export class ServerSocket {
@@ -12,10 +10,18 @@ export class ServerSocket {
    * 500k characters = 1 MB
    */
   private static readonly MAX_MESSAGE_SIZE = 5e5;
+
+  /**
+   * Defines if the socket connection is still open.
+   */
+  public isAlive = true;
+
+  /**
+   * Reference to the underlying `ws.WebSocket` object.
+   */
   private connection: WebSocket;
   private listeners = new Map<string | number, AnyFunction[]>();
   private isDisposed = false;
-  public isAlive = true;
 
   public constructor(socket: WebSocket) {
     this.connection = socket;
@@ -89,11 +95,14 @@ export class ServerSocket {
   }
 
   public emit(eventName: string, data?: unknown, status = 200): void {
-    if (this.isDisposed) {
-      throw new Error('Attempting to emit a message on a disposed socket.');
-    }
+    this.assertIsOpen();
     const stringified = JSON.stringify([eventName, data, status]);
     this.connection.send(stringified);
+  }
+
+  public emitRaw(data: ArrayBuffer): void {
+    this.assertIsOpen();
+    this.connection.send(data);
   }
 
   /**
@@ -107,10 +116,18 @@ export class ServerSocket {
     this.listeners.clear();
   }
 
-  /** Ping the client for a response to keep the heartbeat alive. */
+  /**
+   * Ping the client for a response to keep the heartbeat alive.
+   */
   public ping(): void {
     this.isAlive = false;
     this.connection.ping();
+  }
+
+  private assertIsOpen() {
+    if (!this.isAlive || this.isDisposed) {
+      throw new Error('Attempting to emit a message on a disposed socket.');
+    }
   }
 
   private dispatch(eventName: string, ...dataArgs: any[]): void {

@@ -2,16 +2,32 @@ import Box2D from '@plane2d/core';
 import {ServerSocket} from 'src/server/services/websocket';
 import type {BufferInputData} from 'src/shared/types';
 
+type PlayerOptions = {
+  body: Box2D.b2Body;
+  id: number;
+  roomId: string;
+  userId: string;
+  username: string;
+};
+
 export class Player {
   private static readonly instances = new Map<string, Player>();
   public static readonly MAX_QUEUE_SIZE = 20;
   public readonly username: string;
-  public id: string;
+
+  /**
+   * Id assigned to the player per game.
+   */
+  public id: number;
+
+  /**
+   * Corresponds with the id field in the JWT claims.
+   */
+  public userId: string;
   public lastProcessedInput = 0;
-  public uiid?: number; // Unsigned integer id
   public audioId?: string;
-  public body?: Box2D.b2Body;
-  public roomId?: string;
+  public body: Box2D.b2Body;
+  public roomId: string;
   public socket?: ServerSocket;
   private active = false;
   private alive = true;
@@ -23,19 +39,22 @@ export class Player {
   /**
    * Private constructor to prevent instances from being created outside of static methods
    * @param socket Reference to the socket object
-   * @param id Id of the room, if any
+   * @param userId Id of the room, if any
    */
-  private constructor(id: string, username: string) {
-    this.id = id;
-    this.username = username;
+  private constructor(options: PlayerOptions) {
+    this.id = options.id;
+    this.userId = options.userId;
+    this.username = options.username;
+    this.body = options.body;
+    this.roomId = options.roomId;
   }
 
   /**
    * Creates a new player instance.
    */
-  public static create(id: string, username: string): Player {
-    const player = new Player(id, username);
-    Player.instances.set(player.id, player);
+  public static create(options: PlayerOptions): Player {
+    const player = new Player(options);
+    Player.instances.set(player.userId, player);
     return player;
   }
 
@@ -91,20 +110,20 @@ export class Player {
     // POTENTIALLY HANDLE PLAYER INPUTS HERE
   }
 
-  public joinRoom(roomId: string): void {
-    this.roomId = roomId;
-    // this.active = true;
-    // this.socket.join(roomId);
-  }
+  // public joinRoom(roomId: string): void {
+  //   this.roomId = roomId;
+  //   // this.active = true;
+  //   // this.socket.join(roomId);
+  // }
 
-  public leaveRoom(audioIds: string[]): void {
-    // this.socket.emit('connectAudioIds', audioIds);
-    // this.socket.leave(this.roomId!);
-    this.active = false;
-    this.roomId = undefined;
-    this.uiid = undefined;
-    this.inputQueue = []; // Drop all input when leaving room
-  }
+  // public leaveRoom(audioIds: string[]): void {
+  //   // this.socket.emit('connectAudioIds', audioIds);
+  //   // this.socket.leave(this.roomId!);
+  //   this.active = false;
+  //   // this.roomId = undefined;
+  //   // this.id = undefined;
+  //   this.inputQueue = []; // Drop all input when leaving room
+  // }
 
   public kill(audioIds: string[]): void {
     this.alive = false;
