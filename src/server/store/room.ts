@@ -195,7 +195,11 @@ export class GameRoom {
     }
   }
 
-  public startGame() {
+  public startLobby(): void {
+    this.update();
+  }
+
+  public startGame(): void {
     this.isMatchStarted = true;
     this.update();
     const audioIds = this.getAudioIdsInChannel(AudioChannel.Silent);
@@ -256,22 +260,11 @@ export class GameRoom {
       let input: BufferInputData | undefined;
       while ((input = player.dequeueInput()) !== undefined) {
         // Check if input contained movement
-        if (input.h < 0 && input.v < 0) {
+        if (input.h === Movement.None && input.v === Movement.None) {
           continue;
         }
-        const vector = {x: 0, y: 0};
-
-        if (input.h === Movement.Right) {
-          vector.x = MOVEMENT_MAGNITUDE;
-        } else if (input.h === Movement.Left) {
-          vector.x = -MOVEMENT_MAGNITUDE;
-        }
-        if (input.v === Movement.Down) {
-          vector.y = MOVEMENT_MAGNITUDE;
-        } else if (input.v === Movement.Up) {
-          vector.y = -MOVEMENT_MAGNITUDE;
-        }
-        player.body.SetLinearVelocity(vector);
+        console.log('tick:', this.tick, 'processing input:', input);
+        player.applyLinearImpulse(input.h, input.v);
         player.lastProcessedInput = input.s;
         // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
       }

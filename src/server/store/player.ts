@@ -1,6 +1,6 @@
 import Box2D from '@plane2d/core';
 import {ServerSocket} from 'src/server/services/websocket';
-import {Movement, WORLD_SCALE} from 'src/shared/constants';
+import {Movement, MOVEMENT_MAGNITUDE, WORLD_SCALE} from 'src/shared/constants';
 import type {BufferInputData} from 'src/shared/types';
 
 type PlayerOptions = {
@@ -109,6 +109,21 @@ export class Player {
 
   public dequeueInput(): BufferInputData | undefined {
     return this.inputQueue.shift();
+  }
+
+  public applyLinearImpulse(horizontal: Movement, vertical: Movement): void {
+    const vector = {x: 0, y: 0};
+    if (horizontal === Movement.Right) {
+      vector.x = MOVEMENT_MAGNITUDE;
+    } else if (horizontal === Movement.Left) {
+      vector.x = -MOVEMENT_MAGNITUDE;
+    }
+    if (vertical === Movement.Down) {
+      vector.y = MOVEMENT_MAGNITUDE;
+    } else if (vertical === Movement.Up) {
+      vector.y = -MOVEMENT_MAGNITUDE;
+    }
+    this.body.SetLinearVelocity(vector);
   }
 
   // public joinRoom(roomId: string): void {

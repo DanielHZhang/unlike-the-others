@@ -39,6 +39,7 @@ export const MOVEMENT_MAGNITUDE = 150 / WORLD_SCALE;
 
 /** Enum for direction of movement. */
 export enum Movement {
+  None,
   Up,
   Down,
   Left,

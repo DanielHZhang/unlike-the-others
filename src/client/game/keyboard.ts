@@ -35,18 +35,18 @@ export class KeyboardManager {
    * Check if any of the keys controlling movement are down. Ensure that only one
    * direction per axis can be moved at the same time.
    */
-  public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Movement | -1 {
+  public isMovementKeyDown(axis: 'horizontal' | 'vertical'): Movement {
     // Check vertical
     if (axis === 'vertical') {
       if (this.actionToState.get('up')) {
         if (this.actionToState.get('down')) {
-          return -1;
+          return Movement.None;
         }
         return Movement.Up;
       }
       if (this.actionToState.get('down')) {
         if (this.actionToState.get('up')) {
-          return -1;
+          return Movement.None;
         }
         return Movement.Down;
       }
@@ -54,17 +54,17 @@ export class KeyboardManager {
     // Check horizontal
     if (this.actionToState.get('left')) {
       if (this.actionToState.get('right')) {
-        return -1;
+        return Movement.None;
       }
       return Movement.Left;
     }
     if (this.actionToState.get('right')) {
       if (this.actionToState.get('left')) {
-        return -1;
+        return Movement.None;
       }
       return Movement.Right;
     }
-    return -1;
+    return Movement.None;
   }
 
   public processKeyDown(code: string, key: string): void {

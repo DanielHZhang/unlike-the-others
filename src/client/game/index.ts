@@ -5,6 +5,7 @@ import {PlayerEntity} from 'src/client/game/entities/player';
 import {PhysicsEngine, inputModel, snapshotModel} from 'src/shared/game';
 import type {ClientSocket} from 'src/client/network';
 import type {BufferInputData, BufferSnapshotData, InputData, Keybindings} from 'src/shared/types';
+import {Movement} from 'src/shared/constants';
 
 type GameOptions = {
   view: HTMLCanvasElement;
@@ -230,11 +231,11 @@ export class Game extends PIXI.Application {
     const input: InputData = {
       horizontal: this.keyboard.isMovementKeyDown('horizontal'),
       vertical: this.keyboard.isMovementKeyDown('vertical'),
-      sequenceNumber: -1,
+      sequenceNumber: 0,
     };
 
     // Only emit if horizontal or vertical axes have been assigned values
-    if (input.horizontal < 0 && input.vertical < 0) {
+    if (input.horizontal === Movement.None && input.vertical === Movement.None) {
       return;
     }
     input.sequenceNumber = this.sequenceNumber++;
@@ -250,6 +251,7 @@ export class Game extends PIXI.Application {
       h: input.horizontal,
       v: input.vertical,
     };
+    console.log('serializing:', serialize);
     this.socket.emitRaw(inputModel.toBuffer(serialize));
     // this.enqueueInput(input);
   };
