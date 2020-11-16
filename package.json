@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@emotion/cache": "^11.0.0-rc.0",
-    "@emotion/is-prop-valid": "^0.8.8",
+    "@emotion/is-prop-valid": "^1.0.0",
     "@emotion/react": "^11.0.0-rc.0",
     "@emotion/styled": "^11.0.0-rc.0",
     "@plane2d/core": "^0.7.9",
