@@ -2,15 +2,10 @@ import {nanoid} from 'nanoid';
 import {Player} from 'src/server/store/player';
 import {AudioChannel} from 'src/server/config/constants';
 import {PhysicsEngine, snapshotModel} from 'src/shared/game';
-import {Movement, MOVEMENT_MAGNITUDE} from 'src/shared/constants';
+import {Movement} from 'src/shared/constants';
 import {findSmallestMissingInt} from 'src/server/utils/array';
-import type {
-  BufferInputData,
-  BufferPlayerData,
-  BufferSnapshotData,
-  JwtClaims,
-} from 'src/shared/types';
 import {hrtimeToMs} from 'src/server/utils/time';
+import type {PlayerData, SnapshotData, JwtClaims, InputData} from 'src/shared/types';
 
 export type Voting = {
   timeRemaining: number;
@@ -236,16 +231,22 @@ export class GameRoom {
     // log('info', `End voting for room ${this.id}`);
   }
 
+  prevTime: bigint;
+
   private update = () => {
     this.updateTimeout = setTimeout(this.update, PhysicsEngine.FIXED_TIMESTEP);
 
     // Find the delta time since the previous update
-    const delta = hrtimeToMs(process.hrtime(this.prevHrtime));
-    this.prevHrtime = process.hrtime();
+    // const bigint = process.hrtime.bigint();
+    // const delta = hrtimeToMs(process.hrtime(this.prevHrtime));
+    // this.prevHrtime = process.hrtime();
 
+    const now = process.hrtime.bigint();
+    const delta = Number(now - this.prevTime) / 1e6;
     // Perform the update of world state
     this.engine.fixedStep(delta);
     this.emitWorldState();
+    this.prevTime = now;
 
     // const now = hrtimeMs();
     // const delta = now - this.previous; // Delta update time in milliseconds
@@ -257,15 +258,15 @@ export class GameRoom {
 
   private processInput = () => {
     for (const player of this.players) {
-      let input: BufferInputData | undefined;
+      let input: InputData | undefined;
       while ((input = player.dequeueInput()) !== undefined) {
         // Check if input contained movement
-        if (input.h === Movement.None && input.v === Movement.None) {
+        if (input.horizontal === Movement.None && input.vertical === Movement.None) {
           continue;
         }
         console.log('tick:', this.tick, 'processing input:', input);
-        player.applyLinearImpulse(input.h, input.v);
-        player.lastProcessedInput = input.s;
+        player.applyLinearImpulse(input.horizontal, input.vertical);
+        player.lastProcessedInput = input.sequenceNumber;
         // console.log(`Received input: ${input}, Velocity: (${vel.x}, ${vel.y})`);
       }
     }
@@ -281,7 +282,7 @@ export class GameRoom {
       if (!player.socket || !player.id) {
         continue; // Player has disconnected or left the room
       }
-      const playerEntities: BufferPlayerData[] = [];
+      const playerEntities: PlayerData[] = [];
       const position = player.body.GetPosition();
       const bottomLeft = {x: position.x - VIEW_DISTANCE_X / 2, y: position.y - VIEW_DISTANCE_Y / 2};
       const topRight = {x: position.x + VIEW_DISTANCE_X / 2, y: position.y + VIEW_DISTANCE_Y / 2};
@@ -312,10 +313,10 @@ export class GameRoom {
           });
         }
       }
-      const state: BufferSnapshotData = {
-        s: player.lastProcessedInput,
-        t: this.tick,
-        p: playerEntities,
+      const state: SnapshotData = {
+        sequenceNumber: player.lastProcessedInput,
+        tick: this.tick,
+        players: playerEntities,
       };
       console.log('State:', state);
       player.socket.emitRaw(snapshotModel.toBuffer(state));

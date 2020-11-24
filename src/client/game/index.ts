@@ -3,9 +3,9 @@ import {Ease} from 'src/client/game/ease';
 import {KeyboardManager} from 'src/client/game/keyboard';
 import {PlayerEntity} from 'src/client/game/entities/player';
 import {PhysicsEngine, inputModel, snapshotModel} from 'src/shared/game';
-import type {ClientSocket} from 'src/client/network';
-import type {BufferInputData, BufferSnapshotData, InputData, Keybindings} from 'src/shared/types';
 import {Movement} from 'src/shared/constants';
+import type {ClientSocket} from 'src/client/network';
+import type {SnapshotData, InputData, Keybindings} from 'src/shared/types';
 
 type GameOptions = {
   view: HTMLCanvasElement;
@@ -123,19 +123,19 @@ export class Game extends PIXI.Application {
   // }
 
   public receiveNetwork(data: ArrayBuffer): void {
-    const snapshot = snapshotModel.fromBuffer(data) as BufferSnapshotData;
+    const snapshot = snapshotModel.fromBuffer(data) as SnapshotData;
     // console.log('Data from update:', snapshot);
 
     let i = 0;
 
     // Set authoritative position received by the server
-    const playerPosition = snapshot.p[0];
+    const playerPosition = snapshot.players[0];
     this.player.body.SetPositionXY(playerPosition.x, playerPosition.y);
 
     // Remove all inputs that have already been processed by the server
     while (i < this.pendingInputs.length) {
       const input = this.pendingInputs[i];
-      if (input.sequenceNumber <= snapshot.s) {
+      if (input.sequenceNumber <= snapshot.sequenceNumber) {
         this.pendingInputs.splice(i, 1); // Remove input from array
       } else {
         // Re-apply input to player
@@ -229,15 +229,16 @@ export class Game extends PIXI.Application {
 
   private processInput = () => {
     const input: InputData = {
+      sequenceNumber: this.sequenceNumber,
       horizontal: this.keyboard.isMovementKeyDown('horizontal'),
       vertical: this.keyboard.isMovementKeyDown('vertical'),
-      sequenceNumber: 0,
     };
 
     // Only emit if horizontal or vertical axes have been assigned values
     if (input.horizontal === Movement.None && input.vertical === Movement.None) {
       return;
     }
+
     input.sequenceNumber = this.sequenceNumber++;
 
     // DEBUG:
@@ -246,17 +247,11 @@ export class Game extends PIXI.Application {
 
     this.pendingInputs.push(input);
 
-    const serialize: BufferInputData = {
-      s: input.sequenceNumber,
-      h: input.horizontal,
-      v: input.vertical,
-    };
-    console.log('serializing:', serialize);
-    this.socket.emitRaw(inputModel.toBuffer(serialize));
-    // this.enqueueInput(input);
+    const serialized = inputModel.toBuffer(input);
+    console.log('Input:', input);
+    console.log('from buffer:', inputModel.fromBuffer(serialized));
+    this.socket.emitRaw(serialized);
   };
-
-  private serializeInput() {}
 
   // private enqueueInput(input: InputData): void {
   // }

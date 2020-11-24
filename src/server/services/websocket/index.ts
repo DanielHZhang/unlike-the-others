@@ -55,9 +55,9 @@ export class ServerSocket {
         }
         // Create ArrayBuffer from raw buffer
         const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-        const bufferId = BufferSchema.getIdFromBuffer(arrayBuffer);
-        if (bufferId) {
-          this.dispatch(bufferId, arrayBuffer);
+        const schemaId = BufferSchema.getIdFromBuffer(arrayBuffer);
+        if (schemaId) {
+          this.dispatch(schemaId, arrayBuffer);
         }
       }
     });

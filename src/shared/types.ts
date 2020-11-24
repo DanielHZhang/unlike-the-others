@@ -35,22 +35,16 @@ export type AccessTokenData = {accessToken: string; claims: JwtClaims};
 //   // ts: number;
 // };
 
-export type BufferPlayerData = {
+export type PlayerData = {
   id: number; // Temp game id of the player
   x: number; // X position
   y: number; // Y position
 };
 
-export type BufferInputData = {
-  s: number; // Sequence number
-  h: number; // Horizontal movement
-  v: number; // Vertical movement
-};
-
-export type BufferSnapshotData = {
-  s: number; // Sequence number
-  t: number; // Tick number
-  p: BufferPlayerData[]; // Players data array
+export type SnapshotData = {
+  sequenceNumber: number; // Sequence number
+  tick: number; // Tick number
+  players: PlayerData[]; // Players data array
 };
 
 // Server-side types

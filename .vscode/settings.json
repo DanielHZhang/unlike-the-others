@@ -26,7 +26,6 @@
     "**/.git/subtree-cache/**": true,
     "**/.hg/store/**": true
   },
-  "javascript.implicitProjectConfig.checkJs": true,
   "javascript.format.insertSpaceBeforeFunctionParenthesis": false,
   "javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
   "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,

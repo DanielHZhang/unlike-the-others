@@ -4,9 +4,8 @@ import {IncomingMessage} from 'http';
 import {GameRoom, Player} from 'src/server/store';
 import {ServerSocket} from 'src/server/services/websocket';
 import {AudioChannel} from 'src/server/config/constants';
-import {BufferInputData, JwtClaims} from 'src/shared/types';
-import {BufferEventType} from 'src/shared/constants';
-import {inputModel, INPUT_SCHEMA_ID} from 'src/shared/game/buffer-schema';
+import {JwtClaims} from 'src/shared/types';
+import {inputModel} from 'src/shared/game';
 
 const isPayloadValid = <T extends Record<string, any>>(value: any, schema: T): value is T => {
   if (typeof value !== 'object') {
