@@ -27,7 +27,7 @@
     "dayjs": "^1.9.6",
     "dotenv": "^8.2.0",
     "fastify": "^3.8.0",
-    "fastify-cookie": "^4.1.0",
+    "fastify-cookie": "^5.1.0",
     "fastify-plugin": "^3.0.0",
     "fastify-static": "^3.3.0",
     "fastify-xsurf": "^1.0.9",
