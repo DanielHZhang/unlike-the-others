@@ -41,7 +41,7 @@
     "pixi.js": "^5.3.3",
     "react": "^17.0.1",
     "react-dom": "npm:@hot-loader/react-dom",
-    "react-hook-form": "^6.11.5",
+    "react-hook-form": "^7.3.6",
     "recoil": "^0.1.2",
     "superbuffer": "^1.0.1",
     "ts-node": "^9.0.0",
