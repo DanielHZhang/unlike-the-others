@@ -42,7 +42,7 @@
     "react": "^17.0.1",
     "react-dom": "npm:@hot-loader/react-dom",
     "react-hook-form": "^6.11.5",
-    "recoil": "^0.1.2",
+    "recoil": "^0.3.0",
     "superbuffer": "^1.0.1",
     "ts-node": "^9.0.0",
     "tsparticles": "^1.18.11",
