@@ -1,8 +1,25 @@
-# sickest-game-ever-OMEGALUL
+# Unlike the Others
+
+In-browser multiplayer social deduction game inspired by Among Us.
+
+## Tech Stack
+
+Client:
+
+- React.js for authentication pages and in-game HUD
+- Recoil for storing global state
+- Box2D physics engine 
+- Custom client-side prediction game engine
+
+Server:
+
+- Node.js authoritative game servers simulating the world at 16ms ticks
+- WebRTC DataChannel UDP socket connections to clients
+- Protobuf-like compressed JSON for serialized network communication 
 
 ## System Flows
 
-### Naive Authentication
+### Authentication
 
 1. Client receives and loads webpage
 2. Client checks `localStorage` for saved JWT and sends to server
@@ -20,7 +37,3 @@ Implementation allows for auto-reconnect of players, without requiring explicit 
 2. On movement, emitted event received by UDP handler
 3. Find room and forward input to room handler
 4. Room handler takes care of input and uses channel to emit snapshot state of physics world back to client
-
-## Notes:
-
-`Phaser.Input.Keyboard.KeyCodes` corresponds with `event.keyCode` in Keyboard events
