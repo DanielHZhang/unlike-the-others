@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import {BufferSchema} from '@supersede/buffer-schema';
+// import {BufferSchema} from '@supersede/buffer-schema';
 import type {AnyFunction} from 'src/shared/types';
 
 export class ServerSocket {

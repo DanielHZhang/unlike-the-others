@@ -1,7 +1,6 @@
 # Custom
 .build/
 .local/
-yarn.lock
 
 # Logs
 logs

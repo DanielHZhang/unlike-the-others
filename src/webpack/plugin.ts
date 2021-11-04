@@ -15,7 +15,7 @@ export const webpackHmrPlugin = createFastifyPlugin('webpackHmr', async (fastify
 
   // Set up webpack-dev-middleware
   const devMiddleware = WebpackDevMiddleware(compiler, {
-    logLevel: 'error',
+    // logLevel: 'error',
     publicPath,
   });
   fastify.use(devMiddleware);
